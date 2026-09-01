@@ -53,25 +53,30 @@ export async function apiFetch<T>(
     ...(options.headers as Record<string, string>),
   };
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-
   let response: Response;
-  try {
-    response = await fetch(`${API_URL}${path}`, {
-      ...options,
-      headers,
-      signal: controller.signal,
-    });
-  } catch (err: unknown) {
-    clearTimeout(timeout);
-    if (err instanceof Error && err.name === "AbortError") {
-      throw new Error("Request timed out — is the backend running?");
+  const maxAttempts = 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const controller = new AbortController();
+    const timeoutMs = attempt === 1 ? 30000 : 60000;
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      response = await fetch(`${API_URL}${path}`, {
+        ...options,
+        headers,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      break;
+    } catch (err: unknown) {
+      clearTimeout(timeout);
+      if (attempt < maxAttempts) continue;
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new Error("Request timed out — the backend may be starting up. Please try again.");
+      }
+      const message = err instanceof Error ? err.message : "unknown error";
+      throw new Error(`Network error — backend may be offline (${message})`);
     }
-    const message = err instanceof Error ? err.message : "unknown error";
-    throw new Error(`Network error — backend may be offline (${message})`);
   }
-  clearTimeout(timeout);
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));

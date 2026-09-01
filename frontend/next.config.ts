@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 
-const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const isMobileBuild = process.env.CAPACITOR_BUILD === "true";
 
 const nextConfig: NextConfig = {
@@ -8,6 +7,9 @@ const nextConfig: NextConfig = {
   ...(!isMobileBuild
     ? {
         async rewrites() {
+          const backendUrl =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+          console.log("[next.config] Rewrite destination:", backendUrl);
           return [
             {
               source: "/api/:path*",
