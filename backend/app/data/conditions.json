@@ -1,0 +1,399 @@
+[
+  {
+    "condition_name": "Common Cold (Acute Nasopharyngitis)",
+    "icd_code": "J00",
+    "symptoms": ["runny nose", "sneezing", "sore throat", "mild cough", "nasal congestion", "low-grade fever", "body aches", "watery eyes"],
+    "differential_diagnosis": ["Allergic rhinitis", "Influenza", "COVID-19", "Sinusitis"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "500mg", "frequency": "every 4-6 hours", "duration": "3-5 days", "note": "for fever and body ache"},
+      {"drug": "Cetirizine", "dose": "10mg", "frequency": "once daily", "duration": "5-7 days", "note": "for runny nose and sneezing"},
+      {"drug": "Steam inhalation", "dose": "10-15 minutes", "frequency": "2-3 times daily", "duration": "until relief", "note": "for nasal congestion"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Chlorpheniramine", "dose": "4mg", "frequency": "every 6-8 hours", "duration": "3-5 days", "note": "alternative antihistamine, causes drowsiness"},
+      {"drug": "Oxymetazoline nasal spray", "dose": "2 sprays each nostril", "frequency": "twice daily", "duration": "max 3 days", "note": "for severe congestion only"}
+    ],
+    "contraindications": ["Avoid antibiotics unless bacterial superinfection suspected", "No aspirin in children under 18"],
+    "red_flags": ["Fever >103°F for >3 days", "Difficulty breathing", "Severe headache", "Symptoms worsening after 10 days"],
+    "when_to_refer": "If symptoms persist beyond 10 days, fever >103°F, difficulty breathing, or immunocompromised patient",
+    "source": "WHO Essential Medicines List / Indian National Formulary"
+  },
+  {
+    "condition_name": "Influenza (Flu)",
+    "icd_code": "J11",
+    "symptoms": ["high fever", "severe body aches", "headache", "fatigue", "dry cough", "sore throat", "chills", "sudden onset"],
+    "differential_diagnosis": ["Common cold", "COVID-19", "Dengue fever", "Malaria", "Typhoid"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "500-1000mg", "frequency": "every 6 hours", "duration": "5-7 days", "note": "for fever and pain"},
+      {"drug": "Oseltamivir", "dose": "75mg", "frequency": "twice daily", "duration": "5 days", "note": "if started within 48 hours of symptom onset"},
+      {"drug": "Adequate hydration", "dose": "2-3 liters/day", "frequency": "throughout the day", "duration": "until recovery", "note": "ORS or fluids"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Dextromethorphan", "dose": "15-30mg", "frequency": "every 6-8 hours", "duration": "5 days", "note": "for persistent dry cough"}
+    ],
+    "contraindications": ["Avoid aspirin in children (Reye's syndrome risk)", "No NSAIDs if dengue suspected"],
+    "red_flags": ["Difficulty breathing", "Persistent chest pain", "Confusion", "Severe vomiting", "Symptoms improving then worsening"],
+    "when_to_refer": "Elderly >65, pregnant women, immunocompromised, chronic diseases, no improvement in 5 days",
+    "source": "WHO Influenza Guidelines / ICMR"
+  },
+  {
+    "condition_name": "Acute Gastroenteritis (Stomach Flu / Food Poisoning)",
+    "icd_code": "A09",
+    "symptoms": ["diarrhea", "vomiting", "nausea", "abdominal cramps", "fever", "loss of appetite", "dehydration", "watery stools"],
+    "differential_diagnosis": ["Irritable bowel syndrome", "Inflammatory bowel disease", "Appendicitis", "Cholera", "Typhoid"],
+    "first_line_treatment": [
+      {"drug": "ORS (Oral Rehydration Salts)", "dose": "1 packet in 1 liter water", "frequency": "sip frequently", "duration": "until diarrhea resolves", "note": "most important treatment"},
+      {"drug": "Zinc", "dose": "20mg", "frequency": "once daily", "duration": "10-14 days", "note": "speeds recovery, especially in children"},
+      {"drug": "Ondansetron", "dose": "4mg", "frequency": "every 8 hours as needed", "duration": "1-2 days", "note": "for persistent vomiting"},
+      {"drug": "Racecadotril", "dose": "100mg", "frequency": "three times daily", "duration": "until diarrhea stops (max 7 days)", "note": "antisecretory, reduces fluid loss"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Loperamide", "dose": "4mg initial, then 2mg after each loose stool", "frequency": "max 16mg/day", "duration": "until stools form", "note": "NOT for bloody diarrhea or fever"},
+      {"drug": "Ciprofloxacin", "dose": "500mg", "frequency": "twice daily", "duration": "3-5 days", "note": "only if bacterial cause suspected (bloody stools, high fever)"}
+    ],
+    "contraindications": ["No loperamide in bloody diarrhea or high fever", "No antibiotics for viral gastroenteritis"],
+    "red_flags": ["Blood in stool", "Severe dehydration (no urine, dry mouth, sunken eyes)", "High fever >102°F", "Symptoms >3 days", "Inability to keep fluids down"],
+    "when_to_refer": "Severe dehydration, bloody stools, no improvement in 48-72 hours, infants/elderly",
+    "source": "WHO Diarrhoea Treatment Guidelines / IAP"
+  },
+  {
+    "condition_name": "Tension Headache",
+    "icd_code": "G44.2",
+    "symptoms": ["bilateral headache", "pressing/tightening quality", "mild to moderate intensity", "not worsened by physical activity", "no nausea", "neck stiffness", "stress-related"],
+    "differential_diagnosis": ["Migraine", "Cluster headache", "Sinusitis headache", "Medication overuse headache", "Hypertension"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "500-1000mg", "frequency": "every 6 hours as needed", "duration": "not more than 3 days/week", "note": "first choice for mild-moderate"},
+      {"drug": "Ibuprofen", "dose": "400mg", "frequency": "every 8 hours with food", "duration": "not more than 3 days/week", "note": "if paracetamol insufficient"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Naproxen", "dose": "250-500mg", "frequency": "twice daily with food", "duration": "max 5 days", "note": "alternative NSAID"},
+      {"drug": "Amitriptyline", "dose": "10-25mg", "frequency": "once daily at bedtime", "duration": "3-6 months", "note": "for chronic/frequent tension headache (prophylaxis)"}
+    ],
+    "contraindications": ["Avoid opioids", "Limit analgesic use to <15 days/month to prevent medication overuse headache"],
+    "red_flags": ["Thunderclap headache (worst headache of life)", "Fever with neck stiffness", "Neurological symptoms", "New headache after age 50", "Progressive worsening"],
+    "when_to_refer": "Frequent episodes (>15 days/month), neurological symptoms, new onset after 50, not responding to treatment",
+    "source": "WHO Model Formulary / IHS Classification"
+  },
+  {
+    "condition_name": "Migraine",
+    "icd_code": "G43",
+    "symptoms": ["unilateral throbbing headache", "nausea", "vomiting", "photophobia", "phonophobia", "aura", "moderate to severe pain", "worsened by physical activity"],
+    "differential_diagnosis": ["Tension headache", "Cluster headache", "Sinusitis", "Intracranial pathology", "Subarachnoid hemorrhage"],
+    "first_line_treatment": [
+      {"drug": "Sumatriptan", "dose": "50-100mg", "frequency": "can repeat after 2 hours (max 200mg/day)", "duration": "as needed per attack", "note": "most effective if taken early"},
+      {"drug": "Ibuprofen", "dose": "400-600mg", "frequency": "with onset of symptoms", "duration": "single dose per attack", "note": "for mild-moderate attacks"},
+      {"drug": "Domperidone", "dose": "10mg", "frequency": "with analgesic", "duration": "per attack", "note": "for nausea, also improves drug absorption"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Naproxen", "dose": "500mg", "frequency": "at onset, can repeat 250mg after 8h", "duration": "per attack", "note": "alternative to ibuprofen"},
+      {"drug": "Propranolol", "dose": "40-80mg", "frequency": "twice daily", "duration": "3-6 months minimum", "note": "prophylaxis if ≥4 attacks/month"},
+      {"drug": "Topiramate", "dose": "25-50mg", "frequency": "twice daily", "duration": "3-6 months", "note": "alternative prophylaxis"}
+    ],
+    "contraindications": ["Triptans contraindicated in cardiovascular disease, uncontrolled hypertension", "No ergotamine + triptan combination"],
+    "red_flags": ["First/worst headache ever", "New neurological deficits", "Fever", "Papilledema", "Onset after 50 years"],
+    "when_to_refer": "Frequent attacks (>4/month), aura lasting >1 hour, not responding to 2+ preventives, new neurological signs",
+    "source": "NICE Migraine Guidelines / WHO"
+  },
+  {
+    "condition_name": "Urinary Tract Infection (UTI) - Uncomplicated",
+    "icd_code": "N39.0",
+    "symptoms": ["burning urination", "frequent urination", "urgency", "suprapubic pain", "cloudy urine", "foul-smelling urine", "hematuria"],
+    "differential_diagnosis": ["Vaginitis", "Sexually transmitted infections", "Interstitial cystitis", "Pyelonephritis", "Kidney stones"],
+    "first_line_treatment": [
+      {"drug": "Nitrofurantoin", "dose": "100mg", "frequency": "twice daily", "duration": "5 days", "note": "preferred first-line, take with food"},
+      {"drug": "Fosfomycin", "dose": "3g", "frequency": "single dose", "duration": "one time", "note": "convenient single-dose option"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Ciprofloxacin", "dose": "500mg", "frequency": "twice daily", "duration": "3 days", "note": "if first-line agents not suitable"},
+      {"drug": "Amoxicillin-Clavulanate", "dose": "625mg", "frequency": "twice daily", "duration": "5-7 days", "note": "if susceptibility confirmed"},
+      {"drug": "Phenazopyridine", "dose": "200mg", "frequency": "three times daily", "duration": "2 days max", "note": "for pain relief only, turns urine orange"}
+    ],
+    "contraindications": ["Nitrofurantoin not for pyelonephritis or CrCl <30", "Avoid fluoroquinolones as first-line if alternatives available"],
+    "red_flags": ["Flank pain", "High fever", "Rigors", "Vomiting", "Pregnancy", "Male patient", "Recurrent UTI (>3/year)"],
+    "when_to_refer": "Complicated UTI, pyelonephritis, pregnant women, male UTI, recurrent infections, no response to antibiotics",
+    "source": "ICMR Treatment Guidelines / WHO Essential Medicines"
+  },
+  {
+    "condition_name": "Allergic Rhinitis",
+    "icd_code": "J30",
+    "symptoms": ["sneezing", "nasal itching", "watery rhinorrhea", "nasal congestion", "itchy eyes", "watery eyes", "postnasal drip", "seasonal or perennial"],
+    "differential_diagnosis": ["Common cold", "Vasomotor rhinitis", "Sinusitis", "Nasal polyps", "Foreign body"],
+    "first_line_treatment": [
+      {"drug": "Cetirizine", "dose": "10mg", "frequency": "once daily", "duration": "2-4 weeks or as needed", "note": "non-sedating antihistamine"},
+      {"drug": "Fluticasone nasal spray", "dose": "2 sprays each nostril", "frequency": "once daily", "duration": "2-4 weeks", "note": "most effective for persistent symptoms"},
+      {"drug": "Normal saline nasal wash", "dose": "10-20ml each nostril", "frequency": "twice daily", "duration": "ongoing", "note": "safe, effective adjunct"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Montelukast", "dose": "10mg", "frequency": "once daily at bedtime", "duration": "4-8 weeks", "note": "add-on for persistent symptoms"},
+      {"drug": "Fexofenadine", "dose": "120-180mg", "frequency": "once daily", "duration": "as needed", "note": "alternative non-sedating antihistamine"},
+      {"drug": "Azelastine nasal spray", "dose": "1-2 sprays each nostril", "frequency": "twice daily", "duration": "2-4 weeks", "note": "topical antihistamine for breakthrough symptoms"}
+    ],
+    "contraindications": ["Avoid sedating antihistamines (chlorpheniramine) if driving/operating machinery", "Montelukast: monitor for mood changes"],
+    "red_flags": ["Unilateral symptoms", "Bloody discharge", "Anosmia", "Facial pain/pressure"],
+    "when_to_refer": "Not responding to 4 weeks of treatment, consider allergy testing (skin prick test / specific IgE)",
+    "source": "ARIA Guidelines / WHO"
+  },
+  {
+    "condition_name": "Acid Reflux (GERD)",
+    "icd_code": "K21",
+    "symptoms": ["heartburn", "acid regurgitation", "chest burning", "difficulty swallowing", "bitter taste in mouth", "worse after meals", "worse when lying down", "epigastric pain"],
+    "differential_diagnosis": ["Peptic ulcer", "Angina/cardiac pain", "Esophageal cancer", "Achalasia", "Gastritis"],
+    "first_line_treatment": [
+      {"drug": "Pantoprazole", "dose": "40mg", "frequency": "once daily before breakfast", "duration": "4-8 weeks", "note": "proton pump inhibitor, most effective"},
+      {"drug": "Antacid (Aluminium hydroxide + Magnesium hydroxide)", "dose": "10-15ml", "frequency": "after meals and at bedtime", "duration": "as needed", "note": "for immediate relief"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Rabeprazole", "dose": "20mg", "frequency": "once daily", "duration": "4-8 weeks", "note": "alternative PPI"},
+      {"drug": "Domperidone", "dose": "10mg", "frequency": "three times daily before meals", "duration": "2-4 weeks", "note": "prokinetic, helps with regurgitation"},
+      {"drug": "Ranitidine/Famotidine", "dose": "150mg/20mg", "frequency": "twice daily", "duration": "4-8 weeks", "note": "H2 blocker if PPI not tolerated"}
+    ],
+    "contraindications": ["Long-term PPI use: monitor magnesium, B12, bone density", "Domperidone: QT prolongation risk in elderly"],
+    "red_flags": ["Dysphagia (difficulty swallowing)", "Weight loss", "Hematemesis", "Age >55 with new symptoms", "Persistent vomiting"],
+    "when_to_refer": "Alarm symptoms present, no response to 8 weeks PPI, need for endoscopy",
+    "source": "ACG Guidelines / WHO Essential Medicines"
+  },
+  {
+    "condition_name": "Type 2 Diabetes - Initial Management",
+    "icd_code": "E11",
+    "symptoms": ["increased thirst", "frequent urination", "fatigue", "blurred vision", "slow wound healing", "tingling in hands/feet", "unexplained weight loss", "recurrent infections"],
+    "differential_diagnosis": ["Type 1 Diabetes", "Gestational diabetes", "Cushing syndrome", "Thyroid disorders", "Diabetes insipidus"],
+    "first_line_treatment": [
+      {"drug": "Metformin", "dose": "500mg", "frequency": "twice daily with meals (titrate to 1000mg BD over 2-4 weeks)", "duration": "lifelong", "note": "first-line for all T2DM, start low to minimize GI effects"},
+      {"drug": "Lifestyle modification", "dose": "150 min/week moderate exercise + diet control", "frequency": "daily", "duration": "lifelong", "note": "cornerstone of management"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Glimepiride", "dose": "1-2mg", "frequency": "once daily before breakfast", "duration": "ongoing", "note": "add if HbA1c not at target after 3 months of metformin"},
+      {"drug": "Sitagliptin", "dose": "100mg", "frequency": "once daily", "duration": "ongoing", "note": "DPP-4 inhibitor, weight neutral"},
+      {"drug": "Empagliflozin", "dose": "10mg", "frequency": "once daily", "duration": "ongoing", "note": "SGLT2 inhibitor, cardio-renal benefits, causes UTI risk"}
+    ],
+    "contraindications": ["Metformin: eGFR <30, active liver disease, contrast procedures", "Sulphonylureas: risk of hypoglycemia, avoid in elderly if possible"],
+    "red_flags": ["DKA symptoms (vomiting, abdominal pain, fruity breath)", "Hypoglycemia (sweating, tremor, confusion)", "Foot ulcers", "Sudden vision changes"],
+    "when_to_refer": "HbA1c >9% at diagnosis, need for insulin, complications (retinopathy, nephropathy, neuropathy), suspected Type 1",
+    "source": "RSSDI Guidelines / ADA Standards of Care / WHO"
+  },
+  {
+    "condition_name": "Hypertension - Initial Management",
+    "icd_code": "I10",
+    "symptoms": ["usually asymptomatic", "headache (if severe)", "dizziness", "blurred vision", "chest pain", "shortness of breath", "nosebleeds (severe)"],
+    "differential_diagnosis": ["White coat hypertension", "Secondary hypertension (renal, endocrine)", "Anxiety", "Pain-related elevation"],
+    "first_line_treatment": [
+      {"drug": "Amlodipine", "dose": "5mg", "frequency": "once daily", "duration": "lifelong", "note": "calcium channel blocker, well-tolerated, best in Indian population"},
+      {"drug": "Telmisartan", "dose": "40mg", "frequency": "once daily", "duration": "lifelong", "note": "ARB, preferred if diabetic or proteinuria"},
+      {"drug": "Lifestyle modification", "dose": "DASH diet, reduce salt <5g/day, exercise 150 min/week", "frequency": "daily", "duration": "lifelong", "note": "reduces BP by 5-10 mmHg"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Hydrochlorothiazide", "dose": "12.5-25mg", "frequency": "once daily morning", "duration": "lifelong", "note": "thiazide diuretic, good as add-on"},
+      {"drug": "Metoprolol", "dose": "25-50mg", "frequency": "twice daily", "duration": "lifelong", "note": "beta-blocker, preferred if tachycardia or angina co-exists"},
+      {"drug": "Amlodipine + Telmisartan combination", "dose": "5mg/40mg", "frequency": "once daily", "duration": "lifelong", "note": "single pill combo for adherence"}
+    ],
+    "contraindications": ["ACE-I/ARB in pregnancy", "Beta-blockers in asthma", "Thiazides: caution in gout, diabetes"],
+    "red_flags": ["BP >180/120 (hypertensive emergency)", "Chest pain", "Sudden vision loss", "Severe headache with confusion", "New neurological deficit"],
+    "when_to_refer": "Resistant hypertension (uncontrolled on 3 drugs), suspected secondary cause, target organ damage, hypertensive emergency",
+    "source": "ISH Global Guidelines / CSI Indian Guidelines / WHO"
+  },
+  {
+    "condition_name": "Acute Pharyngitis (Sore Throat)",
+    "icd_code": "J02",
+    "symptoms": ["sore throat", "painful swallowing", "fever", "swollen tonsils", "white patches on tonsils", "tender neck lymph nodes", "headache"],
+    "differential_diagnosis": ["Viral pharyngitis", "Strep throat (GAS)", "Infectious mononucleosis", "Peritonsillar abscess", "Epiglottitis"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "500-1000mg", "frequency": "every 6 hours", "duration": "3-5 days", "note": "for pain and fever"},
+      {"drug": "Warm salt water gargle", "dose": "half teaspoon salt in warm water", "frequency": "3-4 times daily", "duration": "until relief", "note": "soothing, safe adjunct"},
+      {"drug": "Amoxicillin", "dose": "500mg", "frequency": "three times daily", "duration": "10 days", "note": "ONLY if bacterial (strep) suspected: Centor score ≥3"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Azithromycin", "dose": "500mg day 1, then 250mg", "frequency": "once daily", "duration": "5 days", "note": "if penicillin allergic"},
+      {"drug": "Benzydamine gargle", "dose": "15ml", "frequency": "every 3 hours", "duration": "until relief", "note": "topical anti-inflammatory for severe pain"}
+    ],
+    "contraindications": ["No antibiotics for viral pharyngitis", "No steroids unless severe tonsillar inflammation"],
+    "red_flags": ["Difficulty breathing", "Unable to swallow", "Drooling", "Unilateral swelling (peritonsillar abscess)", "No improvement after 48h antibiotics"],
+    "when_to_refer": "Suspected abscess, airway compromise, recurrent strep (≥7/year), unable to swallow fluids",
+    "source": "NICE Sore Throat Guidelines / ICMR"
+  },
+  {
+    "condition_name": "Lower Back Pain (Acute, Non-specific)",
+    "icd_code": "M54.5",
+    "symptoms": ["lower back pain", "muscle stiffness", "difficulty bending", "pain with movement", "no leg symptoms", "onset after lifting or twisting"],
+    "differential_diagnosis": ["Disc herniation", "Sciatica", "Spinal stenosis", "Vertebral fracture", "Kidney stones", "Ankylosing spondylitis"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "1000mg", "frequency": "every 6 hours", "duration": "5-7 days", "note": "for mild pain"},
+      {"drug": "Ibuprofen", "dose": "400mg", "frequency": "three times daily with food", "duration": "5-7 days", "note": "NSAID for moderate pain with inflammation"},
+      {"drug": "Stay active", "dose": "gentle walking, avoid prolonged bed rest", "frequency": "daily", "duration": "ongoing", "note": "bed rest worsens outcomes"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Diclofenac gel", "dose": "apply 3-4cm", "frequency": "three times daily", "duration": "7-14 days", "note": "topical NSAID, fewer systemic effects"},
+      {"drug": "Thiocolchicoside", "dose": "4mg", "frequency": "twice daily", "duration": "5-7 days", "note": "muscle relaxant if significant spasm"},
+      {"drug": "Tramadol", "dose": "50mg", "frequency": "every 6-8 hours as needed", "duration": "max 5 days", "note": "only if severe pain not responding to NSAIDs"}
+    ],
+    "contraindications": ["NSAIDs: avoid in peptic ulcer, renal impairment, elderly with CVD risk", "Avoid prolonged bed rest"],
+    "red_flags": ["Leg weakness/numbness", "Bladder/bowel dysfunction", "Saddle anesthesia", "History of cancer", "Unexplained weight loss", "Fever", "Age >50 new onset", "Trauma"],
+    "when_to_refer": "Red flags present, no improvement in 6 weeks, progressive neurological deficit, sciatica >6 weeks",
+    "source": "NICE Low Back Pain Guidelines / WHO"
+  },
+  {
+    "condition_name": "Iron Deficiency Anemia",
+    "icd_code": "D50",
+    "symptoms": ["fatigue", "weakness", "pallor", "shortness of breath on exertion", "dizziness", "cold hands and feet", "brittle nails", "pica", "restless legs"],
+    "differential_diagnosis": ["B12 deficiency", "Folate deficiency", "Thalassemia trait", "Chronic disease anemia", "GI bleeding"],
+    "first_line_treatment": [
+      {"drug": "Ferrous Sulphate", "dose": "200mg (65mg elemental iron)", "frequency": "twice daily on empty stomach", "duration": "3-6 months (continue 3 months after Hb normalizes)", "note": "take with vitamin C for better absorption"},
+      {"drug": "Vitamin C", "dose": "250mg", "frequency": "with each iron dose", "duration": "same as iron", "note": "enhances iron absorption by 2-3 fold"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Ferrous Fumarate", "dose": "200mg", "frequency": "twice daily", "duration": "3-6 months", "note": "alternative if sulphate not tolerated"},
+      {"drug": "Iron Sucrose IV", "dose": "200mg per infusion", "frequency": "as per calculated deficit", "duration": "varies", "note": "if oral iron not tolerated or malabsorption"},
+      {"drug": "Carbonyl Iron", "dose": "100mg", "frequency": "once daily", "duration": "3-6 months", "note": "better tolerated, fewer GI side effects"}
+    ],
+    "contraindications": ["Do not give iron with tea, milk, or antacids (reduce absorption)", "Iron overload states, hemochromatosis"],
+    "red_flags": ["Hb <7 g/dL", "Chest pain", "Tachycardia at rest", "Suspected GI bleed (black stools, blood in stool)", "Not responding to 4 weeks oral iron"],
+    "when_to_refer": "Severe anemia (Hb <7), suspected GI malignancy, no response to oral iron, need for IV iron or transfusion",
+    "source": "WHO Iron Supplementation Guidelines / ICMR"
+  },
+  {
+    "condition_name": "Dengue Fever",
+    "icd_code": "A90",
+    "symptoms": ["high fever", "severe headache", "retro-orbital pain", "joint pain", "muscle pain", "skin rash", "nausea", "fatigue", "low platelet count"],
+    "differential_diagnosis": ["Malaria", "Chikungunya", "Typhoid", "Zika virus", "Leptospirosis"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "500-1000mg", "frequency": "every 6 hours (max 4g/day)", "duration": "until fever resolves", "note": "ONLY antipyretic safe in dengue"},
+      {"drug": "Oral Rehydration", "dose": "2-3 liters/day", "frequency": "throughout the day", "duration": "until recovery", "note": "critical to prevent dehydration"},
+      {"drug": "Rest", "dose": "complete bed rest", "frequency": "continuous", "duration": "during febrile phase", "note": "avoid exertion"}
+    ],
+    "second_line_treatment": [
+      {"drug": "IV Normal Saline", "dose": "as per hydration protocol", "frequency": "if unable to take oral fluids", "duration": "until oral intake adequate", "note": "hospital setting only"},
+      {"drug": "Platelet transfusion", "dose": "as per protocol", "frequency": "if active bleeding with low platelets", "duration": "as needed", "note": "NOT for low platelets alone without bleeding"}
+    ],
+    "contraindications": ["ABSOLUTELY NO NSAIDs (Ibuprofen, Diclofenac) - increases bleeding risk", "NO Aspirin", "NO intramuscular injections", "NO steroids unless shock"],
+    "red_flags": ["Abdominal pain", "Persistent vomiting", "Mucosal bleeding", "Platelet <20,000", "Restlessness", "Cold clammy skin", "Decreased urine output"],
+    "when_to_refer": "All dengue patients need daily monitoring days 3-7. Admit if: warning signs present, platelet <50,000, unable to tolerate oral fluids",
+    "source": "WHO Dengue Guidelines 2024 / NVBDCP India"
+  },
+  {
+    "condition_name": "Malaria (P. vivax - common in India)",
+    "icd_code": "B51",
+    "symptoms": ["cyclic high fever", "chills and rigors", "sweating", "headache", "body aches", "nausea", "vomiting", "fatigue", "splenomegaly"],
+    "differential_diagnosis": ["Dengue", "Typhoid", "Viral fever", "Leptospirosis", "Liver abscess"],
+    "first_line_treatment": [
+      {"drug": "Chloroquine", "dose": "600mg base Day1, 600mg Day2, 300mg Day3", "frequency": "as per schedule", "duration": "3 days", "note": "for P. vivax (India National Drug Policy)"},
+      {"drug": "Primaquine", "dose": "15mg (0.25mg/kg)", "frequency": "once daily", "duration": "14 days", "note": "for radical cure (anti-relapse). Check G6PD before starting"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Artemether-Lumefantrine (ACT)", "dose": "80mg/480mg", "frequency": "twice daily", "duration": "3 days", "note": "for P. falciparum or chloroquine-resistant areas"},
+      {"drug": "Artesunate IV", "dose": "2.4mg/kg", "frequency": "at 0, 12, 24h then daily", "duration": "until oral possible", "note": "for severe malaria - hospital only"}
+    ],
+    "contraindications": ["Primaquine contraindicated in G6PD deficiency and pregnancy", "Chloroquine: retinopathy with prolonged use"],
+    "red_flags": ["Cerebral malaria (altered consciousness)", "Severe anemia (Hb <5)", "Jaundice", "Renal failure", "ARDS", "Hypoglycemia", "Parasitemia >5%"],
+    "when_to_refer": "All P. falciparum cases, severe malaria signs, pregnant women, children <5 with high parasitemia",
+    "source": "National Drug Policy on Malaria India 2023 / WHO Malaria Treatment Guidelines"
+  },
+  {
+    "condition_name": "Asthma - Acute Exacerbation",
+    "icd_code": "J45",
+    "symptoms": ["wheezing", "shortness of breath", "chest tightness", "cough (especially night/early morning)", "difficulty speaking in full sentences", "use of accessory muscles"],
+    "differential_diagnosis": ["COPD exacerbation", "Pneumonia", "Pneumothorax", "Heart failure", "Foreign body", "Vocal cord dysfunction"],
+    "first_line_treatment": [
+      {"drug": "Salbutamol inhaler (MDI + spacer)", "dose": "4-8 puffs", "frequency": "every 20 minutes for first hour, then every 4-6 hours", "duration": "until stable", "note": "SABA for immediate relief"},
+      {"drug": "Prednisolone", "dose": "40mg", "frequency": "once daily", "duration": "5 days", "note": "oral steroid for moderate-severe exacerbation"},
+      {"drug": "Ipratropium bromide inhaler", "dose": "4-8 puffs", "frequency": "every 20 minutes (first hour)", "duration": "first hour only", "note": "add in severe exacerbation"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Budesonide + Formoterol (ICS-LABA)", "dose": "200/6 mcg", "frequency": "twice daily", "duration": "ongoing (maintenance)", "note": "for long-term control after acute episode"},
+      {"drug": "Montelukast", "dose": "10mg", "frequency": "once daily at bedtime", "duration": "ongoing", "note": "add-on controller therapy"}
+    ],
+    "contraindications": ["Never use LABA alone without ICS", "Avoid non-selective beta-blockers in asthma"],
+    "red_flags": ["Unable to speak", "Silent chest", "SpO2 <92%", "Altered consciousness", "No improvement after initial treatment", "Peak flow <33% predicted"],
+    "when_to_refer": "Severe attack (SpO2 <92%), life-threatening features, poor response to initial treatment, need for IV medications/ventilation",
+    "source": "GINA 2024 Guidelines / WHO"
+  },
+  {
+    "condition_name": "Acne Vulgaris",
+    "icd_code": "L70.0",
+    "symptoms": ["comedones (blackheads/whiteheads)", "papules", "pustules", "nodules", "oily skin", "scarring", "face/back/chest involvement"],
+    "differential_diagnosis": ["Rosacea", "Folliculitis", "Perioral dermatitis", "Drug-induced acne"],
+    "first_line_treatment": [
+      {"drug": "Benzoyl Peroxide 2.5%", "dose": "thin layer on affected areas", "frequency": "once daily at night", "duration": "8-12 weeks minimum", "note": "start low concentration, antibacterial"},
+      {"drug": "Adapalene 0.1% gel", "dose": "pea-sized amount", "frequency": "once daily at night", "duration": "12 weeks minimum", "note": "retinoid, may worsen initially (purging)"},
+      {"drug": "Clindamycin 1% gel", "dose": "thin layer on lesions", "frequency": "twice daily", "duration": "8-12 weeks", "note": "combine with benzoyl peroxide to prevent resistance"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Doxycycline", "dose": "100mg", "frequency": "once daily", "duration": "6-12 weeks", "note": "for moderate-severe inflammatory acne"},
+      {"drug": "Isotretinoin", "dose": "0.5-1mg/kg/day", "frequency": "once daily with fatty meal", "duration": "16-24 weeks (cumulative dose 120-150mg/kg)", "note": "for severe/scarring acne. Requires monitoring and contraception"}
+    ],
+    "contraindications": ["Isotretinoin: pregnancy (teratogenic), liver disease", "Tetracyclines: pregnancy, children <12", "Avoid combining multiple topicals initially"],
+    "red_flags": ["Sudden severe acne (consider hormonal cause)", "Signs of PCOS in females", "Severe scarring", "Psychological impact"],
+    "when_to_refer": "Severe nodulocystic acne, significant scarring, suspected hormonal cause, need for isotretinoin (dermatologist supervision)",
+    "source": "BAD Acne Guidelines / Indian Association of Dermatologists"
+  },
+  {
+    "condition_name": "Typhoid Fever",
+    "icd_code": "A01.0",
+    "symptoms": ["step-ladder fever", "headache", "abdominal pain", "constipation or diarrhea", "rose spots", "hepatosplenomegaly", "relative bradycardia", "coated tongue"],
+    "differential_diagnosis": ["Malaria", "Dengue", "Brucellosis", "Tuberculosis", "Liver abscess", "Enteric fever (paratyphoid)"],
+    "first_line_treatment": [
+      {"drug": "Azithromycin", "dose": "500mg", "frequency": "once daily", "duration": "7 days", "note": "preferred first-line in India due to resistance patterns"},
+      {"drug": "Cefixime", "dose": "200mg", "frequency": "twice daily", "duration": "14 days", "note": "oral alternative for uncomplicated typhoid"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Ceftriaxone", "dose": "2g IV", "frequency": "once daily", "duration": "10-14 days", "note": "for severe or complicated typhoid (hospital)"},
+      {"drug": "Ciprofloxacin", "dose": "500mg", "frequency": "twice daily", "duration": "7-10 days", "note": "only if susceptibility confirmed (high resistance in India)"}
+    ],
+    "contraindications": ["Fluoroquinolones: high resistance in South Asia, avoid empirically", "Chloramphenicol: largely abandoned due to resistance and toxicity"],
+    "red_flags": ["Intestinal perforation (sudden severe abdominal pain)", "GI bleeding", "Encephalopathy", "Shock", "No response after 5 days of antibiotics"],
+    "when_to_refer": "Complications suspected, no response to oral antibiotics, severe illness requiring IV therapy, children <2 years",
+    "source": "ICMR Treatment Guidelines for Enteric Fever / WHO"
+  },
+  {
+    "condition_name": "Conjunctivitis (Pink Eye)",
+    "icd_code": "H10",
+    "symptoms": ["red eye", "watery discharge (viral)", "purulent discharge (bacterial)", "itching (allergic)", "gritty sensation", "morning crusting", "swollen eyelids"],
+    "differential_diagnosis": ["Viral conjunctivitis", "Bacterial conjunctivitis", "Allergic conjunctivitis", "Acute glaucoma", "Uveitis", "Corneal ulcer"],
+    "first_line_treatment": [
+      {"drug": "Moxifloxacin 0.5% eye drops", "dose": "1 drop in affected eye", "frequency": "four times daily", "duration": "5-7 days", "note": "for bacterial conjunctivitis"},
+      {"drug": "Cold compress + artificial tears", "dose": "apply 10 min", "frequency": "3-4 times daily", "duration": "until resolution", "note": "for viral conjunctivitis (self-limiting 7-14 days)"},
+      {"drug": "Olopatadine 0.1% eye drops", "dose": "1 drop each eye", "frequency": "twice daily", "duration": "2-4 weeks", "note": "for allergic conjunctivitis"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Tobramycin 0.3% eye drops", "dose": "1-2 drops", "frequency": "every 4 hours", "duration": "7 days", "note": "alternative antibiotic eye drop"},
+      {"drug": "Ketorolac 0.5% eye drops", "dose": "1 drop", "frequency": "four times daily", "duration": "5-7 days", "note": "NSAID drop for severe discomfort"}
+    ],
+    "contraindications": ["Steroid eye drops: never without ophthalmologist supervision (risk of glaucoma, herpes worsening)", "Never patch an infected eye"],
+    "red_flags": ["Severe pain", "Vision loss", "Photophobia", "Fixed pupil", "Contact lens wearer with pain", "No improvement after 5 days treatment"],
+    "when_to_refer": "Vision affected, severe pain, suspected corneal involvement, neonatal conjunctivitis, contact lens-related, no response to treatment",
+    "source": "WHO Primary Eye Care / AAO Guidelines"
+  },
+  {
+    "condition_name": "Vitamin D Deficiency",
+    "icd_code": "E55",
+    "symptoms": ["fatigue", "bone pain", "muscle weakness", "muscle cramps", "mood changes", "frequent infections", "slow wound healing", "hair loss"],
+    "differential_diagnosis": ["Hypothyroidism", "Fibromyalgia", "Depression", "Osteomalacia", "Multiple sclerosis"],
+    "first_line_treatment": [
+      {"drug": "Cholecalciferol (Vitamin D3)", "dose": "60,000 IU", "frequency": "once weekly", "duration": "8 weeks (loading), then 60,000 IU monthly (maintenance)", "note": "take with fatty meal for absorption"},
+      {"drug": "Calcium Carbonate", "dose": "500mg elemental calcium", "frequency": "twice daily", "duration": "ongoing if dietary intake inadequate", "note": "supplement alongside Vitamin D"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Cholecalciferol daily", "dose": "2000-4000 IU", "frequency": "once daily", "duration": "3-6 months", "note": "alternative to weekly dosing"},
+      {"drug": "Alfacalcidol", "dose": "0.5-1mcg", "frequency": "once daily", "duration": "as per levels", "note": "active form, for renal impairment"}
+    ],
+    "contraindications": ["Hypercalcemia", "Sarcoidosis (may worsen)", "Kidney stones (relative)", "Monitor calcium if on thiazides"],
+    "red_flags": ["Severe bone pain", "Fractures with minimal trauma", "Tetany/muscle spasms (severe deficiency)", "Level <10 ng/mL"],
+    "when_to_refer": "Very severe deficiency (<10), not responding to supplementation, associated osteoporosis, suspected malabsorption",
+    "source": "Endocrine Society Guidelines / Indian guidelines on Vitamin D"
+  },
+  {
+    "condition_name": "Hypothyroidism",
+    "icd_code": "E03",
+    "symptoms": ["fatigue", "weight gain", "cold intolerance", "constipation", "dry skin", "hair loss", "puffy face", "slow heart rate", "depression", "menstrual irregularities"],
+    "differential_diagnosis": ["Depression", "Iron deficiency anemia", "Vitamin D deficiency", "Chronic fatigue syndrome", "Sleep apnea"],
+    "first_line_treatment": [
+      {"drug": "Levothyroxine", "dose": "25-50 mcg (start low, titrate)", "frequency": "once daily on empty stomach, 30 min before breakfast", "duration": "lifelong", "note": "start 25mcg in elderly/cardiac patients, titrate every 6-8 weeks based on TSH"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Levothyroxine (full replacement)", "dose": "1.6 mcg/kg/day", "frequency": "once daily", "duration": "lifelong", "note": "target dose for most adults, adjust per TSH"},
+      {"drug": "Liothyronine (T3) addition", "dose": "5-10 mcg", "frequency": "once daily", "duration": "trial 3 months", "note": "consider if persistent symptoms despite normal TSH on T4 alone (specialist decision)"}
+    ],
+    "contraindications": ["Start low dose in elderly and cardiac patients", "Avoid abrupt dose changes", "Separate from calcium, iron supplements by 4 hours"],
+    "red_flags": ["Myxedema coma (altered consciousness, hypothermia)", "Severe bradycardia", "Pericardial effusion", "TSH >100"],
+    "when_to_refer": "Severe hypothyroidism, cardiac symptoms, pregnant patients, secondary hypothyroidism (low TSH + low T4), children",
+    "source": "ATA/ETA Guidelines / Indian Thyroid Society"
+  }
+]

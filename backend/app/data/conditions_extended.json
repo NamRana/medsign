@@ -1,0 +1,522 @@
+[
+  {
+    "condition_name": "Eczema (Atopic Dermatitis)",
+    "icd_code": "L20",
+    "symptoms": ["itchy skin", "red patches", "dry scaly skin", "oozing or crusting", "thickened skin", "skin fissures", "worsens at night", "flexural involvement"],
+    "differential_diagnosis": ["Contact dermatitis", "Psoriasis", "Scabies", "Fungal infection", "Seborrheic dermatitis"],
+    "first_line_treatment": [
+      {"drug": "Moisturizer (emollient)", "dose": "liberal application", "frequency": "3-4 times daily and after bathing", "duration": "ongoing", "note": "ceramide-based preferred; apply within 3 min of bathing"},
+      {"drug": "Hydrocortisone 1% cream", "dose": "thin layer on affected areas", "frequency": "twice daily", "duration": "7-14 days", "note": "for mild flares; do not use on face long-term"},
+      {"drug": "Mometasone 0.1% cream", "dose": "thin layer on affected areas", "frequency": "once daily", "duration": "7-14 days max", "note": "for moderate flares on body (not face)"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Tacrolimus 0.03% ointment", "dose": "thin layer", "frequency": "twice daily", "duration": "until clear then twice weekly", "note": "calcineurin inhibitor, safe for face/folds"},
+      {"drug": "Hydroxyzine", "dose": "25mg", "frequency": "at bedtime", "duration": "for itch relief during flares", "note": "sedating antihistamine for night-time itch"}
+    ],
+    "contraindications": ["No potent steroids on face/genitals", "No prolonged topical steroid use (skin atrophy)", "Tacrolimus: avoid in active infection"],
+    "red_flags": ["Signs of skin infection (pus, spreading redness, fever)", "Eczema herpeticum (painful vesicles)", "Erythroderma", "Not responding to treatment"],
+    "when_to_refer": "Severe/widespread eczema, suspected infection, not responding to moderate steroids, need for systemic therapy",
+    "source": "NICE Atopic Eczema Guidelines / WHO"
+  },
+  {
+    "condition_name": "Fungal Skin Infection (Tinea/Ringworm)",
+    "icd_code": "B35",
+    "symptoms": ["circular red patch", "ring-shaped rash", "itching", "scaling at edges", "clear center", "spreading outward", "multiple patches", "groin/feet/body involvement"],
+    "differential_diagnosis": ["Eczema", "Psoriasis", "Pityriasis rosea", "Contact dermatitis", "Granuloma annulare"],
+    "first_line_treatment": [
+      {"drug": "Clotrimazole 1% cream", "dose": "thin layer on and 2cm beyond lesion", "frequency": "twice daily", "duration": "2-4 weeks (continue 1 week after clearing)", "note": "most accessible topical antifungal"},
+      {"drug": "Terbinafine 1% cream", "dose": "thin layer", "frequency": "once or twice daily", "duration": "1-2 weeks", "note": "faster acting than azoles for dermatophytes"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Terbinafine oral", "dose": "250mg", "frequency": "once daily", "duration": "2-4 weeks (body), 6 weeks (scalp), 12 weeks (nails)", "note": "for extensive, scalp, or nail involvement"},
+      {"drug": "Fluconazole oral", "dose": "150mg", "frequency": "once weekly", "duration": "4-6 weeks", "note": "alternative systemic; easier compliance"},
+      {"drug": "Griseofulvin", "dose": "500mg", "frequency": "once daily with fatty food", "duration": "6-8 weeks", "note": "for scalp ringworm in children"}
+    ],
+    "contraindications": ["No topical steroids alone (worsens fungal infection — tinea incognito)", "Terbinafine: avoid in liver disease", "Griseofulvin: avoid in pregnancy, porphyria"],
+    "red_flags": ["Rapidly spreading despite treatment", "Kerion formation (boggy scalp swelling)", "Immunocompromised patient", "Nail involvement (needs systemic therapy)"],
+    "when_to_refer": "Scalp/nail involvement, extensive disease, not responding to 4 weeks topical therapy, immunocompromised patient",
+    "source": "BAD Fungal Infection Guidelines / WHO Essential Medicines"
+  },
+  {
+    "condition_name": "Scabies",
+    "icd_code": "B86",
+    "symptoms": ["intense itching (worse at night)", "burrow tracks", "papules between fingers", "rash on wrists/elbows/genitals", "family members affected", "small blisters", "secondary infection from scratching"],
+    "differential_diagnosis": ["Eczema", "Contact dermatitis", "Insect bites", "Dermatitis herpetiformis", "Folliculitis"],
+    "first_line_treatment": [
+      {"drug": "Permethrin 5% cream", "dose": "apply from neck to toes, all skin folds", "frequency": "leave on 8-12 hours (overnight), wash off", "duration": "repeat after 7 days", "note": "treat ALL household members simultaneously"},
+      {"drug": "Ivermectin oral", "dose": "200 mcg/kg", "frequency": "single dose", "duration": "repeat after 7-14 days", "note": "for crusted scabies or if topical not feasible"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Benzyl benzoate 25% lotion", "dose": "apply to whole body below neck", "frequency": "once daily for 3 days", "duration": "3 days", "note": "cheaper alternative, can be irritating"},
+      {"drug": "Hydroxyzine", "dose": "25mg", "frequency": "at bedtime", "duration": "2-4 weeks (itch persists after mite death)", "note": "for persistent post-scabies itch"}
+    ],
+    "contraindications": ["Ivermectin: avoid in children <15kg", "Permethrin: safe in pregnancy (preferred agent)"],
+    "red_flags": ["Crusted scabies (highly contagious, immunocompromised)", "Secondary bacterial infection (impetigo)", "Infant involvement", "Institutional outbreak"],
+    "when_to_refer": "Crusted/Norwegian scabies, treatment failure after 2 cycles, secondary infection needing systemic antibiotics",
+    "source": "WHO Scabies Guidelines / IADVL"
+  },
+  {
+    "condition_name": "Urticaria (Hives)",
+    "icd_code": "L50",
+    "symptoms": ["raised itchy welts", "wheals that come and go", "red or skin-colored bumps", "swelling (angioedema)", "individual lesions last <24 hours", "triggered by food/drugs/stress", "dermographism"],
+    "differential_diagnosis": ["Allergic reaction", "Anaphylaxis", "Urticarial vasculitis", "Contact dermatitis", "Erythema multiforme"],
+    "first_line_treatment": [
+      {"drug": "Cetirizine", "dose": "10mg", "frequency": "once daily (can increase to 20mg)", "duration": "until urticaria resolves, then taper", "note": "non-sedating, can be uptitrated"},
+      {"drug": "Fexofenadine", "dose": "180mg", "frequency": "once daily", "duration": "2-4 weeks then reassess", "note": "alternative non-sedating antihistamine"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Prednisolone", "dose": "30-40mg", "frequency": "once daily", "duration": "3-5 days only", "note": "short course for severe acute urticaria"},
+      {"drug": "Montelukast", "dose": "10mg", "frequency": "at bedtime", "duration": "4-8 weeks", "note": "add-on for chronic urticaria not responding to antihistamines"},
+      {"drug": "Hydroxyzine", "dose": "25mg", "frequency": "at bedtime", "duration": "as needed", "note": "sedating antihistamine for night-time breakthrough"}
+    ],
+    "contraindications": ["Do not use long-term steroids for chronic urticaria", "Identify and avoid triggers (NSAIDs, food, stress)"],
+    "red_flags": ["Lip/tongue/throat swelling (anaphylaxis risk)", "Difficulty breathing", "Dizziness/hypotension", "Individual wheals lasting >24h (vasculitis)", "Fever"],
+    "when_to_refer": "Suspected anaphylaxis (ER immediately), chronic urticaria >6 weeks, angioedema, not responding to high-dose antihistamines",
+    "source": "EAACI/GA2LEN Urticaria Guidelines / WHO"
+  },
+  {
+    "condition_name": "Acute Sinusitis",
+    "icd_code": "J01",
+    "symptoms": ["facial pain/pressure", "nasal congestion", "thick nasal discharge", "postnasal drip", "headache", "reduced smell", "fever", "tooth pain (upper teeth)"],
+    "differential_diagnosis": ["Allergic rhinitis", "Migraine", "Dental abscess", "Cluster headache", "Nasal polyps"],
+    "first_line_treatment": [
+      {"drug": "Normal saline nasal irrigation", "dose": "200ml each nostril", "frequency": "twice daily", "duration": "until resolution", "note": "most effective non-drug treatment"},
+      {"drug": "Paracetamol", "dose": "500-1000mg", "frequency": "every 6 hours", "duration": "as needed for pain", "note": "for pain and fever"},
+      {"drug": "Xylometazoline 0.1% nasal spray", "dose": "2-3 sprays each nostril", "frequency": "twice daily", "duration": "max 5-7 days", "note": "decongestant, do not exceed 7 days (rebound congestion)"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Amoxicillin-Clavulanate", "dose": "625mg", "frequency": "twice daily", "duration": "7-10 days", "note": "only if symptoms >10 days or worsening after 5 days (bacterial sinusitis)"},
+      {"drug": "Fluticasone nasal spray", "dose": "2 sprays each nostril", "frequency": "once daily", "duration": "2-4 weeks", "note": "intranasal steroid reduces inflammation"}
+    ],
+    "contraindications": ["No antibiotics for viral sinusitis (<10 days symptoms)", "Avoid prolonged decongestant use (rhinitis medicamentosa)"],
+    "red_flags": ["Periorbital swelling/redness", "Severe headache", "Visual changes", "High fever >102°F", "Altered mental status", "Frontal bone tenderness"],
+    "when_to_refer": "Orbital complications, recurrent sinusitis (≥4/year), chronic sinusitis (>12 weeks), failure of antibiotics",
+    "source": "EPOS Sinusitis Guidelines / WHO"
+  },
+  {
+    "condition_name": "Otitis Media (Middle Ear Infection)",
+    "icd_code": "H66",
+    "symptoms": ["ear pain", "fever", "hearing loss", "ear fullness", "irritability (children)", "ear pulling (infants)", "ear discharge", "sleep disturbance"],
+    "differential_diagnosis": ["Otitis externa", "Referred pain from teeth/TMJ", "Eustachian tube dysfunction", "Cholesteatoma", "Mastoiditis"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "500-1000mg (adults), 15mg/kg (children)", "frequency": "every 6 hours", "duration": "3-5 days", "note": "pain relief is first priority"},
+      {"drug": "Amoxicillin", "dose": "500mg (adults), 80-90mg/kg/day (children)", "frequency": "three times daily", "duration": "5-7 days", "note": "first-line antibiotic for bacterial AOM"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Amoxicillin-Clavulanate", "dose": "625mg (adults)", "frequency": "twice daily", "duration": "7-10 days", "note": "if no improvement after 48-72h on amoxicillin"},
+      {"drug": "Azithromycin", "dose": "500mg day 1, then 250mg", "frequency": "once daily", "duration": "5 days", "note": "if penicillin allergic"},
+      {"drug": "Ciprofloxacin ear drops", "dose": "4 drops", "frequency": "twice daily", "duration": "7 days", "note": "for chronic suppurative otitis media (ear discharge)"}
+    ],
+    "contraindications": ["Watchful waiting appropriate for mild AOM in children >2 years (48-72h observation)", "No ear drops through perforated TM without ENT guidance"],
+    "red_flags": ["Mastoid tenderness/swelling (mastoiditis)", "Facial nerve palsy", "High fever despite antibiotics", "Severe headache", "Discharge for >2 weeks"],
+    "when_to_refer": "Suspected mastoiditis, recurrent AOM (≥3 in 6 months), chronic discharge >2 weeks, hearing loss persisting after resolution",
+    "source": "AAP Otitis Media Guidelines / WHO"
+  },
+  {
+    "condition_name": "Vertigo (BPPV)",
+    "icd_code": "H81.1",
+    "symptoms": ["spinning sensation", "triggered by head movement", "brief episodes (seconds to minutes)", "nausea", "unsteadiness", "nystagmus", "worsened by rolling in bed or looking up"],
+    "differential_diagnosis": ["Meniere's disease", "Vestibular neuritis", "Stroke (posterior circulation)", "Migraine-associated vertigo", "Cervical vertigo"],
+    "first_line_treatment": [
+      {"drug": "Epley maneuver (canalith repositioning)", "dose": "performed in clinic", "frequency": "1-3 sessions", "duration": "immediate effect, may need repeat", "note": "MOST effective treatment — cures 80% in 1-2 sessions"},
+      {"drug": "Betahistine", "dose": "16mg", "frequency": "three times daily", "duration": "2-4 weeks", "note": "improves vestibular blood flow; most commonly prescribed in India"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Meclizine", "dose": "25mg", "frequency": "three times daily as needed", "duration": "short-term only (3-5 days)", "note": "for acute vertigo symptoms; causes drowsiness"},
+      {"drug": "Prochlorperazine", "dose": "5mg", "frequency": "three times daily", "duration": "max 5 days", "note": "for severe nausea/vomiting with vertigo"},
+      {"drug": "Vestibular rehabilitation exercises", "dose": "Brandt-Daroff exercises", "frequency": "twice daily", "duration": "2-4 weeks", "note": "home-based exercises to reduce recurrence"}
+    ],
+    "contraindications": ["Avoid long-term vestibular suppressants (delay compensation)", "Meclizine/prochlorperazine: short-term use only"],
+    "red_flags": ["Sudden severe vertigo with hearing loss (stroke risk)", "Neurological symptoms (diplopia, dysarthria, weakness)", "Vertigo lasting hours-days continuously", "New severe headache"],
+    "when_to_refer": "Suspected central vertigo (stroke), persistent vertigo >4 weeks, recurrent BPPV not responding to Epley, hearing loss",
+    "source": "AAO-HNS BPPV Guidelines / WHO"
+  },
+  {
+    "condition_name": "Community-Acquired Pneumonia",
+    "icd_code": "J18",
+    "symptoms": ["cough with sputum", "fever", "shortness of breath", "chest pain on breathing", "rapid breathing", "fatigue", "loss of appetite", "confusion (elderly)"],
+    "differential_diagnosis": ["Acute bronchitis", "Tuberculosis", "Lung cancer", "Heart failure", "Pulmonary embolism", "COVID-19"],
+    "first_line_treatment": [
+      {"drug": "Amoxicillin", "dose": "500mg-1g", "frequency": "three times daily", "duration": "5 days", "note": "first-line for mild CAP (outpatient, CURB-65 0-1)"},
+      {"drug": "Azithromycin", "dose": "500mg day 1, then 250mg", "frequency": "once daily", "duration": "5 days", "note": "if penicillin allergic or atypical suspected"},
+      {"drug": "Paracetamol", "dose": "500-1000mg", "frequency": "every 6 hours", "duration": "until fever resolves", "note": "for fever and pleuritic pain"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Amoxicillin-Clavulanate + Azithromycin", "dose": "625mg BD + 500mg OD", "frequency": "as stated", "duration": "5-7 days", "note": "for moderate CAP or co-morbidities"},
+      {"drug": "Levofloxacin", "dose": "750mg", "frequency": "once daily", "duration": "5 days", "note": "respiratory fluoroquinolone for moderate-severe (reserve use)"},
+      {"drug": "Ceftriaxone", "dose": "1-2g IV", "frequency": "once daily", "duration": "5-7 days", "note": "for hospitalized patients"}
+    ],
+    "contraindications": ["Do not delay antibiotics if pneumonia suspected", "Avoid cough suppressants in productive cough"],
+    "red_flags": ["SpO2 <92%", "Respiratory rate >30/min", "Confusion", "Systolic BP <90", "High CURB-65 score", "Bilateral pneumonia", "Pleural effusion"],
+    "when_to_refer": "CURB-65 ≥2 (consider admission), SpO2 <92%, unable to take oral medications, not improving after 48h antibiotics, complications",
+    "source": "BTS CAP Guidelines / ICMR AMR Guidelines"
+  },
+  {
+    "condition_name": "Acute Bronchitis",
+    "icd_code": "J20",
+    "symptoms": ["cough (may last 2-3 weeks)", "chest discomfort", "low-grade fever", "sore throat initially", "clear or colored sputum", "fatigue", "wheezing (sometimes)"],
+    "differential_diagnosis": ["Pneumonia", "Asthma", "GERD", "Post-nasal drip", "Pertussis", "TB"],
+    "first_line_treatment": [
+      {"drug": "Supportive care (rest, fluids)", "dose": "adequate hydration", "frequency": "throughout the day", "duration": "7-10 days", "note": "most cases are viral — antibiotics NOT needed"},
+      {"drug": "Paracetamol", "dose": "500mg", "frequency": "every 6 hours as needed", "duration": "3-5 days", "note": "for fever and malaise"},
+      {"drug": "Honey (for cough)", "dose": "1-2 teaspoons", "frequency": "at bedtime", "duration": "until cough improves", "note": "evidence-based cough suppressant (not for <1 year)"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Dextromethorphan", "dose": "15-30mg", "frequency": "every 6-8 hours", "duration": "5-7 days", "note": "for dry cough disturbing sleep"},
+      {"drug": "Salbutamol inhaler", "dose": "2 puffs", "frequency": "every 6 hours", "duration": "5-7 days", "note": "ONLY if wheezing/bronchospasm present"},
+      {"drug": "Ambroxol", "dose": "30mg", "frequency": "three times daily", "duration": "5-7 days", "note": "mucolytic for thick sputum"}
+    ],
+    "contraindications": ["Antibiotics NOT indicated (viral in >90% cases)", "Avoid codeine in children", "No steroids for simple bronchitis"],
+    "red_flags": ["Cough >3 weeks (consider TB, pertussis)", "Blood in sputum", "High fever >102°F", "Shortness of breath at rest", "Elderly/immunocompromised"],
+    "when_to_refer": "Persistent cough >3 weeks, hemoptysis, suspected pneumonia, immunocompromised, recurrent episodes",
+    "source": "NICE Acute Cough Guidelines / WHO"
+  },
+  {
+    "condition_name": "COPD Exacerbation",
+    "icd_code": "J44.1",
+    "symptoms": ["worsening breathlessness", "increased cough", "increased sputum", "change in sputum color", "wheezing", "chest tightness", "fatigue", "ankle swelling"],
+    "differential_diagnosis": ["Pneumonia", "Heart failure", "Pneumothorax", "Pulmonary embolism", "Asthma exacerbation"],
+    "first_line_treatment": [
+      {"drug": "Salbutamol nebulization", "dose": "2.5-5mg", "frequency": "every 4-6 hours (every 20 min in severe)", "duration": "until stable", "note": "SABA bronchodilator, immediate relief"},
+      {"drug": "Ipratropium nebulization", "dose": "500mcg", "frequency": "every 4-6 hours", "duration": "during exacerbation", "note": "add to salbutamol for additional bronchodilation"},
+      {"drug": "Prednisolone", "dose": "40mg", "frequency": "once daily", "duration": "5 days", "note": "systemic steroid for all moderate-severe exacerbations"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Amoxicillin-Clavulanate", "dose": "625mg", "frequency": "twice daily", "duration": "5-7 days", "note": "antibiotic ONLY if purulent sputum + increased volume + increased dyspnea (Anthonisen criteria)"},
+      {"drug": "Doxycycline", "dose": "200mg day 1, then 100mg", "frequency": "once daily", "duration": "5 days", "note": "alternative antibiotic"},
+      {"drug": "Oxygen therapy", "dose": "target SpO2 88-92%", "frequency": "continuous if needed", "duration": "until stable", "note": "avoid over-oxygenation in COPD (CO2 retention risk)"}
+    ],
+    "contraindications": ["Do NOT target SpO2 >92% in known COPD (CO2 retention)", "Avoid sedatives/opioids (respiratory depression)"],
+    "red_flags": ["SpO2 <88%", "Altered consciousness", "Respiratory rate >30", "Unable to speak in sentences", "Peripheral cyanosis", "New onset ankle edema"],
+    "when_to_refer": "Severe exacerbation, need for non-invasive ventilation, SpO2 <88%, altered consciousness, not responding to initial therapy — ADMIT",
+    "source": "GOLD 2024 COPD Guidelines / WHO"
+  },
+  {
+    "condition_name": "Peptic Ulcer Disease",
+    "icd_code": "K27",
+    "symptoms": ["epigastric pain", "burning stomach", "pain relieved by food (duodenal) or worsened (gastric)", "nausea", "bloating", "early satiety", "night pain", "loss of appetite"],
+    "differential_diagnosis": ["GERD", "Gastric cancer", "Pancreatitis", "Gallstones", "Functional dyspepsia", "Myocardial ischemia"],
+    "first_line_treatment": [
+      {"drug": "Pantoprazole", "dose": "40mg", "frequency": "twice daily", "duration": "4-8 weeks", "note": "PPI for ulcer healing"},
+      {"drug": "H. pylori triple therapy (if positive)", "dose": "Pantoprazole 40mg BD + Amoxicillin 1g BD + Clarithromycin 500mg BD", "frequency": "all twice daily", "duration": "14 days", "note": "standard H. pylori eradication; test before treating"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Bismuth quadruple therapy", "dose": "Bismuth subsalicylate + Metronidazole 500mg + Tetracycline 500mg + PPI", "frequency": "four times daily (Bismuth/Metro/Tetracycline) + BD (PPI)", "duration": "14 days", "note": "if first-line H. pylori eradication fails"},
+      {"drug": "Sucralfate", "dose": "1g", "frequency": "four times daily (before meals and bedtime)", "duration": "4-8 weeks", "note": "mucosal protectant, alternative/adjunct to PPI"}
+    ],
+    "contraindications": ["Stop NSAIDs (major cause of ulcers)", "Avoid smoking (delays healing)", "Avoid aspirin if possible or add PPI cover"],
+    "red_flags": ["Hematemesis (vomiting blood)", "Melena (black tarry stools)", "Sudden severe abdominal pain (perforation)", "Weight loss", "Recurrent despite treatment"],
+    "when_to_refer": "GI bleeding, suspected perforation, age >55 with alarm symptoms (endoscopy needed), failed H. pylori eradication",
+    "source": "ACG Peptic Ulcer Guidelines / WHO"
+  },
+  {
+    "condition_name": "Irritable Bowel Syndrome (IBS)",
+    "icd_code": "K58",
+    "symptoms": ["abdominal pain related to defecation", "bloating", "altered bowel habit (diarrhea/constipation/alternating)", "mucus in stool", "urgency", "incomplete evacuation", "symptoms improve after passing stool"],
+    "differential_diagnosis": ["Inflammatory bowel disease", "Celiac disease", "Colon cancer", "Lactose intolerance", "Thyroid disorders", "Chronic infections"],
+    "first_line_treatment": [
+      {"drug": "Dietary modification (low FODMAP diet)", "dose": "eliminate high FODMAP foods", "frequency": "strict for 4-6 weeks then reintroduce", "duration": "trial period 6 weeks", "note": "most effective non-drug intervention"},
+      {"drug": "Mebeverine", "dose": "135mg", "frequency": "three times daily before meals", "duration": "4-8 weeks", "note": "antispasmodic for abdominal pain/cramping"},
+      {"drug": "Psyllium husk (Isabgol)", "dose": "1-2 teaspoons in water", "frequency": "once or twice daily", "duration": "ongoing", "note": "soluble fiber, helps both IBS-C and IBS-D"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Loperamide", "dose": "2mg", "frequency": "as needed before meals (max 8mg/day)", "duration": "as needed", "note": "for IBS-D (diarrhea predominant) only"},
+      {"drug": "Amitriptyline", "dose": "10-25mg", "frequency": "at bedtime", "duration": "3-6 months", "note": "low-dose TCA for pain modulation, especially IBS-D"},
+      {"drug": "Rifaximin", "dose": "550mg", "frequency": "three times daily", "duration": "14 days", "note": "for IBS-D with bloating (non-absorbed antibiotic)"}
+    ],
+    "contraindications": ["Avoid long-term stimulant laxatives", "Diagnose IBS only after excluding organic disease (Rome IV criteria)"],
+    "red_flags": ["Blood in stool", "Unexplained weight loss", "Anemia", "Night symptoms waking from sleep", "Family history of GI cancer", "Onset after age 50"],
+    "when_to_refer": "Alarm features present (need colonoscopy), not responding to first-line therapy, severe impact on quality of life",
+    "source": "Rome IV / NICE IBS Guidelines / BSG"
+  },
+  {
+    "condition_name": "Chronic Constipation",
+    "icd_code": "K59.0",
+    "symptoms": ["infrequent stools (<3/week)", "hard stools", "straining", "incomplete evacuation", "abdominal bloating", "need for manual maneuvers", "loss of appetite"],
+    "differential_diagnosis": ["Hypothyroidism", "IBS-C", "Colorectal cancer", "Medication side effect", "Bowel obstruction", "Hirschsprung disease"],
+    "first_line_treatment": [
+      {"drug": "Dietary fiber + fluids", "dose": "25-30g fiber/day + 2L water", "frequency": "daily", "duration": "ongoing", "note": "increase gradually to avoid bloating"},
+      {"drug": "Psyllium husk (Isabgol)", "dose": "1-2 tablespoons in water", "frequency": "once or twice daily", "duration": "ongoing", "note": "bulk-forming laxative, safe long-term"},
+      {"drug": "Lactulose", "dose": "15-30ml", "frequency": "once or twice daily", "duration": "adjust to 1-2 soft stools/day", "note": "osmotic laxative, safe in elderly and pregnancy"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Bisacodyl", "dose": "5-10mg", "frequency": "once daily at bedtime", "duration": "short-term (1-2 weeks)", "note": "stimulant laxative for rescue use"},
+      {"drug": "Polyethylene glycol (PEG/Movicol)", "dose": "1-2 sachets in water", "frequency": "once daily", "duration": "ongoing", "note": "osmotic laxative, well-tolerated long-term"},
+      {"drug": "Prucalopride", "dose": "2mg (1mg in elderly)", "frequency": "once daily", "duration": "4 weeks trial", "note": "prokinetic for chronic constipation not responding to laxatives"}
+    ],
+    "contraindications": ["Avoid stimulant laxatives long-term without evaluation", "Rule out obstruction before treating", "Check thyroid function"],
+    "red_flags": ["New onset after age 50", "Blood in stool", "Unexplained weight loss", "Family history of colon cancer", "Acute severe constipation with pain/vomiting (obstruction)"],
+    "when_to_refer": "Alarm symptoms (colonoscopy needed), not responding to 4 weeks treatment, suspected obstructed defecation (need anorectal physiology)",
+    "source": "AGA Chronic Constipation Guidelines / BSG"
+  },
+  {
+    "condition_name": "Hemorrhoids (Piles)",
+    "icd_code": "K64",
+    "symptoms": ["painless bleeding (bright red) on toilet paper", "perianal lump", "itching around anus", "mucus discharge", "feeling of incomplete evacuation", "pain (if thrombosed)", "prolapse during straining"],
+    "differential_diagnosis": ["Anal fissure", "Colorectal cancer", "Rectal polyp", "Inflammatory bowel disease", "Perianal abscess", "Rectal prolapse"],
+    "first_line_treatment": [
+      {"drug": "High-fiber diet + adequate fluids", "dose": "25-30g fiber/day + 2L water", "frequency": "daily", "duration": "ongoing", "note": "prevents straining — most important intervention"},
+      {"drug": "Psyllium husk (Isabgol)", "dose": "1-2 tablespoons", "frequency": "daily with plenty of water", "duration": "ongoing", "note": "stool softener to reduce straining"},
+      {"drug": "Lignocaine + Hydrocortisone cream (e.g., Proctosedyl)", "dose": "apply to affected area", "frequency": "twice daily after bowel movement", "duration": "max 7 days", "note": "for pain and itch relief in acute flares"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Diosmin + Hesperidin (Daflon)", "dose": "1000mg", "frequency": "twice daily for 4 days, then once daily", "duration": "7-14 days", "note": "venotonic, reduces bleeding and prolapse"},
+      {"drug": "Sitz bath", "dose": "warm water soak (10-15 min)", "frequency": "2-3 times daily", "duration": "during acute symptoms", "note": "reduces pain and swelling"}
+    ],
+    "contraindications": ["Do not use steroid creams >7 days (skin atrophy)", "Rule out malignancy if >50 years with bleeding", "Avoid straining"],
+    "red_flags": ["Heavy bleeding", "Severe pain (thrombosed hemorrhoid)", "Incarcerated/strangulated hemorrhoid", "Change in bowel habit", "Age >50 with new bleeding (cancer screening)"],
+    "when_to_refer": "Grade 3-4 hemorrhoids (prolapsed, need procedure), thrombosed hemorrhoid, failed conservative management, need for banding/surgery",
+    "source": "ASCRS Hemorrhoid Guidelines / WHO"
+  },
+  {
+    "condition_name": "Osteoarthritis",
+    "icd_code": "M15-M19",
+    "symptoms": ["joint pain worse with activity", "morning stiffness (<30 min)", "joint crepitus", "reduced range of motion", "joint swelling", "bony enlargement", "affecting knees/hips/hands"],
+    "differential_diagnosis": ["Rheumatoid arthritis", "Gout", "Septic arthritis", "Psoriatic arthritis", "Fibromyalgia"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "500-1000mg", "frequency": "every 6 hours as needed", "duration": "ongoing for flares", "note": "first-choice analgesic, fewer GI risks"},
+      {"drug": "Exercise + weight loss", "dose": "30 min moderate exercise/day", "frequency": "daily", "duration": "lifelong", "note": "quadriceps strengthening for knee OA, weight loss reduces load"},
+      {"drug": "Diclofenac gel 1%", "dose": "apply 4g to affected joint", "frequency": "three to four times daily", "duration": "2-3 weeks per flare", "note": "topical NSAID preferred over oral, fewer systemic effects"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Ibuprofen", "dose": "400mg", "frequency": "three times daily with food", "duration": "shortest effective duration", "note": "oral NSAID with PPI cover if risk factors present"},
+      {"drug": "Intra-articular corticosteroid injection", "dose": "Triamcinolone 40mg", "frequency": "max 3-4 times per year per joint", "duration": "single injection, effect lasts 4-8 weeks", "note": "for moderate-severe knee OA flares not responding to oral therapy"},
+      {"drug": "Duloxetine", "dose": "60mg", "frequency": "once daily", "duration": "3-6 months", "note": "centrally-acting analgesic, consider if NSAIDs contraindicated"}
+    ],
+    "contraindications": ["Oral NSAIDs: caution in elderly, renal disease, peptic ulcer, CVD", "No evidence for glucosamine supplements (may try but don't rely on)"],
+    "red_flags": ["Hot swollen joint (septic arthritis?)", "Sudden severe pain", "Locking/giving way of joint", "Morning stiffness >30 min (consider RA)", "Young patient without trauma"],
+    "when_to_refer": "Severe pain despite maximum medical therapy, joint locking/instability (consider surgery), diagnostic uncertainty, consideration for joint replacement",
+    "source": "NICE Osteoarthritis Guidelines / OARSI / WHO"
+  },
+  {
+    "condition_name": "Gout (Acute Attack)",
+    "icd_code": "M10",
+    "symptoms": ["sudden severe joint pain", "red hot swollen joint", "typically big toe (podagra)", "exquisite tenderness", "peak pain in 12-24 hours", "cannot bear weight", "fever (sometimes)", "skin peeling over joint after attack"],
+    "differential_diagnosis": ["Septic arthritis", "Pseudogout (CPPD)", "Cellulitis", "Trauma", "Reactive arthritis"],
+    "first_line_treatment": [
+      {"drug": "Naproxen", "dose": "750mg immediately, then 250mg every 8 hours", "frequency": "three times daily", "duration": "until attack resolves (5-7 days)", "note": "full-dose NSAID as soon as possible"},
+      {"drug": "Colchicine", "dose": "0.5mg", "frequency": "2-3 times daily", "duration": "until attack resolves or side effects (max 5 days)", "note": "most effective if started within 12h of onset; low-dose regimen preferred"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Prednisolone", "dose": "30-35mg", "frequency": "once daily", "duration": "5 days", "note": "if NSAIDs/colchicine contraindicated (renal disease, heart failure)"},
+      {"drug": "Intra-articular corticosteroid", "dose": "Triamcinolone 10-40mg", "frequency": "single injection", "duration": "one-time per attack", "note": "if single large joint affected and infection excluded"},
+      {"drug": "Febuxostat/Allopurinol", "dose": "Allopurinol 100mg (start low)", "frequency": "once daily, titrate to target urate <6mg/dL", "duration": "lifelong", "note": "urate-lowering therapy — DO NOT start during acute attack. Start 2-4 weeks after resolution with colchicine cover"}
+    ],
+    "contraindications": ["Do NOT start/stop allopurinol during acute attack (worsens flare)", "NSAIDs: avoid in CKD, heart failure", "Colchicine: reduce dose in renal impairment"],
+    "red_flags": ["Fever + hot joint (rule out septic arthritis — needs joint aspiration)", "Renal colic (uric acid stones)", "Tophi formation", "CKD progression"],
+    "when_to_refer": "Diagnostic uncertainty (need joint aspiration), frequent attacks (≥2/year, start ULT), tophaceous gout, renal stones, renal impairment",
+    "source": "ACR/EULAR Gout Guidelines / BSR"
+  },
+  {
+    "condition_name": "Cervical Spondylosis (Neck Pain)",
+    "icd_code": "M47",
+    "symptoms": ["neck pain", "neck stiffness", "headache (occipital)", "pain radiating to shoulders/arms", "numbness/tingling in hands", "reduced neck movement", "grinding sensation"],
+    "differential_diagnosis": ["Cervical disc herniation", "Cervical myelopathy", "Fibromyalgia", "Meningitis", "Thoracic outlet syndrome", "Tumor"],
+    "first_line_treatment": [
+      {"drug": "Paracetamol", "dose": "1000mg", "frequency": "every 6 hours", "duration": "1-2 weeks", "note": "first-line for pain"},
+      {"drug": "Physiotherapy + neck exercises", "dose": "gentle ROM exercises", "frequency": "daily", "duration": "ongoing", "note": "most important long-term management"},
+      {"drug": "Diclofenac gel", "dose": "apply to neck/shoulders", "frequency": "three times daily", "duration": "1-2 weeks", "note": "topical NSAID for localized pain"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Ibuprofen", "dose": "400mg", "frequency": "three times daily with food", "duration": "7-14 days", "note": "oral NSAID for moderate pain"},
+      {"drug": "Thiocolchicoside", "dose": "4mg", "frequency": "twice daily", "duration": "7-10 days", "note": "muscle relaxant for associated muscle spasm"},
+      {"drug": "Pregabalin", "dose": "75mg", "frequency": "twice daily", "duration": "4-8 weeks", "note": "for radicular neuropathic pain (arm tingling/numbness)"}
+    ],
+    "contraindications": ["Avoid prolonged collar use (weakens muscles)", "No manipulation if myelopathy suspected"],
+    "red_flags": ["Weakness in limbs (myelopathy)", "Gait disturbance", "Bladder/bowel dysfunction", "Fever (infection)", "Age >50 new onset (tumor)", "Night pain waking from sleep"],
+    "when_to_refer": "Myelopathy signs (urgent), radiculopathy not improving in 6 weeks, progressive neurological deficit, suspected malignancy",
+    "source": "Cervical Radiculopathy Guidelines / WHO"
+  },
+  {
+    "condition_name": "Dysmenorrhea (Painful Periods)",
+    "icd_code": "N94.4",
+    "symptoms": ["cramping lower abdominal pain during periods", "pain starting 1-2 days before period", "radiating to back/thighs", "nausea", "vomiting", "diarrhea during periods", "headache", "fatigue"],
+    "differential_diagnosis": ["Endometriosis", "Adenomyosis", "Fibroids", "Pelvic inflammatory disease", "Ovarian cyst"],
+    "first_line_treatment": [
+      {"drug": "Mefenamic Acid", "dose": "500mg", "frequency": "three times daily", "duration": "start at onset of pain, continue 2-3 days", "note": "NSAID most studied for dysmenorrhea; take with food"},
+      {"drug": "Ibuprofen", "dose": "400mg", "frequency": "every 8 hours", "duration": "first 2-3 days of period", "note": "alternative NSAID, start before or at pain onset"},
+      {"drug": "Heat application", "dose": "hot water bottle or heating pad on lower abdomen", "frequency": "as needed", "duration": "during cramping", "note": "as effective as ibuprofen in studies"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Combined oral contraceptive pill", "dose": "as per formulation", "frequency": "daily (21/7 or continuous)", "duration": "ongoing", "note": "reduces prostaglandin production; very effective for chronic dysmenorrhea"},
+      {"drug": "Norethisterone", "dose": "5mg", "frequency": "three times daily", "duration": "days 5-26 of cycle", "note": "progestogen for heavy painful periods"},
+      {"drug": "Drotaverine (No-Spa)", "dose": "40-80mg", "frequency": "three times daily", "duration": "first 2-3 days", "note": "antispasmodic widely available in India"}
+    ],
+    "contraindications": ["NSAIDs: caution in asthma, peptic ulcer", "OCPs: contraindicated in migraine with aura, smokers >35, VTE history"],
+    "red_flags": ["Worsening pain over time (endometriosis)", "Pain between periods", "Deep dyspareunia", "Heavy bleeding with clots", "Not responding to NSAIDs+OCP"],
+    "when_to_refer": "Secondary dysmenorrhea suspected (endometriosis, fibroids), not responding to first-line treatment, impact on quality of life, need for imaging",
+    "source": "ACOG Dysmenorrhea Guidelines / WHO"
+  },
+  {
+    "condition_name": "PCOS (Polycystic Ovary Syndrome)",
+    "icd_code": "E28.2",
+    "symptoms": ["irregular periods", "heavy periods", "acne", "excess facial/body hair (hirsutism)", "weight gain", "difficulty losing weight", "thinning scalp hair", "darkened skin patches (acanthosis nigricans)", "difficulty conceiving"],
+    "differential_diagnosis": ["Thyroid disorders", "Cushing syndrome", "Congenital adrenal hyperplasia", "Hyperprolactinemia", "Androgen-secreting tumor"],
+    "first_line_treatment": [
+      {"drug": "Lifestyle modification (weight loss)", "dose": "5-10% body weight reduction", "frequency": "caloric deficit + exercise 150 min/week", "duration": "ongoing", "note": "most important intervention; improves all symptoms"},
+      {"drug": "Metformin", "dose": "500mg initially, titrate to 1500mg", "frequency": "twice daily with meals", "duration": "ongoing", "note": "insulin sensitizer, helps with weight, periods, and metabolic features"},
+      {"drug": "Combined OCP (e.g., Ethinyl estradiol + Drospirenone)", "dose": "as per formulation", "frequency": "daily (21/7)", "duration": "ongoing", "note": "regulates periods, reduces androgens (acne + hirsutism). Not if trying to conceive"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Spironolactone", "dose": "50-100mg", "frequency": "once daily", "duration": "6-12 months for hirsutism", "note": "anti-androgen for hirsutism/acne; MUST use contraception (teratogenic)"},
+      {"drug": "Clomiphene citrate", "dose": "50mg", "frequency": "days 2-6 of cycle", "duration": "up to 6 cycles", "note": "ovulation induction for women trying to conceive"},
+      {"drug": "Letrozole", "dose": "2.5mg", "frequency": "days 2-6 of cycle", "duration": "up to 6 cycles", "note": "preferred over clomiphene for ovulation induction (NICE/WHO)"}
+    ],
+    "contraindications": ["Spironolactone: teratogenic, always with contraception", "OCP: not if trying to conceive", "Rule out other causes before diagnosing PCOS (Rotterdam criteria)"],
+    "red_flags": ["Rapid virilization (tumor)", "Very irregular bleeding (endometrial hyperplasia risk)", "Severe depression/anxiety", "Sleep apnea symptoms"],
+    "when_to_refer": "Infertility (reproductive endocrinologist), severe hirsutism, suspected endometrial hyperplasia, metabolic syndrome management",
+    "source": "International PCOS Guidelines 2023 / ESHRE / WHO"
+  },
+  {
+    "condition_name": "Vaginal Candidiasis (Yeast Infection)",
+    "icd_code": "B37.3",
+    "symptoms": ["vaginal itching", "thick white curd-like discharge", "burning sensation", "vulvar redness/swelling", "pain during intercourse", "burning during urination", "no foul odor"],
+    "differential_diagnosis": ["Bacterial vaginosis", "Trichomoniasis", "Contact dermatitis", "Lichen sclerosus", "STI"],
+    "first_line_treatment": [
+      {"drug": "Fluconazole", "dose": "150mg", "frequency": "single oral dose", "duration": "one-time", "note": "most convenient treatment; highly effective for uncomplicated VVC"},
+      {"drug": "Clotrimazole pessary", "dose": "500mg", "frequency": "single vaginal insertion at bedtime", "duration": "one-time", "note": "alternative topical treatment, safe in pregnancy"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Clotrimazole cream 1%", "dose": "apply to vulva", "frequency": "twice daily", "duration": "7 days", "note": "for vulvar symptoms, use alongside pessary/oral"},
+      {"drug": "Fluconazole (recurrent VVC)", "dose": "150mg", "frequency": "every 72 hours x3 doses, then weekly", "duration": "induction (3 doses) then maintenance 6 months", "note": "for recurrent VVC (≥4 episodes/year)"},
+      {"drug": "Boric acid vaginal capsules", "dose": "600mg", "frequency": "once daily intravaginally", "duration": "14 days", "note": "for azole-resistant candida or recurrent cases"}
+    ],
+    "contraindications": ["Fluconazole: avoid in first trimester of pregnancy (use clotrimazole topical instead)", "Do not self-treat recurrent symptoms without confirmation"],
+    "red_flags": ["Recurrent episodes (≥4/year — check for diabetes, immunosuppression)", "Severe vulvovaginal edema", "Non-albicans candida (resistant)", "Pregnancy"],
+    "when_to_refer": "Recurrent VVC, treatment failure, complicated VVC (severe symptoms, immunocompromised, non-albicans), pregnancy",
+    "source": "CDC STI Treatment Guidelines / WHO"
+  },
+  {
+    "condition_name": "Chickenpox (Varicella)",
+    "icd_code": "B01",
+    "symptoms": ["itchy vesicular rash", "rash in crops (different stages simultaneously)", "fever", "malaise", "rash on trunk spreading to face/limbs", "lesions becoming crusts", "headache"],
+    "differential_diagnosis": ["Herpes zoster (shingles)", "Impetigo", "Scabies", "Insect bites", "Hand-foot-mouth disease", "Smallpox"],
+    "first_line_treatment": [
+      {"drug": "Calamine lotion", "dose": "apply to itchy areas", "frequency": "as needed", "duration": "until crusting", "note": "soothes itch, safe in children"},
+      {"drug": "Paracetamol", "dose": "500mg (adults), 15mg/kg (children)", "frequency": "every 6 hours", "duration": "until fever resolves", "note": "for fever — NO ASPIRIN in children (Reye syndrome)"},
+      {"drug": "Cetirizine", "dose": "10mg (adults), 5mg (children 6-12y)", "frequency": "once daily", "duration": "until itching resolves", "note": "for itch relief, prevents scratching"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Acyclovir", "dose": "800mg (adults)", "frequency": "five times daily", "duration": "7 days", "note": "ONLY for adults, adolescents, immunocompromised, or secondary household cases. Start within 24h of rash onset"},
+      {"drug": "Mupirocin 2% ointment", "dose": "apply to infected lesions", "frequency": "three times daily", "duration": "5-7 days", "note": "for secondary bacterial infection of scratched lesions"}
+    ],
+    "contraindications": ["ABSOLUTELY NO ASPIRIN (Reye syndrome risk in children)", "NO IBUPROFEN (increased risk of necrotizing fasciitis in varicella)", "Paracetamol ONLY for fever"],
+    "red_flags": ["Respiratory distress (varicella pneumonia)", "Encephalitis (confusion, seizures)", "Hemorrhagic lesions", "High fever persisting >5 days", "Immunocompromised patient", "Newborn exposure"],
+    "when_to_refer": "Immunocompromised patients, pneumonia, encephalitis, neonatal varicella, pregnant women exposed, severe secondary infection",
+    "source": "AAP Red Book / WHO Varicella Guidelines"
+  },
+  {
+    "condition_name": "Pulmonary Tuberculosis",
+    "icd_code": "A15",
+    "symptoms": ["chronic cough >2 weeks", "hemoptysis", "night sweats", "evening rise of temperature", "weight loss", "loss of appetite", "fatigue", "chest pain"],
+    "differential_diagnosis": ["Lung cancer", "Pneumonia", "Lung abscess", "Sarcoidosis", "Non-tuberculous mycobacterial infection"],
+    "first_line_treatment": [
+      {"drug": "DOTS regimen - Intensive phase: HRZE", "dose": "Isoniazid 5mg/kg + Rifampicin 10mg/kg + Pyrazinamide 25mg/kg + Ethambutol 15mg/kg", "frequency": "daily", "duration": "2 months (intensive phase)", "note": "Fixed-dose combination (FDC) tablets as per NTEP weight bands. DIRECTLY OBSERVED THERAPY"},
+      {"drug": "DOTS regimen - Continuation phase: HR", "dose": "Isoniazid 5mg/kg + Rifampicin 10mg/kg", "frequency": "daily", "duration": "4 months (continuation phase)", "note": "Total treatment = 6 months for new cases. Must complete full course"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Pyridoxine (Vitamin B6)", "dose": "10mg", "frequency": "once daily", "duration": "throughout ATT", "note": "prevents isoniazid-induced peripheral neuropathy"},
+      {"drug": "MDR-TB regimen", "dose": "as per DST results", "frequency": "daily", "duration": "9-18 months", "note": "for multidrug-resistant TB — specialist management only, includes bedaquiline/delamanid"}
+    ],
+    "contraindications": ["Never use single-drug therapy (resistance develops)", "Ethambutol: monitor vision (optic neuritis)", "Pyrazinamide: avoid in severe liver disease", "Rifampicin: interacts with OCPs, warfarin, HIV drugs"],
+    "red_flags": ["Massive hemoptysis", "Respiratory failure", "Suspected MDR-TB (previous treatment/contact)", "HIV co-infection", "Miliary/disseminated TB"],
+    "when_to_refer": "ALL TB patients should be notified and managed under NTEP (India's TB program). MDR-TB, treatment failure, HIV co-infection, extrapulmonary TB — specialist referral",
+    "source": "NTEP India (formerly RNTCP) Guidelines 2024 / WHO TB Treatment Guidelines"
+  },
+  {
+    "condition_name": "Generalized Anxiety Disorder",
+    "icd_code": "F41.1",
+    "symptoms": ["excessive worry", "restlessness", "fatigue", "difficulty concentrating", "muscle tension", "irritability", "sleep disturbance", "palpitations", "sweating"],
+    "differential_diagnosis": ["Hyperthyroidism", "Cardiac arrhythmia", "Caffeine excess", "Medication side effects", "Depression", "Panic disorder", "PTSD"],
+    "first_line_treatment": [
+      {"drug": "Escitalopram", "dose": "5mg initially, increase to 10mg after 1 week", "frequency": "once daily", "duration": "minimum 6-12 months after remission", "note": "SSRI first-line; takes 2-4 weeks for full effect. Warn about initial anxiety increase"},
+      {"drug": "Cognitive Behavioral Therapy (CBT)", "dose": "structured sessions", "frequency": "weekly", "duration": "12-16 sessions", "note": "as effective as medication, preferred by many; can combine with medication"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Sertraline", "dose": "50mg, increase to 100mg after 2 weeks", "frequency": "once daily", "duration": "6-12 months minimum", "note": "alternative SSRI if escitalopram not tolerated"},
+      {"drug": "Propranolol", "dose": "10-40mg", "frequency": "as needed (before anxiety-provoking situations)", "duration": "as needed", "note": "for physical symptoms (palpitations, tremor) only; not for generalized anxiety"},
+      {"drug": "Buspirone", "dose": "5mg", "frequency": "three times daily (increase to 10mg TDS)", "duration": "4-6 weeks for effect", "note": "non-benzodiazepine anxiolytic, no dependence risk"}
+    ],
+    "contraindications": ["Benzodiazepines (alprazolam etc.) should NOT be first-line (dependence risk); use only short-term (<4 weeks) for severe anxiety", "SSRIs: monitor for suicidal ideation in young adults initially"],
+    "red_flags": ["Suicidal ideation", "Severe functional impairment", "Substance abuse", "Psychotic symptoms", "Panic attacks with chest pain (rule out cardiac)"],
+    "when_to_refer": "Severe anxiety not responding to SSRI + CBT, suicidal ideation, comorbid depression, substance dependence, need for specialist psychotherapy",
+    "source": "NICE Anxiety Guidelines / WHO mhGAP / APA"
+  },
+  {
+    "condition_name": "Insomnia",
+    "icd_code": "G47.0",
+    "symptoms": ["difficulty falling asleep", "difficulty staying asleep", "early morning awakening", "non-restorative sleep", "daytime fatigue", "irritability", "difficulty concentrating", "worry about sleep"],
+    "differential_diagnosis": ["Sleep apnea", "Restless legs syndrome", "Depression", "Anxiety", "Medication side effects", "Caffeine/alcohol related", "Chronic pain"],
+    "first_line_treatment": [
+      {"drug": "Sleep hygiene measures", "dose": "structured behavioral changes", "frequency": "nightly routine", "duration": "ongoing", "note": "fixed wake time, dark cool room, no screens 1h before bed, no caffeine after 2pm"},
+      {"drug": "CBT-I (Cognitive Behavioral Therapy for Insomnia)", "dose": "structured program", "frequency": "weekly sessions or app-based", "duration": "6-8 sessions", "note": "MOST effective long-term treatment; superior to medications"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Melatonin", "dose": "2-5mg", "frequency": "30-60 min before bedtime", "duration": "4-8 weeks", "note": "modified-release preferred; most effective for circadian issues and elderly"},
+      {"drug": "Zolpidem", "dose": "5mg (women), 5-10mg (men)", "frequency": "at bedtime as needed", "duration": "max 2-4 weeks", "note": "Z-drug hypnotic for short-term use only; dependence risk"},
+      {"drug": "Amitriptyline", "dose": "10-25mg", "frequency": "1-2 hours before bedtime", "duration": "4-8 weeks", "note": "low-dose TCA for insomnia with pain or depression; sedating"}
+    ],
+    "contraindications": ["Avoid long-term benzodiazepines/Z-drugs (dependence, falls in elderly)", "Zolpidem: avoid with alcohol, elderly fall risk", "Screen for sleep apnea before sedatives"],
+    "red_flags": ["Severe daytime sleepiness with snoring (sleep apnea)", "Restless legs/periodic limb movements", "Insomnia with weight gain + fatigue (hypothyroidism)", "Comorbid depression/suicidality"],
+    "when_to_refer": "Suspected sleep apnea (sleep study needed), insomnia >3 months not responding to CBT-I, comorbid psychiatric disorder, medication dependence",
+    "source": "AASM Insomnia Guidelines / NICE / European Insomnia Guidelines"
+  },
+  {
+    "condition_name": "Depression (Mild to Moderate)",
+    "icd_code": "F32",
+    "symptoms": ["persistent low mood", "loss of interest/pleasure", "fatigue", "sleep disturbance", "appetite changes", "difficulty concentrating", "feelings of worthlessness", "social withdrawal", "reduced libido"],
+    "differential_diagnosis": ["Hypothyroidism", "Anemia", "Vitamin D/B12 deficiency", "Chronic fatigue syndrome", "Bipolar disorder", "Grief reaction", "Substance abuse"],
+    "first_line_treatment": [
+      {"drug": "Escitalopram", "dose": "10mg (start 5mg for 1 week)", "frequency": "once daily morning", "duration": "minimum 6 months after remission (9-12 months total)", "note": "SSRI first-line; well-tolerated. Takes 2-4 weeks for benefit"},
+      {"drug": "Structured exercise", "dose": "30-45 min moderate intensity", "frequency": "3-5 times per week", "duration": "ongoing", "note": "evidence-based, as effective as medication for mild depression"},
+      {"drug": "Psychotherapy (CBT/IPT)", "dose": "structured sessions", "frequency": "weekly", "duration": "12-20 sessions", "note": "recommended for all mild-moderate depression, can be sole treatment for mild"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Sertraline", "dose": "50mg, increase to 100mg after 4 weeks if needed", "frequency": "once daily", "duration": "6-12 months", "note": "alternative SSRI; safe in cardiac disease"},
+      {"drug": "Mirtazapine", "dose": "15mg at bedtime (increase to 30mg)", "frequency": "once daily at night", "duration": "6-12 months", "note": "good for insomnia + poor appetite + depression; causes weight gain"},
+      {"drug": "Amitriptyline", "dose": "25mg at bedtime (increase to 75-150mg)", "frequency": "once daily at night", "duration": "6-12 months", "note": "TCA for depression with pain/insomnia; more side effects than SSRIs"}
+    ],
+    "contraindications": ["SSRIs: risk of serotonin syndrome with tramadol/MAOIs", "Monitor suicidal ideation in first 2 weeks (especially young adults)", "Do not stop abruptly (taper over 4 weeks)"],
+    "red_flags": ["Suicidal ideation/plans", "Self-harm", "Psychotic features (hallucinations, delusions)", "Bipolar features (manic episodes)", "Severe functional impairment (unable to work/eat/care for self)"],
+    "when_to_refer": "Suicidal risk (immediate psychiatric referral), severe depression, psychotic features, bipolar suspected, not responding to 2 adequate trials, pregnant/postpartum",
+    "source": "NICE Depression Guidelines / WHO mhGAP / APA"
+  },
+  {
+    "condition_name": "Acute Diarrhea in Children",
+    "icd_code": "A09",
+    "symptoms": ["frequent loose/watery stools", "vomiting", "fever", "abdominal cramps", "reduced feeding", "irritability", "dry mouth/lips", "decreased urine output", "sunken eyes"],
+    "differential_diagnosis": ["Viral gastroenteritis (rotavirus)", "Bacterial (Salmonella, Shigella)", "Intussusception", "Appendicitis", "Food allergy", "Antibiotic-associated"],
+    "first_line_treatment": [
+      {"drug": "ORS (WHO formula)", "dose": "50-100ml/kg over 4 hours (moderate dehydration); sips after each stool (no dehydration)", "frequency": "frequent small sips or spoon-fed", "duration": "until diarrhea stops", "note": "MOST IMPORTANT treatment. Continue breastfeeding alongside ORS"},
+      {"drug": "Zinc", "dose": "20mg (>6 months), 10mg (<6 months)", "frequency": "once daily", "duration": "10-14 days", "note": "reduces duration and prevents recurrence for 2-3 months. Give even after diarrhea stops"},
+      {"drug": "Continue feeding", "dose": "age-appropriate diet", "frequency": "normal feeding pattern", "duration": "throughout illness", "note": "do NOT starve the child; continue breast milk/normal diet"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Ondansetron", "dose": "0.15mg/kg (single dose)", "frequency": "once (max 4mg)", "duration": "single dose", "note": "for persistent vomiting preventing ORS intake"},
+      {"drug": "Racecadotril", "dose": "1.5mg/kg/dose", "frequency": "three times daily", "duration": "until diarrhea resolves (max 7 days)", "note": "antisecretory, reduces stool output; safe in children"}
+    ],
+    "contraindications": ["NO antidiarrheals (loperamide) in children <6 years", "NO antibiotics unless bloody diarrhea/cholera/proven bacterial cause", "NO fruit juices or sugary drinks as rehydration"],
+    "red_flags": ["Severe dehydration (lethargic/unconscious, unable to drink, sunken eyes, skin pinch goes back very slowly)", "Blood in stool", "Persistent vomiting (unable to retain ORS)", "No urine for 6+ hours", "Age <2 months"],
+    "when_to_refer": "Severe dehydration (needs IV fluids), bloody diarrhea (dysentery), age <2 months, diarrhea >14 days, malnutrition, no improvement in 48h",
+    "source": "WHO/UNICEF Diarrhoea Treatment Guidelines / IAP India"
+  },
+  {
+    "condition_name": "Hyperlipidemia (High Cholesterol)",
+    "icd_code": "E78",
+    "symptoms": ["usually asymptomatic", "xanthomas (yellowish deposits)", "xanthelasma (around eyes)", "arcus senilis (premature corneal ring)", "discovered on routine blood work", "family history of early heart disease"],
+    "differential_diagnosis": ["Primary (genetic) hyperlipidemia", "Secondary to hypothyroidism", "Diabetes mellitus", "Nephrotic syndrome", "Liver disease", "Medication-induced (steroids, thiazides)"],
+    "first_line_treatment": [
+      {"drug": "Atorvastatin", "dose": "10-20mg (moderate intensity) or 40-80mg (high intensity)", "frequency": "once daily at bedtime", "duration": "lifelong", "note": "high-intensity statin for those with CVD or >7.5% 10-year risk"},
+      {"drug": "Lifestyle modification", "dose": "dietary changes + exercise", "frequency": "daily", "duration": "lifelong", "note": "reduce saturated fat, increase fiber, exercise 150 min/week, weight loss. Try 3 months alone if low risk"}
+    ],
+    "second_line_treatment": [
+      {"drug": "Rosuvastatin", "dose": "5-10mg (moderate) or 20-40mg (high intensity)", "frequency": "once daily", "duration": "lifelong", "note": "alternative statin, most potent per mg"},
+      {"drug": "Ezetimibe", "dose": "10mg", "frequency": "once daily", "duration": "lifelong", "note": "add to statin if target LDL not achieved; cholesterol absorption inhibitor"},
+      {"drug": "Fenofibrate", "dose": "160mg", "frequency": "once daily", "duration": "lifelong", "note": "for hypertriglyceridemia (TG >500 mg/dL); can combine with statin"}
+    ],
+    "contraindications": ["Statins: avoid in pregnancy/breastfeeding, active liver disease", "Monitor LFTs and CK if muscle symptoms", "Statin + gemfibrozil combination (rhabdomyolysis risk)"],
+    "red_flags": ["Very high LDL >190 (familial hypercholesterolemia)", "Triglycerides >500 (pancreatitis risk)", "Known CVD (secondary prevention — must be on high-intensity statin)", "Muscle pain/weakness on statin (rhabdomyolysis)"],
+    "when_to_refer": "Familial hypercholesterolemia (genetic testing), not reaching targets despite max statin + ezetimibe, statin intolerance, very high triglycerides (>1000), premature CVD",
+    "source": "ACC/AHA Cholesterol Guidelines / ESC / WHO"
+  }
+]
