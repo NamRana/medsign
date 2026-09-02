@@ -24,7 +24,7 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-REASONING_MODEL = "gemini-3.6-flash"
+REASONING_MODEL = "gemini-3.5-flash"
 LITE_MODEL = "gemini-3.5-flash-lite"
 _MAX_RETRIES = 2
 
