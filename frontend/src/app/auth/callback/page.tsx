@@ -10,29 +10,26 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.onAuthStateChange((event: string) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
       if (event === "SIGNED_IN") {
         router.replace("/dashboard");
       }
     });
 
-    // Handle the OAuth code exchange automatically
-    const hash = window.location.hash;
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+    // Fallback: if already signed in or if auth state doesn't change within 5s
+    const timeout = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/login?error=auth_timeout");
+      }
+    }, 5000);
 
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }: { error: unknown }) => {
-        if (error) {
-          router.replace("/login?error=auth_failed");
-        } else {
-          router.replace("/dashboard");
-        }
-      });
-    } else if (!hash) {
-      // No code and no hash — something went wrong
-      router.replace("/login?error=auth_failed");
-    }
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, [router]);
 
   return (
