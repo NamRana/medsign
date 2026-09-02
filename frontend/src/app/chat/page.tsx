@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { closeConversation, createConversation, getConversation, getImageBlobUrl, sendMessage, type ImageAnalysis, type LabReport, type Message } from "@/lib/api";
 import ImageUpload from "@/components/ImageUpload";
@@ -9,6 +9,39 @@ import VoiceInput from "@/components/VoiceInput";
 import LabReportUpload from "@/components/LabReportUpload";
 import LabReportView from "@/components/LabReportView";
 import MarkdownMessage from "@/components/MarkdownMessage";
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\|[^\n]+\|/g, "")
+    .replace(/[-─]{3,}/g, "")
+    .replace(/#{1,6}\s*/g, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/[>•℞🏥📝⚠️📅🟢🟡🔴⚖️]/g, "")
+    .replace(/\n{2,}/g, ". ")
+    .replace(/\n/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function speakText(text: string, onEnd?: () => void): SpeechSynthesisUtterance | null {
+  if (typeof window === "undefined" || !window.speechSynthesis) return null;
+  window.speechSynthesis.cancel();
+  const plain = stripMarkdown(text);
+  if (!plain) return null;
+  const utterance = new SpeechSynthesisUtterance(plain);
+  utterance.lang = "en-IN";
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(
+    (v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")
+  ) || voices.find((v) => v.lang.startsWith("en-IN")) || voices.find((v) => v.lang.startsWith("en"));
+  if (preferred) utterance.voice = preferred;
+  if (onEnd) utterance.onend = onEnd;
+  window.speechSynthesis.speak(utterance);
+  return utterance;
+}
 
 interface ChatMessage {
   id: string;
@@ -43,6 +76,7 @@ function ChatPageInner() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(idFromUrl);
   const [error, setError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   const [labReport, setLabReport] = useState<LabReport | null>(null);
   const [expandedReport, setExpandedReport] = useState<{
     analysis: ImageAnalysis;
@@ -167,6 +201,16 @@ function ChatPageInner() {
     setMessages((prev) => [...prev, assistantMsg]);
   }
 
+  const toggleSpeak = useCallback((msgId: string, content: string) => {
+    if (speakingMsgId === msgId) {
+      window.speechSynthesis?.cancel();
+      setSpeakingMsgId(null);
+      return;
+    }
+    setSpeakingMsgId(msgId);
+    speakText(content, () => setSpeakingMsgId(null));
+  }, [speakingMsgId]);
+
   function handleVoiceTranscription(transcript: string, userMsg: Message, assistantMsg: Message) {
     setIsRecording(false);
     setMessages((prev) => [
@@ -174,6 +218,8 @@ function ChatPageInner() {
       { id: userMsg.id, role: "user" as const, content: userMsg.content, isVoice: true },
       { id: assistantMsg.id, role: "assistant" as const, content: assistantMsg.content },
     ]);
+    setSpeakingMsgId(assistantMsg.id);
+    speakText(assistantMsg.content, () => setSpeakingMsgId(null));
   }
 
   function handleLabReportComplete(report: LabReport) {
@@ -323,7 +369,31 @@ function ChatPageInner() {
                     </span>
                   )}
                   {msg.role === "assistant" ? (
-                    <MarkdownMessage content={msg.content} />
+                    <>
+                      <MarkdownMessage content={msg.content} />
+                      <div className="flex justify-end mt-1.5 -mb-1">
+                        <button
+                          onClick={() => toggleSpeak(msg.id, msg.content)}
+                          className={`p-1 rounded-md transition-colors ${
+                            speakingMsgId === msg.id
+                              ? "text-emerald-600 bg-emerald-50"
+                              : "text-gray-300 hover:text-gray-500 hover:bg-gray-50"
+                          }`}
+                          aria-label={speakingMsgId === msg.id ? "Stop speaking" : "Read aloud"}
+                          title={speakingMsgId === msg.id ? "Stop" : "Read aloud"}
+                        >
+                          {speakingMsgId === msg.id ? (
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                              <rect x="6" y="6" width="12" height="12" rx="2" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </>
                   ) : (
                     <span className="whitespace-pre-wrap">{msg.content}</span>
                   )}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { sendAudio, type Message } from "@/lib/api";
+import type { Message } from "@/lib/api";
+import { sendMessage } from "@/lib/api";
 
 interface VoiceInputProps {
   conversationId: string | null;
@@ -17,6 +18,26 @@ interface VoiceInputProps {
 
 type RecordingState = "idle" | "recording" | "transcribing" | "error";
 
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
 export default function VoiceInput({
   conversationId,
   onTranscriptionComplete,
@@ -28,100 +49,92 @@ export default function VoiceInput({
   const [duration, setDuration] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(true);
+  const [liveTranscript, setLiveTranscript] = useState("");
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const recognitionRef = useRef<unknown>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const finalTranscriptRef = useRef("");
 
-  // Check browser support on mount
   useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia ||
-      typeof MediaRecorder === "undefined"
-    ) {
+    if (typeof window === "undefined") {
       setIsSupported(false);
+      return;
     }
+    const SR =
+      (window as unknown as Record<string, unknown>).SpeechRecognition ||
+      (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+    if (!SR) setIsSupported(false);
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
     };
-  }, []);
-
-  const getPreferredMimeType = useCallback((): string => {
-    const types = [
-      "audio/webm;codecs=opus",
-      "audio/webm",
-      "audio/mp4",
-      "audio/ogg;codecs=opus",
-    ];
-    for (const type of types) {
-      if (MediaRecorder.isTypeSupported(type)) return type;
-    }
-    return "";
   }, []);
 
   const startRecording = useCallback(async () => {
     setErrorMessage(null);
+    finalTranscriptRef.current = "";
+    setLiveTranscript("");
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
+    const SR =
+      (window as unknown as Record<string, unknown>).SpeechRecognition ||
+      (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+    if (!SR) {
+      setErrorMessage("Speech recognition not supported in this browser.");
+      setState("error");
+      return;
+    }
 
-      const mimeType = getPreferredMimeType();
-      const options: MediaRecorderOptions = mimeType ? { mimeType } : {};
-      const recorder = new MediaRecorder(stream, options);
-      mediaRecorderRef.current = recorder;
-      chunksRef.current = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition = new (SR as any)();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-IN";
 
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscriptRef.current += result[0].transcript + " ";
+        } else {
+          interim += result[0].transcript;
         }
-      };
+      }
+      setLiveTranscript(finalTranscriptRef.current + interim);
+    };
 
-      recorder.start(100); // collect data every 100ms
-      setState("recording");
-      setDuration(0);
-      onRecordingStateChange?.(true);
-
-      // Start timer
-      timerRef.current = setInterval(() => {
-        setDuration((prev) => prev + 1);
-      }, 1000);
-    } catch (err) {
-      const error = err as Error;
-      if (
-        error.name === "NotAllowedError" ||
-        error.name === "PermissionDeniedError"
-      ) {
-        setErrorMessage(
-          "Microphone access denied. Please allow microphone access in your browser settings."
-        );
-      } else if (
-        error.name === "NotFoundError" ||
-        error.name === "DevicesNotFoundError"
-      ) {
-        setErrorMessage("No microphone found. Please connect a microphone.");
+    recognition.onerror = (event: { error: string }) => {
+      if (event.error === "not-allowed") {
+        setErrorMessage("Microphone access denied. Please allow microphone in browser settings.");
+      } else if (event.error === "no-speech") {
+        setErrorMessage("No speech detected. Please try again.");
       } else {
-        setErrorMessage("Could not start recording. Please try again.");
+        setErrorMessage("Voice recognition error. Please try again.");
       }
       setState("error");
-    }
-  }, [getPreferredMimeType]);
+      onRecordingStateChange?.(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+
+    recognition.onend = () => {
+      // Will be handled by stopRecording
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+
+    setState("recording");
+    setDuration(0);
+    onRecordingStateChange?.(true);
+
+    timerRef.current = setInterval(() => {
+      setDuration((prev) => prev + 1);
+    }, 1000);
+  }, [onRecordingStateChange]);
 
   const stopRecording = useCallback(async () => {
-    if (!mediaRecorderRef.current) return;
-
-    // Stop the timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -129,62 +142,51 @@ export default function VoiceInput({
 
     onRecordingStateChange?.(false);
 
-    const recorder = mediaRecorderRef.current;
-
-    // Wait for recorder to finish
-    const audioBlob = await new Promise<Blob>((resolve) => {
-      recorder.onstop = () => {
-        const mimeType = recorder.mimeType || "audio/webm";
-        const blob = new Blob(chunksRef.current, { type: mimeType });
-        resolve(blob);
-      };
-      recorder.stop();
-    });
-
-    // Stop the stream tracks
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition = recognitionRef.current as any;
+    if (recognition) {
+      recognition.stop();
+      recognitionRef.current = null;
     }
 
-    // Don't send empty recordings
-    if (audioBlob.size < 100) {
-      setState("idle");
+    // Wait a tick for final results
+    await new Promise((r) => setTimeout(r, 300));
+
+    const transcript = finalTranscriptRef.current.trim() || liveTranscript.trim();
+    if (!transcript) {
+      setErrorMessage("No speech detected. Please try again.");
+      setState("error");
+      setDuration(0);
       return;
     }
 
     setState("transcribing");
 
     try {
-      // Ensure we have a conversation ID (create one if needed)
       let convId = conversationId;
       if (!convId && onEnsureConversation) {
         convId = await onEnsureConversation();
       }
       if (!convId) {
-        setErrorMessage("No conversation available. Please send a text message first.");
+        setErrorMessage("No conversation available.");
         setState("error");
         return;
       }
 
-      const response = await sendAudio(convId, audioBlob);
-      onTranscriptionComplete(
-        response.transcript,
-        response.user_message,
-        response.assistant_message
-      );
+      const [userMsg, assistantMsg] = await sendMessage(convId, transcript);
+      onTranscriptionComplete(transcript, userMsg, assistantMsg);
       setState("idle");
     } catch {
-      setErrorMessage("Could not transcribe audio. Please try again.");
+      setErrorMessage("Could not send message. Please try again.");
       setState("error");
     }
 
     setDuration(0);
-  }, [conversationId, onTranscriptionComplete, onRecordingStateChange, onEnsureConversation]);
+    setLiveTranscript("");
+  }, [conversationId, onTranscriptionComplete, onRecordingStateChange, onEnsureConversation, liveTranscript]);
 
   const handleClick = useCallback(() => {
     if (disabled) return;
-
     if (state === "recording") {
       stopRecording();
     } else if (state === "idle") {
@@ -203,12 +205,10 @@ export default function VoiceInput({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Hide entirely if browser doesn't support MediaRecorder
   if (!isSupported) return null;
 
   return (
     <div className="relative">
-      {/* Recording / Idle button */}
       {state === "idle" && (
         <button
           type="button"
@@ -223,20 +223,27 @@ export default function VoiceInput({
       )}
 
       {state === "recording" && (
-        <button
-          type="button"
-          onClick={handleClick}
-          className="flex-shrink-0 h-11 flex items-center gap-2 px-3 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
-          aria-label="Stop recording"
-        >
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
-          </span>
-          <span className="text-xs font-medium tabular-nums">
-            {formatDuration(duration)}
-          </span>
-        </button>
+        <div className="flex items-center gap-2">
+          {liveTranscript && (
+            <div className="max-w-[160px] text-xs text-gray-500 truncate">
+              {liveTranscript}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleClick}
+            className="flex-shrink-0 h-11 flex items-center gap-2 px-3 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+            aria-label="Stop recording"
+          >
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+            </span>
+            <span className="text-xs font-medium tabular-nums">
+              {formatDuration(duration)}
+            </span>
+          </button>
+        </div>
       )}
 
       {state === "transcribing" && (
@@ -247,27 +254,13 @@ export default function VoiceInput({
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          <span className="text-xs font-medium text-blue-600">
-            Transcribing...
-          </span>
+          <span className="text-xs font-medium text-blue-600">Sending...</span>
         </div>
       )}
 
-      {/* Error overlay */}
       {state === "error" && errorMessage && (
         <div className="absolute bottom-14 left-0 z-50 w-64 bg-white rounded-2xl shadow-lg border border-red-100 p-4">
           <p className="text-xs text-red-600 mb-2">{errorMessage}</p>
@@ -282,8 +275,6 @@ export default function VoiceInput({
     </div>
   );
 }
-
-// --- Mic icon SVG ---
 
 function MicIcon() {
   return (
