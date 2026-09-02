@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -10,8 +11,19 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const supabase = createClient();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string) => {
       if (event === "SIGNED_IN") {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user?.user_metadata?.full_name) {
+            await apiFetch("/api/v1/patients", {
+              method: "POST",
+              body: JSON.stringify({
+                full_name: user.user_metadata.full_name,
+              }),
+            }).catch(() => {});
+          }
+        } catch {}
         router.replace("/dashboard");
       }
     });

@@ -169,6 +169,7 @@ export default function DashboardPage() {
   const [listError, setListError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [healthScore, setHealthScore] = useState(72);
@@ -185,6 +186,7 @@ export default function DashboardPage() {
       if (data.user) {
         setUserEmail(data.user.email || "");
         setUserName(data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "");
+        setUserAvatar(data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture || "");
         setIsAdmin(data.user.app_metadata?.role === "admin");
       }
     });
@@ -264,9 +266,13 @@ export default function DashboardPage() {
               </button>
             )}
             <div className="hidden sm:flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-1.5">
-              <div className="w-7 h-7 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">
-                {userInitial}
-              </div>
+              {userAvatar ? (
+                <img src={userAvatar} alt="" className="w-7 h-7 rounded-lg object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-7 h-7 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                  {userInitial}
+                </div>
+              )}
               <span className="text-xs font-medium text-gray-600 max-w-[140px] truncate">{userEmail}</span>
             </div>
             <button
