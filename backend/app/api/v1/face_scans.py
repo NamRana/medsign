@@ -12,7 +12,7 @@ from postgrest import APIError
 from pydantic import BaseModel, Field
 
 from app.agents.face_analyzer import FaceAnalysis, FaceAnalyzer
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 from app.dependencies import supabase
 from app.middleware.auth import get_current_user
 from app.middleware.rate_limit import rate_limit_uploads
@@ -494,7 +494,7 @@ async def get_future_projection(user=Depends(get_current_user)) -> FutureProject
     )
 
     try:
-        gemini = get_gemini_provider()
+        gemini = get_ai_provider()
         narrative = await gemini.generate_structured(
             system_prompt=system_prompt,
             user_message=user_context,

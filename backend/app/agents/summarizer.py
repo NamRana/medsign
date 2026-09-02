@@ -12,7 +12,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 from app.dependencies import supabase
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class DoctorSummarizer:
     async def generate(self, conversation_id: str) -> DoctorSummary:
         """Generate a doctor-ready summary for a conversation."""
         data = await self._gather_data(conversation_id)
-        provider = get_gemini_provider()
+        provider = get_ai_provider()
 
         system_prompt = self._prompt_template.replace(
             "{conversation_data}", json.dumps(data, indent=2, default=str)

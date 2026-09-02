@@ -10,7 +10,7 @@ import json
 import logging
 from pathlib import Path
 
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 from app.schemas.ai_responses import InterviewerResponse
 from app.services.patient_state import PatientState
 
@@ -64,7 +64,7 @@ async def get_next_question(
             priority=1,
         )
 
-    provider = get_gemini_provider()
+    provider = get_ai_provider()
     prompt_template = _load_prompt()
 
     # Build context strings for the prompt

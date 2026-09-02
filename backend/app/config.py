@@ -6,7 +6,11 @@ class Settings(BaseSettings):
     supabase_anon_key: str
     supabase_service_role_key: str
     database_url: str
-    gemini_api_key: str
+    gemini_api_key: str = ""
+    ai_provider: str = "gemini"  # "gemini" or "bedrock"
+    bedrock_api_token: str = ""
+    bedrock_endpoint: str = ""
+    bedrock_model: str = "moonshotai.kimi-k2.5"
     environment: str = "development"
     secret_key: str = "change-me"
     sentry_dsn: str = ""

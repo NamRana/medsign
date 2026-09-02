@@ -14,7 +14,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 from app.ai.medgemma import MedGemmaProvider
 from app.config import settings
 
@@ -93,7 +93,7 @@ class ImageAnalyzer:
         if settings.medgemma_enabled:
             from app.ai.medgemma import get_medgemma_provider
             return get_medgemma_provider()
-        return get_gemini_provider()
+        return get_ai_provider()
 
     async def analyze(
         self,

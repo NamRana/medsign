@@ -10,7 +10,7 @@ import json
 import logging
 from pathlib import Path
 
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 from app.rag.retrieval import RetrievalResult, format_knowledge_for_prompt, retrieve_for_patient
 from app.services.patient_state import PatientState
 
@@ -74,7 +74,7 @@ async def generate_assessment(
     )
 
     # Step 4: Generate assessment using the reasoning model
-    provider = get_gemini_provider()
+    provider = get_ai_provider()
     try:
         assessment = await provider.generate(
             system_prompt=system_prompt,

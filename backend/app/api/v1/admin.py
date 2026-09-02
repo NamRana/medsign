@@ -238,7 +238,7 @@ async def run_evaluation_suite(
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
     from tests.evaluation.evaluator import load_test_cases, run_evaluation
 
-    from app.ai.gemini import get_gemini_provider
+    from app.ai.gemini import get_ai_provider
 
     cases = load_test_cases()
 
@@ -251,7 +251,7 @@ async def run_evaluation_suite(
     if not cases:
         raise HTTPException(status_code=400, detail="No test cases match the criteria")
 
-    provider = get_gemini_provider()
+    provider = get_ai_provider()
 
     async def send_message(message: str) -> str:
         return await provider.generate(

@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from pypdf import PdfReader
 from io import BytesIO
 
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 from app.dependencies import supabase
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class LabReportExtractor:
 
     async def extract(self, file_bytes: bytes, mime_type: str) -> LabExtractionResult:
         """Extract structured lab values from a report file."""
-        provider = get_gemini_provider()
+        provider = get_ai_provider()
 
         if mime_type == "application/pdf":
             return await self._extract_from_pdf(file_bytes, provider)
@@ -130,7 +130,7 @@ class LabReportExtractor:
         patient_context: str = "No additional patient context available.",
     ) -> LabInterpretation:
         """Generate a patient-friendly interpretation of lab values."""
-        provider = get_gemini_provider()
+        provider = get_ai_provider()
 
         values_json = json.dumps([v.model_dump() for v in lab_values], indent=2)
 

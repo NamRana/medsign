@@ -12,7 +12,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class FaceAnalyzer:
         Returns:
             FaceAnalysis with scores, observations, and tips.
         """
-        provider = get_gemini_provider()
+        provider = get_ai_provider()
 
         context = previous_scan_summary or "No previous scan data available — this is the first scan."
         system_prompt = self._system_prompt_template.replace(

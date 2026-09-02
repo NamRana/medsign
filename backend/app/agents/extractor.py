@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 
-from app.ai.gemini import get_gemini_provider
+from app.ai.gemini import get_ai_provider
 from app.schemas.ai_responses import ExtractionResult
 from app.services.patient_state import CollectedSymptom, PatientState
 
@@ -49,7 +49,7 @@ async def extract_from_message(
         logger.warning("GEMINI_API_KEY not configured — skipping extraction")
         return patient_state
 
-    provider = get_gemini_provider()
+    provider = get_ai_provider()
 
     try:
         result: ExtractionResult = await provider.generate_structured(

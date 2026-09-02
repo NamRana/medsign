@@ -9,6 +9,7 @@ python-jose[cryptography]==3.*
 httpx==0.28.*
 supabase==2.*
 google-genai==1.*
+anthropic[bedrock]==0.*
 pypdf==5.*
 # MedGemma (optional — install only on GPU machines)
 # torch>=2.2

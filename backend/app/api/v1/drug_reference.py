@@ -99,7 +99,7 @@ async def suggest_for_condition(
     user=Depends(get_current_user),
 ) -> ConditionMedicines:
     """Suggest medicines from NFI for a given condition using AI matching."""
-    from app.ai.gemini import get_gemini_provider
+    from app.ai.gemini import get_ai_provider
 
     resp = supabase.table("drug_reference").select(
         "id, generic_name, brand_names, drug_class, indications, "
@@ -115,7 +115,7 @@ async def suggest_for_condition(
         for d in resp.data
     )
 
-    provider = get_gemini_provider()
+    provider = get_ai_provider()
     prompt = (
         f"From this drug list, identify the top 5 most relevant medicines for "
         f"the condition: \"{condition}\"\n\n"

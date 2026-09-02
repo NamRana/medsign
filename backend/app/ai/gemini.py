@@ -201,3 +201,11 @@ def get_gemini_provider() -> GeminiProvider:
     if _provider is None:
         _provider = GeminiProvider()
     return _provider
+
+
+def get_ai_provider() -> AIProvider:
+    """Return the configured AI provider (Gemini or Bedrock)."""
+    if settings.ai_provider == "bedrock":
+        from app.ai.bedrock import get_bedrock_provider
+        return get_bedrock_provider()
+    return get_gemini_provider()
