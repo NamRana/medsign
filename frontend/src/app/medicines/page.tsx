@@ -43,6 +43,30 @@ interface Adherence {
   days: number;
 }
 
+interface DrugReference {
+  id: string;
+  generic_name: string;
+  brand_names: string[];
+  drug_class: string;
+  indications: string[];
+  adult_dosage: string;
+  pediatric_dosage: string | null;
+  frequency: string;
+  duration_typical: string | null;
+  route: string;
+  contraindications: string[];
+  side_effects: string[];
+  interactions: string[];
+  pregnancy_category: string | null;
+  otc: boolean;
+  source: string;
+}
+
+interface DrugSearchResult {
+  drugs: DrugReference[];
+  total: number;
+}
+
 const FREQUENCIES = [
   { value: "once_daily", label: "Once daily", times: ["09:00"] },
   { value: "twice_daily", label: "Twice daily", times: ["08:00", "20:00"] },
@@ -88,7 +112,14 @@ export default function MedicinesPage() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"today" | "all">("today");
+  const [activeTab, setActiveTab] = useState<"today" | "all" | "reference">("today");
+  const [drugResults, setDrugResults] = useState<DrugReference[]>([]);
+  const [drugSearch, setDrugSearch] = useState("");
+  const [drugSearching, setDrugSearching] = useState(false);
+  const [drugTotal, setDrugTotal] = useState(0);
+  const [selectedDrug, setSelectedDrug] = useState<DrugReference | null>(null);
+  const [drugCategories, setDrugCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // Form state
   const [formName, setFormName] = useState("");
@@ -113,6 +144,43 @@ export default function MedicinesPage() {
     } catch { setError("Could not load medicines."); }
     finally { setIsLoading(false); }
   }
+
+  async function searchDrugs(query?: string, category?: string) {
+    setDrugSearching(true);
+    try {
+      const params = new URLSearchParams();
+      if (query) params.set("q", query);
+      if (category) params.set("category", category);
+      params.set("limit", "50");
+      const data = await apiFetch<DrugSearchResult>(`/api/v1/drug-reference?${params}`);
+      setDrugResults(data.drugs);
+      setDrugTotal(data.total);
+    } catch {
+      setDrugResults([]);
+    } finally {
+      setDrugSearching(false);
+    }
+  }
+
+  async function loadDrugCategories() {
+    try {
+      const cats = await apiFetch<string[]>("/api/v1/drug-reference/categories");
+      setDrugCategories(cats);
+    } catch { /* ignore */ }
+  }
+
+  useEffect(() => {
+    if (activeTab === "reference" && drugResults.length === 0) {
+      searchDrugs();
+      loadDrugCategories();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "reference") return;
+    const timer = setTimeout(() => searchDrugs(drugSearch, selectedCategory), 300);
+    return () => clearTimeout(timer);
+  }, [drugSearch, selectedCategory]);
 
   function resetForm() {
     setFormName(""); setFormDosage(""); setFormFrequency("twice_daily");
@@ -249,13 +317,19 @@ export default function MedicinesPage() {
             onClick={() => setActiveTab("today")}
             className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "today" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
           >
-            Today&apos;s Schedule
+            Today
           </button>
           <button
             onClick={() => setActiveTab("all")}
             className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "all" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
           >
-            All Medicines ({medicines.length})
+            My Medicines
+          </button>
+          <button
+            onClick={() => setActiveTab("reference")}
+            className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "reference" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            NFI Reference
           </button>
         </div>
 
@@ -360,7 +434,7 @@ export default function MedicinesPage() {
               ))
             )}
           </div>
-        ) : (
+        ) : activeTab === "all" ? (
           /* All Medicines List */
           <div className="space-y-3">
             {medicines.length === 0 ? (
@@ -404,6 +478,128 @@ export default function MedicinesPage() {
                 </div>
               ))
             )}
+          </div>
+        ) : (
+          /* NFI Drug Reference */
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+              Source: National Formulary of India (NFI). For educational purposes only — always consult a doctor before taking any medication.
+            </div>
+
+            {/* Search and Filter */}
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={drugSearch}
+                  onChange={(e) => setDrugSearch(e.target.value)}
+                  placeholder="Search medicines by name or class..."
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                />
+              </div>
+              {drugCategories.length > 0 && (
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-3 py-3 rounded-xl border border-gray-200 text-xs text-gray-600 bg-white focus:border-blue-500 outline-none"
+                >
+                  <option value="">All Classes</option>
+                  {drugCategories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Results count */}
+            <p className="text-xs text-gray-400">
+              {drugSearching ? "Searching..." : `${drugTotal} medicines found`}
+            </p>
+
+            {/* Drug list */}
+            <div className="space-y-2.5">
+              {drugResults.map((drug) => (
+                <button
+                  key={drug.id}
+                  onClick={() => setSelectedDrug(selectedDrug?.id === drug.id ? null : drug)}
+                  className="w-full text-left bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden"
+                >
+                  <div className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${drug.otc ? "bg-green-50" : "bg-blue-50"}`}>
+                        <span className="text-lg">{drug.otc ? "✅" : "💊"}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900">{drug.generic_name}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {drug.drug_class && <span className="text-[11px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{drug.drug_class}</span>}
+                          {drug.brand_names.length > 0 && (
+                            <span className="text-[11px] text-gray-400">{drug.brand_names.slice(0, 3).join(", ")}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex items-center gap-1.5">
+                        {drug.otc && <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-lg">OTC</span>}
+                        {drug.pregnancy_category && <span className="text-[10px] font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg">Cat {drug.pregnancy_category}</span>}
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${selectedDrug?.id === drug.id ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded detail */}
+                  {selectedDrug?.id === drug.id && (
+                    <div className="border-t border-gray-100 px-4 py-4 space-y-3 bg-gray-50/50" onClick={(e) => e.stopPropagation()}>
+                      {drug.indications.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Indications</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {drug.indications.map((ind, i) => (
+                              <span key={i} className="text-xs text-gray-700 bg-white px-2 py-1 rounded-lg border border-gray-100">{ind}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {drug.adult_dosage && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Dosage</p>
+                          <p className="text-xs text-gray-700">{drug.adult_dosage} {drug.frequency && `| ${drug.frequency}`}</p>
+                          {drug.duration_typical && <p className="text-xs text-gray-500 mt-0.5">Duration: {drug.duration_typical}</p>}
+                        </div>
+                      )}
+                      {drug.contraindications.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wide mb-1">Contraindications</p>
+                          <ul className="space-y-0.5">
+                            {drug.contraindications.map((c, i) => (
+                              <li key={i} className="text-xs text-red-700 flex items-start gap-1.5">
+                                <span className="mt-1.5 w-1 h-1 rounded-full bg-red-400 shrink-0" />{c}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {drug.side_effects.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-orange-500 uppercase tracking-wide mb-1">Side Effects</p>
+                          <p className="text-xs text-gray-600">{drug.side_effects.join(", ")}</p>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-gray-400 pt-1">Source: {drug.source}</p>
+                    </div>
+                  )}
+                </button>
+              ))}
+              {drugResults.length === 0 && !drugSearching && (
+                <div className="bg-white rounded-3xl p-10 text-center border border-gray-100">
+                  <p className="text-sm text-gray-400">{drugSearch ? "No medicines match your search." : "No medicines in reference database."}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
         </div>

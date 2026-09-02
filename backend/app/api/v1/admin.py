@@ -281,6 +281,26 @@ async def run_evaluation_suite(
     }
 
 
+@router.post("/ingest-nfi")
+async def ingest_nfi(
+    pdf_path: str = Query(
+        default="data/NFI_2011 (1).pdf",
+        description="Path to NFI PDF file relative to project root",
+    ),
+):
+    """Ingest the National Formulary of India PDF into the knowledge base."""
+    from pathlib import Path
+
+    from app.rag.nfi_ingestion import ingest_nfi_pdf
+
+    full_path = Path(__file__).resolve().parent.parent.parent.parent / pdf_path
+    if not full_path.exists():
+        raise HTTPException(status_code=404, detail=f"PDF not found at: {full_path}")
+
+    result = await ingest_nfi_pdf(str(full_path))
+    return result
+
+
 @router.get("/safety-events")
 async def list_safety_events(
     limit: int = Query(50, le=200),

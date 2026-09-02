@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.admin import router as admin_router
+from app.api.v1.drug_reference import router as drug_reference_router
 from app.api.v1.audio import router as audio_router
 from app.api.v1.face_scans import router as face_scans_router
 from app.api.v1.family import router as family_router
@@ -33,5 +34,6 @@ api_router.include_router(audio_router, prefix="/audio", tags=["audio"])
 api_router.include_router(medgemma_router, prefix="/medgemma", tags=["medgemma"])
 api_router.include_router(reports_router, prefix="/reports", tags=["reports"])
 api_router.include_router(admin_router, prefix="/admin", tags=["admin"])
+api_router.include_router(drug_reference_router, prefix="/drug-reference", tags=["drug-reference"])
 api_router.include_router(history_router, prefix="/history", tags=["history"])
 api_router.include_router(insights_router, prefix="/insights", tags=["insights"])

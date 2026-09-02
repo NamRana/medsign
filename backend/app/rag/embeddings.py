@@ -13,7 +13,7 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-EMBEDDING_MODEL = "text-embedding-004"
+EMBEDDING_MODEL = "gemini-embedding-001"
 EMBEDDING_DIMENSION = 768
 
 
@@ -42,10 +42,13 @@ def _get_client() -> genai.Client:
 
 async def generate_embedding(text: str) -> list[float]:
     """Generate a 768-dimension embedding for the given text."""
+    from google.genai import types as gtypes
+
     client = _get_client()
     result = await client.aio.models.embed_content(
         model=EMBEDDING_MODEL,
         contents=text,
+        config=gtypes.EmbedContentConfig(output_dimensionality=EMBEDDING_DIMENSION),
     )
     return result.embeddings[0].values
 
