@@ -51,7 +51,6 @@ Generate the report in this EXACT format. Do not deviate. Do not add extra secti
 
 > ─────────────────────────────────────
 > ⚖️ _AI-generated report. Not a substitute for in-person medical consultation. Please consult a qualified doctor before taking any medication._
-> **MedSign** · AI Health Assistant · medsign.app
 
 ## Strict Rules
 - Prescription: MAX 3 medicines. Write as "Tab." / "Cap." / "Syr." prefix. Include Indian brand name.
