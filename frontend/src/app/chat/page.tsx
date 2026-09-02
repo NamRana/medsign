@@ -8,6 +8,7 @@ import ImageAnalysisReport from "@/components/ImageAnalysisReport";
 import VoiceInput from "@/components/VoiceInput";
 import LabReportUpload from "@/components/LabReportUpload";
 import LabReportView from "@/components/LabReportView";
+import MarkdownMessage from "@/components/MarkdownMessage";
 
 interface ChatMessage {
   id: string;
@@ -305,10 +306,10 @@ function ChatPageInner() {
                   />
                 </div>
               ) : (
-                <div className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                <div className={`rounded-2xl text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-emerald-600 text-white rounded-br-md"
-                    : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-md"
+                    ? "max-w-[80%] sm:max-w-[70%] bg-emerald-600 text-white rounded-br-md px-4 py-2.5"
+                    : "max-w-[90%] sm:max-w-[85%] bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-md px-4 py-3"
                 }`}>
                   {msg.imageUrl && (
                     <img src={msg.imageUrl} alt="Uploaded" className="w-full max-w-[200px] rounded-lg mb-2 border border-white/20" />
@@ -321,7 +322,11 @@ function ChatPageInner() {
                       Voice
                     </span>
                   )}
-                  <span className="whitespace-pre-wrap">{msg.content}</span>
+                  {msg.role === "assistant" ? (
+                    <MarkdownMessage content={msg.content} />
+                  ) : (
+                    <span className="whitespace-pre-wrap">{msg.content}</span>
+                  )}
                 </div>
               )}
             </div>
