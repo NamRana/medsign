@@ -325,6 +325,29 @@ async def add_message(
     assistant_content: str
     assistant_metadata: dict = {}
 
+    # Count user exchanges so far
+    user_exchange_count = sum(
+        1 for m in conversation_history if m.get("role") == "user"
+    ) + 1  # +1 for the current message
+
+    # Detect explicit assessment/medicine requests
+    _lower_msg = data.content.lower()
+    explicit_assess_request = any(
+        phrase in _lower_msg
+        for phrase in [
+            "suggest medicine", "suggest me medicine", "give medicine",
+            "recommend medicine", "give assessment", "please assess",
+            "what medicine", "kya dawai", "dawai do", "medicine do",
+            "treatment suggest", "suggest treatment",
+        ]
+    )
+
+    # Force assessment if enough exchanges OR user explicitly asks
+    force_assess = (
+        patient_state.chief_complaint
+        and (user_exchange_count >= 4 or explicit_assess_request)
+    )
+
     # If safety engine detected an emergency, the safety message takes priority
     if safety_result.is_emergency and safety_result.emergency_message:
         assistant_content = safety_result.emergency_message
@@ -392,7 +415,7 @@ async def add_message(
                 _persist_patient_state(conversation_id, patient_state, current_metadata)
 
             # If should_assess → generate RAG-powered assessment with medicine recommendations
-            if interviewer_response.should_assess:
+            if interviewer_response.should_assess or force_assess:
                 try:
                     from app.rag.assessor import generate_assessment
                     assessment_text = await generate_assessment(
@@ -415,10 +438,33 @@ async def add_message(
 
         except Exception as exc:
             logger.error("Interviewer failed: %s", exc)
-            assistant_content = (
-                "I'm having trouble processing your message right now. "
-                "Could you please describe your main symptom in a bit more detail?"
-            )
+            if force_assess:
+                try:
+                    from app.rag.assessor import generate_assessment
+                    assessment_text = await generate_assessment(
+                        patient_state=patient_state,
+                        latest_message=data.content,
+                        conversation_history=conversation_history,
+                    )
+                    assistant_content = assessment_text
+                    assistant_metadata = {"has_assessment": True}
+                    try:
+                        supabase.table(CONV_TABLE).update(
+                            {"status": "completed"}
+                        ).eq("id", str(conversation_id)).execute()
+                    except APIError:
+                        pass
+                except Exception as assess_exc:
+                    logger.error("Fallback RAG assessment also failed: %s", assess_exc)
+                    assistant_content = (
+                        "I'm having trouble processing your message right now. "
+                        "Could you please describe your main symptom in a bit more detail?"
+                    )
+            else:
+                assistant_content = (
+                    "I'm having trouble processing your message right now. "
+                    "Could you please describe your main symptom in a bit more detail?"
+                )
 
     # ── 7. Save assistant message ─────────────────────────────────────────────
     assistant_payload = {

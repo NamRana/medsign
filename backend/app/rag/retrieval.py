@@ -76,11 +76,15 @@ def _build_query_from_state(patient_state: PatientState, latest_message: str) ->
         symptom_names = [s.name for s in patient_state.symptoms]
         parts.append(f"Symptoms: {', '.join(symptom_names)}")
 
-    if patient_state.duration:
-        parts.append(f"Duration: {patient_state.duration}")
-
-    if patient_state.severity is not None:
-        parts.append(f"Severity: {patient_state.severity}/10")
+    if patient_state.symptoms:
+        for s in patient_state.symptoms:
+            if s.duration_days:
+                parts.append(f"Duration: {s.duration_days} days")
+                break
+        for s in patient_state.symptoms:
+            if s.severity is not None:
+                parts.append(f"Severity: {s.severity}/10")
+                break
 
     # Always include the latest message for additional context
     parts.append(f"Patient says: {latest_message}")
