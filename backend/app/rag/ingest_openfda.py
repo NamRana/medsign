@@ -178,16 +178,15 @@ def _parse_label(label: dict, search_name: str) -> dict | None:
     return {
         "generic_name": generic_name,
         "brand_names": brand_names,
-        "drug_class": drug_class,
+        "drug_class": drug_class or "",
         "indications": indications,
         "contraindications": contraindications,
         "side_effects": side_effects,
         "interactions": interactions,
         "pregnancy_category": pregnancy_category,
+        "adult_dosage": "",
         "otc": is_otc,
         "source": "OpenFDA",
-        "dosage_forms": routes[:3] if routes else [],
-        "warnings": warnings_raw[:500] if warnings_raw else None,
     }
 
 
