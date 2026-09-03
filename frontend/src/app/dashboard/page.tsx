@@ -230,7 +230,7 @@ export default function DashboardPage() {
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.replace("/login");
   }
 
   const userInitial = (userName || userEmail || "U")[0].toUpperCase();

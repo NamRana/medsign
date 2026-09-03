@@ -1,39 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { useRequireAuth } from "@/lib/useRequireAuth";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    async function checkSession() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.replace("/login");
-        return;
-      }
-
-      setIsCheckingSession(false);
-    }
-
-    void checkSession();
-  }, [router]);
-
-  if (isCheckingSession) {
-    return <div className="min-h-screen" style={{ background: "var(--warm-cream, #FDFBF7)" }} />;
-  }
-
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const checking = useRequireAuth();
+  if (checking) return <div className="min-h-screen" style={{ background: "var(--warm-cream, #FDFBF7)" }} />;
   return <>{children}</>;
 }

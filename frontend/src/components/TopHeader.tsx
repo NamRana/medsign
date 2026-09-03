@@ -57,7 +57,7 @@ export default function TopHeader() {
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    window.location.replace("/login");
   }
 
   function navigateTo(path: string) {

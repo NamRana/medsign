@@ -44,7 +44,7 @@ export default function SettingsPage() {
     setLoggingOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    window.location.replace("/login");
   }
 
   const userInitial = (user?.name || user?.email || "U")[0].toUpperCase();
