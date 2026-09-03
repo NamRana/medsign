@@ -313,15 +313,15 @@ export function DailyChallenge({ currentScan }: { currentScan: FaceScan }) {
   const [accepted, setAccepted] = useState(false);
   const [completed, setCompleted] = useState(false);
 
-  const analysis = currentScan.analysis;
-  if (!analysis) return null;
-
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
     const stored = localStorage.getItem(`medsign_challenge_${today}`);
     if (stored === "accepted") setAccepted(true);
     if (stored === "completed") { setAccepted(true); setCompleted(true); }
   }, []);
+
+  const analysis = currentScan.analysis;
+  if (!analysis) return null;
 
   const scores = [
     { key: "hair_health", score: analysis.hair_health.score },
