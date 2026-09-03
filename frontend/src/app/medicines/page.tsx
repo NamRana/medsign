@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import MedicineReminder from "@/components/MedicineReminder";
 
 interface Medicine {
   id: string;
@@ -310,6 +311,11 @@ export default function MedicinesPage() {
             </div>
           </div>
         )}
+
+        {/* Reminders */}
+        <div className="mb-6 md-fade-1">
+          <MedicineReminder />
+        </div>
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100/80 rounded-2xl p-1 mb-6 md-fade-2">

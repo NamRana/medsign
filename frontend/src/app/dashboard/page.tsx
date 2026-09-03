@@ -12,6 +12,7 @@ import ProfileSwitcher from "@/components/ProfileSwitcher";
 import ChatWidget from "@/components/ChatWidget";
 import NotificationBell from "@/components/NotificationBell";
 import SmartAlerts from "@/components/SmartAlerts";
+import MedicineReminder from "@/components/MedicineReminder";
 import { useFamily } from "@/lib/family-context";
 
 function formatDate(dateStr: string): string {
@@ -388,6 +389,11 @@ export default function DashboardPage() {
                   <p className="text-xs text-white/70 font-semibold mt-1">Completed</p>
                 </div>
               </div>
+            </div>
+
+            {/* Medicine Reminders */}
+            <div className="dash-fade-3 mb-4">
+              <MedicineReminder />
             </div>
 
             {/* Quick Actions — Bento Grid */}

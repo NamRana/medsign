@@ -91,6 +91,51 @@ const SEVERITY_COLORS: Record<string, string> = {
   severe: "bg-red-100 text-red-700",
 };
 
+function parseFrequencyFromCard(card: TrustCardData): { frequency: string; times: string[]; meal_relation: string } {
+  const instr = (card.instructions || "").toLowerCase();
+  const duration = (card.duration || "").toLowerCase();
+  const combined = `${instr} ${duration}`;
+
+  let frequency = "once_daily";
+  let times = ["09:00"];
+  let meal_relation = "after";
+
+  if (/three\s*times|thrice|tds|tid|3\s*times/i.test(combined)) {
+    frequency = "thrice_daily";
+    times = ["08:00", "14:00", "20:00"];
+  } else if (/twice|bd|bid|2\s*times|two\s*times/i.test(combined)) {
+    frequency = "twice_daily";
+    times = ["08:00", "20:00"];
+  } else if (/once|od|qd|1\s*time|one\s*time/i.test(combined)) {
+    frequency = "once_daily";
+    times = ["09:00"];
+  } else if (/as\s*needed|prn|sos|when\s*required/i.test(combined)) {
+    frequency = "as_needed";
+    times = [];
+  } else if (/four\s*times|qid|qds|4\s*times/i.test(combined)) {
+    frequency = "thrice_daily";
+    times = ["08:00", "13:00", "18:00", "22:00"];
+  }
+
+  if (/morning|breakfast|am\b/i.test(combined) && times.length <= 1) {
+    times = ["08:00"];
+  } else if (/night|bedtime|hs\b|before\s*sleep/i.test(combined) && times.length <= 1) {
+    times = ["21:00"];
+  }
+
+  if (/before\s*(meal|food|eating|breakfast|lunch|dinner)/i.test(combined)) {
+    meal_relation = "before";
+  } else if (/after\s*(meal|food|eating|breakfast|lunch|dinner)/i.test(combined)) {
+    meal_relation = "after";
+  } else if (/with\s*(meal|food|eating|breakfast|lunch|dinner)/i.test(combined)) {
+    meal_relation = "with";
+  } else if (/empty\s*stomach/i.test(combined)) {
+    meal_relation = "before";
+  }
+
+  return { frequency, times, meal_relation };
+}
+
 function AddToTrackerButton({ card, memberId }: { card: TrustCardData; memberId?: string }) {
   const [added, setAdded] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -98,12 +143,13 @@ function AddToTrackerButton({ card, memberId }: { card: TrustCardData; memberId?
   async function handleAdd() {
     setAdding(true);
     try {
+      const parsed = parseFrequencyFromCard(card);
       const body: Record<string, unknown> = {
         name: card.medicine_name,
         dosage: card.dosage || "",
-        frequency: "as_needed",
-        times: ["08:00"],
-        meal_relation: "after",
+        frequency: parsed.frequency,
+        times: parsed.times,
+        meal_relation: parsed.meal_relation,
         notes: card.instructions || "",
         is_active: true,
       };

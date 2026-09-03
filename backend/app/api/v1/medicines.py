@@ -172,10 +172,18 @@ async def log_medicine(medicine_id: str, body: LogCreate, user=Depends(get_curre
 
 @router.get("/adherence")
 async def get_adherence(days: int = 7, user=Depends(get_current_user)):
-    """Get adherence stats for the last N days."""
+    """Get adherence stats for the last N days.
+
+    Calculates expected doses from each medicine's schedule (times per day)
+    then compares against actual taken/skipped/missed logs.
+    """
     user_id = str(user.id)
     from datetime import timedelta
-    start_date = (date.today() - timedelta(days=days)).isoformat()
+
+    today = date.today()
+    start_date = (today - timedelta(days=days)).isoformat()
+
+    meds_resp = supabase.table("medicines").select("id, times, frequency, is_active, start_date, created_at").eq("user_id", user_id).execute()
 
     logs_resp = (
         supabase.table("medicine_logs").select("*")
@@ -185,16 +193,37 @@ async def get_adherence(days: int = 7, user=Depends(get_current_user)):
     )
     logs = logs_resp.data
 
-    total = len(logs)
     taken = sum(1 for l in logs if l["status"] == "taken")
-    missed = sum(1 for l in logs if l["status"] == "missed")
+    missed_logged = sum(1 for l in logs if l["status"] == "missed")
     skipped = sum(1 for l in logs if l["status"] == "skipped")
 
+    total_expected = 0
+    for med in meds_resp.data:
+        freq = med.get("frequency") or "once_daily"
+        if freq == "as_needed":
+            continue
+        doses_per_day = max(len(med.get("times") or []), 1)
+        med_start = med.get("start_date") or (med.get("created_at") or "")[:10]
+        try:
+            med_start_date = date.fromisoformat(med_start)
+        except (ValueError, TypeError):
+            med_start_date = today - timedelta(days=days)
+        effective_start = max(med_start_date, today - timedelta(days=days))
+        active_days = max((today - effective_start).days + 1, 0)
+        active_days = min(active_days, days)
+        total_expected += doses_per_day * active_days
+
+    missed = max(total_expected - taken - skipped, 0) if total_expected > 0 else missed_logged
+
+    adherence_pct = round((taken / total_expected) * 100, 1) if total_expected > 0 else 0.0
+    if not meds_resp.data:
+        adherence_pct = 0.0
+
     return {
-        "total_scheduled": total,
+        "total_scheduled": total_expected,
         "taken": taken,
         "missed": missed,
         "skipped": skipped,
-        "adherence_percent": round((taken / total) * 100, 1) if total > 0 else 100,
+        "adherence_percent": min(adherence_pct, 100.0),
         "days": days,
     }
