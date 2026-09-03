@@ -93,11 +93,18 @@ async def generate_assessment(
         state_dict["past_visit_history"] = medical_history
     state_summary = json.dumps(state_dict, indent=2, ensure_ascii=False)
 
+    from app.services.country_config import get_country_config
+    country_cfg = get_country_config(patient_state.country)
+
     today_str = date.today().strftime("%d %b %Y")
     system_prompt = prompt_template.format(
         patient_state_json=state_summary,
         retrieved_knowledge=knowledge_text,
         todays_date=today_str,
+        patient_country=patient_state.country,
+        brand_instruction=country_cfg["brand_instruction"],
+        pharmacy_term=country_cfg["pharmacy_term"],
+        emergency_number=country_cfg["emergency_number"],
     )
 
     # Step 4: Generate assessment using the reasoning model

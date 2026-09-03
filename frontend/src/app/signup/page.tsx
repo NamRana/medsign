@@ -27,6 +27,7 @@ export default function SignupPage() {
   const [lastName, setLastName] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
+  const [country, setCountry] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -80,6 +81,9 @@ export default function SignupPage() {
       case "gender":
         if (!value) return "Please select your gender";
         return "";
+      case "country":
+        if (!value) return "Please select your country";
+        return "";
       default:
         return "";
     }
@@ -92,7 +96,7 @@ export default function SignupPage() {
   }
 
   function validateAll(): boolean {
-    const fields: Record<string, string> = { firstName, lastName, email, password, confirmPassword, dob, gender };
+    const fields: Record<string, string> = { firstName, lastName, email, password, confirmPassword, dob, gender, country };
     const errors: Record<string, string> = {};
     let valid = true;
     for (const [name, value] of Object.entries(fields)) {
@@ -156,6 +160,7 @@ export default function SignupPage() {
           full_name: fullName || null,
           date_of_birth: dob || null,
           gender: gender || null,
+          location_country: country || null,
         }),
       });
     } catch {
@@ -352,6 +357,42 @@ export default function SignupPage() {
                 </select>
                 {touched.gender && fieldErrors.gender && <p className="mt-1 text-xs text-red-500">{fieldErrors.gender}</p>}
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Where will you visit a pharmacy? <span className="text-red-400">*</span>
+              </label>
+              <select
+                id="country"
+                value={country}
+                onChange={(e) => { setCountry(e.target.value); if (touched.country) handleBlur("country", e.target.value); }}
+                onBlur={() => handleBlur("country", country)}
+                className={`block w-full rounded-xl border px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 transition-all bg-white ${touched.country && fieldErrors.country ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
+              >
+                <option value="" disabled>Select your country</option>
+                <option value="India">India</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="UAE">UAE</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="Germany">Germany</option>
+                <option value="Saudi Arabia">Saudi Arabia</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Bangladesh">Bangladesh</option>
+                <option value="Nepal">Nepal</option>
+                <option value="Sri Lanka">Sri Lanka</option>
+                <option value="Pakistan">Pakistan</option>
+                <option value="Nigeria">Nigeria</option>
+                <option value="South Africa">South Africa</option>
+                <option value="Philippines">Philippines</option>
+                <option value="Indonesia">Indonesia</option>
+                <option value="Malaysia">Malaysia</option>
+                <option value="Kenya">Kenya</option>
+                <option value="Other">Other</option>
+              </select>
+              {touched.country && fieldErrors.country && <p className="mt-1 text-xs text-red-500">{fieldErrors.country}</p>}
             </div>
 
             <div>

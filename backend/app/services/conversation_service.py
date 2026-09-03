@@ -300,6 +300,7 @@ async def add_message(
                 current_medications=patient_profile.current_medications,
                 location_city=patient_profile.location_city,
                 location_state=patient_profile.location_state,
+                location_country=patient_profile.location_country,
             )
     except Exception as exc:
         logger.warning("Profile enrichment failed (non-fatal): %s", exc)

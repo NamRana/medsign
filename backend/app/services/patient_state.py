@@ -57,6 +57,7 @@ class PatientState(BaseModel):
     age: int | None = None
     gender: str | None = None
     location: str | None = None
+    country: str = "India"
     language: str = "en"
 
     # ── Chief complaint ──────────────────────────────────────────────────────
@@ -109,6 +110,7 @@ class PatientState(BaseModel):
         current_medications: list[str] | None = None,
         location_city: str | None = None,
         location_state: str | None = None,
+        location_country: str | None = None,
     ) -> None:
         """Merge patient profile data without overwriting chat-extracted values."""
         if self.age is None and date_of_birth is not None:
@@ -131,6 +133,8 @@ class PatientState(BaseModel):
         if self.location is None and (location_city or location_state):
             parts = [p for p in (location_city, location_state) if p]
             self.location = ", ".join(parts)
+        if location_country:
+            self.country = location_country
 
     def to_summary_dict(self) -> dict[str, Any]:
         """Return a concise dict suitable for the AI prompt context."""
@@ -139,6 +143,7 @@ class PatientState(BaseModel):
             "age": self.age,
             "gender": self.gender,
             "language": self.language,
+            "country": self.country,
             "location": self.location,
             "symptoms": [s.model_dump(exclude_none=True) for s in self.symptoms],
             "vitals": self.vitals.model_dump(exclude_none=True),

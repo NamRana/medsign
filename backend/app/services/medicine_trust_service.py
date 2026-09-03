@@ -75,15 +75,30 @@ def _parse_medicines_from_assessment(assessment_text: str) -> list[dict]:
     return medicines
 
 
-def _lookup_drug(search_name: str) -> dict | None:
-    """Look up a drug in the drug_reference table by name."""
+def _lookup_drug(search_name: str, source_priority: list[str] | None = None) -> dict | None:
+    """Look up a drug in the drug_reference table by name.
+
+    source_priority controls search order (e.g. ["nfi", "openfda", "who"]).
+    All sources are searched, but matching the preferred source first gives
+    better localized results.
+    """
     try:
         name_lower = search_name.lower().strip()
         resp = supabase.table("drug_reference").select("*").execute()
         if not resp.data:
             return None
 
-        for row in resp.data:
+        rows = resp.data
+        if source_priority:
+            def _source_rank(row: dict) -> int:
+                src = (row.get("source") or "").lower()
+                for i, pref in enumerate(source_priority):
+                    if pref.lower() in src:
+                        return i
+                return len(source_priority)
+            rows = sorted(rows, key=_source_rank)
+
+        for row in rows:
             if row["generic_name"].lower() == name_lower:
                 return row
             brands = row.get("brand_names") or []
@@ -92,7 +107,7 @@ def _lookup_drug(search_name: str) -> dict | None:
                     if isinstance(b, str) and b.lower() == name_lower:
                         return row
 
-        for row in resp.data:
+        for row in rows:
             if name_lower in row["generic_name"].lower():
                 return row
             brands = row.get("brand_names") or []
@@ -320,10 +335,14 @@ async def generate_trust_cards(
     if not parsed_medicines:
         return []
 
+    from app.services.country_config import get_country_config
+    country_cfg = get_country_config(patient_state.country)
+    source_priority = country_cfg.get("drug_db_priority")
+
     trust_cards: list[dict] = []
 
     for med in parsed_medicines:
-        drug = _lookup_drug(med["search_name"])
+        drug = _lookup_drug(med["search_name"], source_priority=source_priority)
 
         safety_checks = _run_safety_checks(drug, patient_state, med)
         evidence = _build_evidence(drug, med)
