@@ -14,6 +14,7 @@ import {
 } from "@/lib/api";
 import type { FaceScan, FaceScanSummary } from "@/lib/api";
 import ShareReport from "@/components/ShareReport";
+import { BeforeAfterComparison, AgeTracker, DailyChallenge } from "@/components/FaceScanFeatures";
 
 function ScoreRing({ score, size = 120, label }: { score: number; size?: number; label?: string }) {
   const strokeWidth = 10;
@@ -352,6 +353,15 @@ export default function FaceScanPage() {
                 </div>
               </div>
             </div>
+
+            {/* Age Tracker */}
+            <AgeTracker currentScan={latestResult} />
+
+            {/* Daily Challenge */}
+            <DailyChallenge currentScan={latestResult} />
+
+            {/* Before/After Comparison */}
+            <BeforeAfterComparison currentScan={latestResult} />
 
             {/* Observations */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">

@@ -417,6 +417,18 @@ export async function deleteFaceScan(id: string): Promise<void> {
   await apiFetch(`/api/v1/face-scans/${id}`, { method: "DELETE" });
 }
 
+export async function getFaceScanImageUrl(scanId: string): Promise<string | null> {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/v1/face-scans/${scanId}/file`, { headers });
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch {
+    return null;
+  }
+}
+
 // --- Future Projection Types ---
 
 export interface ProjectionMetric {

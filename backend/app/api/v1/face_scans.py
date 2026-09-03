@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi.responses import Response
 from postgrest import APIError
 from pydantic import BaseModel, Field
 
@@ -558,6 +559,38 @@ async def get_face_scan(scan_id: str, user=Depends(get_current_user)) -> FaceSca
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Face scan not found")
 
     return FaceScanResponse(**resp.data)
+
+
+@router.get("/{scan_id}/file")
+async def get_face_scan_file(scan_id: str, user=Depends(get_current_user)) -> Response:
+    """Download the face scan photo. Verifies ownership."""
+    user_id = str(user.id)
+    try:
+        resp = (
+            supabase.table(TABLE)
+            .select("storage_path, mime_type")
+            .eq("id", scan_id)
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+    except APIError as exc:
+        raise HTTPException(status_code=503, detail=f"Database error: {exc.message}") from exc
+
+    if not resp.data:
+        raise HTTPException(status_code=404, detail="Face scan not found")
+
+    try:
+        file_bytes = supabase.storage.from_(STORAGE_BUCKET).download(resp.data["storage_path"])
+    except Exception as exc:
+        logger.error("Storage download failed for face scan %s: %s", scan_id, exc)
+        raise HTTPException(status_code=502, detail="Failed to retrieve image") from exc
+
+    return Response(
+        content=file_bytes,
+        media_type=resp.data.get("mime_type", "image/jpeg"),
+        headers={"Cache-Control": "private, max-age=86400"},
+    )
 
 
 @router.delete("/{scan_id}", status_code=status.HTTP_204_NO_CONTENT)
