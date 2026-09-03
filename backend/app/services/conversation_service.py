@@ -520,16 +520,15 @@ async def add_message(
                     except Exception as trust_exc:
                         logger.warning("Trust card generation failed: %s", trust_exc)
 
+                    try:
+                        supabase.table(CONV_TABLE).update(
+                            {"status": "completed"}
+                        ).eq("id", str(conversation_id)).execute()
+                    except APIError:
+                        pass  # non-fatal
+
                 except Exception as assess_exc:
                     logger.error("RAG assessment failed: %s", assess_exc)
-                    # Fall back to the interviewer's regular response
-
-                try:
-                    supabase.table(CONV_TABLE).update(
-                        {"status": "completed"}
-                    ).eq("id", str(conversation_id)).execute()
-                except APIError:
-                    pass  # non-fatal
 
         except Exception as exc:
             logger.error("Interviewer failed: %s", exc)

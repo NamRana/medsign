@@ -18,7 +18,7 @@ from app.services.patient_state import PatientState
 
 logger = logging.getLogger(__name__)
 
-_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "assessor_v1.txt"
+_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "assessor_v2.txt"
 _PROMPT_TEMPLATE: str | None = None
 
 
