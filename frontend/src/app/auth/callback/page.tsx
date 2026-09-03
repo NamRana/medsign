@@ -5,6 +5,48 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { apiFetch } from "@/lib/api";
 
+const TIMEZONE_TO_COUNTRY: Record<string, string> = {
+  "Asia/Kolkata": "India",
+  "Asia/Calcutta": "India",
+  "Asia/Mumbai": "India",
+  "America/New_York": "United States",
+  "America/Chicago": "United States",
+  "America/Denver": "United States",
+  "America/Los_Angeles": "United States",
+  "America/Phoenix": "United States",
+  "America/Anchorage": "United States",
+  "Pacific/Honolulu": "United States",
+  "Europe/London": "United Kingdom",
+  "Asia/Dubai": "UAE",
+  "America/Toronto": "Canada",
+  "America/Vancouver": "Canada",
+  "Australia/Sydney": "Australia",
+  "Australia/Melbourne": "Australia",
+  "Australia/Perth": "Australia",
+  "Europe/Berlin": "Germany",
+  "Asia/Riyadh": "Saudi Arabia",
+  "Asia/Singapore": "Singapore",
+  "Asia/Dhaka": "Bangladesh",
+  "Asia/Kathmandu": "Nepal",
+  "Asia/Colombo": "Sri Lanka",
+  "Asia/Karachi": "Pakistan",
+  "Africa/Lagos": "Nigeria",
+  "Africa/Johannesburg": "South Africa",
+  "Asia/Manila": "Philippines",
+  "Asia/Jakarta": "Indonesia",
+  "Asia/Kuala_Lumpur": "Malaysia",
+  "Africa/Nairobi": "Kenya",
+};
+
+function detectCountry(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return TIMEZONE_TO_COUNTRY[tz] || "Other";
+  } catch {
+    return "Other";
+  }
+}
+
 export default function AuthCallbackPage() {
   const router = useRouter();
 
@@ -16,10 +58,12 @@ export default function AuthCallbackPage() {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user?.user_metadata?.full_name) {
+            const country = detectCountry();
             await apiFetch("/api/v1/patients", {
               method: "POST",
               body: JSON.stringify({
                 full_name: user.user_metadata.full_name,
+                location_country: country !== "Other" ? country : null,
               }),
             }).catch(() => {});
           }
