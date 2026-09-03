@@ -3,10 +3,19 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
+  AreaChart,
+  Area,
   LineChart,
   Line,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  Radar,
   ResponsiveContainer,
   Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts";
 import {
   uploadFaceScan,
@@ -124,6 +133,10 @@ export default function FaceScanPage() {
     ? summary.trends.dates.map((date, i) => ({
         date: new Date(date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
         overall: summary.trends.overall[i],
+        hair: summary.trends.hair_health[i],
+        skin: summary.trends.skin_quality[i],
+        stress: summary.trends.stress_level[i],
+        sleep: summary.trends.sleep_quality[i],
       }))
     : [];
 
@@ -158,6 +171,13 @@ export default function FaceScanPage() {
 
   const analysis = latestResult?.analysis;
   const streak = summary?.streak;
+
+  const radarData = analysis ? [
+    { metric: "Hair", score: analysis.hair_health.score, fullMark: 100 },
+    { metric: "Skin", score: analysis.skin_quality.score, fullMark: 100 },
+    { metric: "Sleep", score: analysis.sleep_quality.score, fullMark: 100 },
+    { metric: "Stress", score: 100 - analysis.stress_level.score, fullMark: 100 },
+  ] : [];
 
   return (
     <div className="min-h-screen warm-bg">
@@ -440,27 +460,115 @@ export default function FaceScanPage() {
           </div>
         )}
 
-        {/* Trend Sparkline */}
-        {trendData.length > 1 && (
+        {/* Radar Chart — Current Snapshot */}
+        {analysis && radarData.length > 0 && (
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">7-Day Trend</h3>
-            <ResponsiveContainer width="100%" height={80}>
-              <LineChart data={trendData}>
-                <Line
-                  type="monotone"
-                  dataKey="overall"
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Wellness Profile</h3>
+            <p className="text-[10px] text-gray-400 mb-4">Your current health balance at a glance</p>
+            <ResponsiveContainer width="100%" height={220}>
+              <RadarChart data={radarData} outerRadius="75%">
+                <PolarGrid stroke="#e5e7eb" strokeDasharray="3 3" />
+                <PolarAngleAxis
+                  dataKey="metric"
+                  tick={{ fontSize: 11, fontWeight: 600, fill: "#6b7280" }}
+                />
+                <Radar
+                  dataKey="score"
                   stroke="#e11d48"
-                  strokeWidth={2.5}
-                  dot={false}
-                  connectNulls
+                  strokeWidth={2}
+                  fill="url(#radarGradient)"
+                  fillOpacity={0.35}
+                  dot={{ r: 4, fill: "#e11d48", strokeWidth: 0 }}
                 />
-                <Tooltip
-                  contentStyle={{ borderRadius: "12px", border: "1px solid #E5E7EB", fontSize: "12px" }}
-                  formatter={(value) => [`${value}/100`, "Score"]}
-                  labelFormatter={(label) => `${label}`}
-                />
-              </LineChart>
+                <defs>
+                  <radialGradient id="radarGradient" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#fb7185" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#e11d48" stopOpacity={0.2} />
+                  </radialGradient>
+                </defs>
+              </RadarChart>
             </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Wellness Evolution Chart */}
+        {trendData.length > 1 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 pt-6 pb-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Wellness Evolution</h3>
+              <p className="text-[10px] text-gray-400 mt-0.5">Track how each metric changes over time</p>
+            </div>
+            <div className="px-2 pb-4">
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradOverall" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#e11d48" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#e11d48" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradHair" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradSkin" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradSleep" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    tickCount={5}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "1px solid #e5e7eb",
+                      fontSize: "11px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                      padding: "10px 14px",
+                    }}
+                    formatter={((value: number, name: string) => {
+                      const labels: Record<string, string> = {
+                        overall: "Overall",
+                        hair: "Hair",
+                        skin: "Skin",
+                        sleep: "Sleep",
+                        stress: "Stress",
+                      };
+                      return [`${value}/100`, labels[name] || name];
+                    }) as never}
+                  />
+                  <Area type="monotone" dataKey="overall" stroke="#e11d48" strokeWidth={2.5} fill="url(#gradOverall)" connectNulls dot={{ r: 3, fill: "#e11d48", strokeWidth: 0 }} />
+                  <Area type="monotone" dataKey="hair" stroke="#8b5cf6" strokeWidth={1.5} fill="url(#gradHair)" connectNulls dot={false} strokeDasharray="4 2" />
+                  <Area type="monotone" dataKey="skin" stroke="#f59e0b" strokeWidth={1.5} fill="url(#gradSkin)" connectNulls dot={false} strokeDasharray="4 2" />
+                  <Area type="monotone" dataKey="sleep" stroke="#3b82f6" strokeWidth={1.5} fill="url(#gradSleep)" connectNulls dot={false} strokeDasharray="4 2" />
+                  <Area type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={1.5} fill="none" connectNulls dot={false} strokeDasharray="2 2" opacity={0.5} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Legend */}
+            <div className="px-6 pb-4 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded-full bg-rose-500" /><span className="text-[10px] text-gray-500 font-medium">Overall</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-violet-500 rounded" style={{ borderTop: "2px dashed #8b5cf6" }} /><span className="text-[10px] text-gray-500 font-medium">Hair</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-amber-500 rounded" style={{ borderTop: "2px dashed #f59e0b" }} /><span className="text-[10px] text-gray-500 font-medium">Skin</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-blue-500 rounded" style={{ borderTop: "2px dashed #3b82f6" }} /><span className="text-[10px] text-gray-500 font-medium">Sleep</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-red-400 rounded opacity-50" style={{ borderTop: "2px dashed #ef4444" }} /><span className="text-[10px] text-gray-500 font-medium">Stress</span></div>
+            </div>
           </div>
         )}
 
