@@ -96,6 +96,15 @@ interface LabEntry {
   last_visited: string;
 }
 
+interface FaceScanScoreEntry {
+  date: string;
+  overall: number | null;
+  hair_health: number | null;
+  skin_quality: number | null;
+  stress_level: number | null;
+  sleep_quality: number | null;
+}
+
 interface HealthInsights {
   health_score: number;
   total_assessments: number;
@@ -105,6 +114,10 @@ interface HealthInsights {
   total_abnormal_values: number;
   total_image_analyses: number;
   image_severity_distribution: Record<string, number>;
+  total_face_scans: number;
+  face_scan_scores: FaceScanScoreEntry[];
+  face_scan_avg_score: number | null;
+  face_scan_streak: number;
   risk_distribution: Record<string, number>;
   conditions: ConditionEntry[];
   timeline: TimelineEvent[];
@@ -112,7 +125,7 @@ interface HealthInsights {
   risk_factors: RiskFactor[];
   body_systems: BodySystemScore[];
   life_expectancy: LifeExpectancy;
-  monthly_activity: { month: string; assessments: number; lab_reports: number; image_analyses: number }[];
+  monthly_activity: { month: string; assessments: number; lab_reports: number; image_analyses: number; face_scans: number }[];
   doctors: DoctorEntry[];
   labs: LabEntry[];
 }
@@ -533,18 +546,21 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
     lab_report: "🧪",
     symptom: "💊",
     image_analysis: "📷",
+    face_scan: "🪞",
   };
   const typeDots: Record<string, string> = {
     assessment: "bg-blue-400",
     lab_report: "bg-purple-400",
     symptom: "bg-amber-400",
     image_analysis: "bg-teal-400",
+    face_scan: "bg-pink-400",
   };
   const typeColors: Record<string, string> = {
     assessment: "border-blue-200/60 bg-blue-50/50",
     lab_report: "border-purple-200/60 bg-purple-50/50",
     symptom: "border-amber-200/60 bg-amber-50/50",
     image_analysis: "border-teal-200/60 bg-teal-50/50",
+    face_scan: "border-pink-200/60 bg-pink-50/50",
   };
 
   return (
@@ -669,12 +685,13 @@ export default function InsightsPage() {
           </div>
 
           {/* Mini stats row inside header */}
-          <div className="grid grid-cols-5 gap-3 mt-6">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-6">
             {[
               { val: insights.total_assessments, label: "Assessments", color: "from-white/15 to-white/5", href: "/history" },
               { val: insights.total_conditions, label: "Conditions", color: "from-white/15 to-white/5", href: "/history" },
               { val: insights.total_symptoms_reported, label: "Symptoms", color: "from-white/15 to-white/5", href: "/history" },
               { val: insights.total_lab_reports, label: "Lab Reports", color: "from-white/15 to-white/5", href: "/reports" },
+              { val: insights.total_face_scans, label: "Face Scans", color: "from-pink-500/20 to-pink-500/5", href: "/face-scan" },
               { val: insights.total_abnormal_values, label: "Abnormal", color: "from-red-500/20 to-red-500/5", href: "/reports" },
             ].map((s) => (
               <button key={s.label} onClick={() => router.push(s.href)} className={`bg-gradient-to-br ${s.color} backdrop-blur-sm rounded-2xl p-3.5 border border-white/10 text-center hover:border-white/30 hover:scale-[1.04] active:scale-100 transition-all cursor-pointer`}>
@@ -735,6 +752,87 @@ export default function InsightsPage() {
                   {insights.image_severity_distribution.info > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">{insights.image_severity_distribution.info} info</span>}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Face Scan Progress ─────────────────────────────────────────── */}
+        {insights.total_face_scans > 0 && (
+          <div className="ins-fade-2 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center shadow-md shadow-pink-200/50">
+                  <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Face Scan Progress</h3>
+                  <p className="text-[11px] text-gray-400">Your wellness scores over time</p>
+                </div>
+              </div>
+              <button onClick={() => router.push("/face-scan")} className="text-[11px] text-pink-500 font-semibold hover:text-pink-600 transition-colors">View Scans →</button>
+            </div>
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-3.5 border border-pink-100/60 text-center">
+                <p className="text-2xl font-black text-pink-600">{insights.face_scan_avg_score ?? "—"}</p>
+                <p className="text-[10px] text-pink-400 font-semibold mt-0.5">Avg Score</p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-3.5 border border-purple-100/60 text-center">
+                <p className="text-2xl font-black text-purple-600">{insights.total_face_scans}</p>
+                <p className="text-[10px] text-purple-400 font-semibold mt-0.5">Total Scans</p>
+              </div>
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-3.5 border border-amber-100/60 text-center">
+                <p className="text-2xl font-black text-amber-600">{insights.face_scan_streak}</p>
+                <p className="text-[10px] text-amber-400 font-semibold mt-0.5">Day Streak</p>
+              </div>
+            </div>
+
+            {/* Area chart */}
+            {insights.face_scan_scores.length >= 2 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={insights.face_scan_scores}>
+                  <defs>
+                    <linearGradient id="fsOverall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#EC4899" stopOpacity={0.35} /><stop offset="100%" stopColor="#EC4899" stopOpacity={0.02} /></linearGradient>
+                    <linearGradient id="fsHair" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.25} /><stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.02} /></linearGradient>
+                    <linearGradient id="fsSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#10B981" stopOpacity={0.25} /><stop offset="100%" stopColor="#10B981" stopOpacity={0.02} /></linearGradient>
+                    <linearGradient id="fsSleep" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3B82F6" stopOpacity={0.25} /><stop offset="100%" stopColor="#3B82F6" stopOpacity={0.02} /></linearGradient>
+                    <linearGradient id="fsStress" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#F59E0B" stopOpacity={0.25} /><stop offset="100%" stopColor="#F59E0B" stopOpacity={0.02} /></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#9CA3AF" }} tickFormatter={(d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#9CA3AF" }} />
+                  <Tooltip contentStyle={{ borderRadius: "14px", border: "1px solid #E5E7EB", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} labelFormatter={(d) => new Date(d as string).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} />
+                  <Area type="monotone" dataKey="overall" stroke="#EC4899" fill="url(#fsOverall)" strokeWidth={2.5} name="Overall" connectNulls />
+                  <Area type="monotone" dataKey="hair_health" stroke="#8B5CF6" fill="url(#fsHair)" strokeWidth={1.5} name="Hair Health" connectNulls />
+                  <Area type="monotone" dataKey="skin_quality" stroke="#10B981" fill="url(#fsSkin)" strokeWidth={1.5} name="Skin Quality" connectNulls />
+                  <Area type="monotone" dataKey="sleep_quality" stroke="#3B82F6" fill="url(#fsSleep)" strokeWidth={1.5} name="Sleep Quality" connectNulls />
+                  <Area type="monotone" dataKey="stress_level" stroke="#F59E0B" fill="url(#fsStress)" strokeWidth={1.5} name="Stress Level" connectNulls />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-40 text-sm text-gray-400">
+                <div className="text-center">
+                  <p>Need at least 2 scans for trend chart</p>
+                  <p className="text-xs mt-1">Keep scanning daily to see your progress!</p>
+                </div>
+              </div>
+            )}
+
+            {/* Legend */}
+            <div className="flex flex-wrap justify-center gap-4 mt-3">
+              {[
+                { label: "Overall", color: "#EC4899" },
+                { label: "Hair", color: "#8B5CF6" },
+                { label: "Skin", color: "#10B981" },
+                { label: "Sleep", color: "#3B82F6" },
+                { label: "Stress", color: "#F59E0B" },
+              ].map((l) => (
+                <div key={l.label} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />
+                  <span className="text-[10px] text-gray-500 font-medium">{l.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -820,6 +918,7 @@ export default function InsightsPage() {
                   <linearGradient id="areaGrad1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6366F1" stopOpacity={0.3} /><stop offset="100%" stopColor="#6366F1" stopOpacity={0.02} /></linearGradient>
                   <linearGradient id="areaGrad2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.3} /><stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.02} /></linearGradient>
                   <linearGradient id="areaGrad3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#14B8A6" stopOpacity={0.3} /><stop offset="100%" stopColor="#14B8A6" stopOpacity={0.02} /></linearGradient>
+                  <linearGradient id="areaGrad4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#EC4899" stopOpacity={0.3} /><stop offset="100%" stopColor="#EC4899" stopOpacity={0.02} /></linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
                 <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9CA3AF" }} tickFormatter={(m) => m.slice(5)} />
@@ -828,6 +927,7 @@ export default function InsightsPage() {
                 <Area type="monotone" dataKey="assessments" stackId="1" stroke="#6366F1" fill="url(#areaGrad1)" strokeWidth={2} name="Assessments" />
                 <Area type="monotone" dataKey="lab_reports" stackId="1" stroke="#8B5CF6" fill="url(#areaGrad2)" strokeWidth={2} name="Lab Reports" />
                 <Area type="monotone" dataKey="image_analyses" stackId="1" stroke="#14B8A6" fill="url(#areaGrad3)" strokeWidth={2} name="Image Analyses" />
+                <Area type="monotone" dataKey="face_scans" stackId="1" stroke="#EC4899" fill="url(#areaGrad4)" strokeWidth={2} name="Face Scans" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (

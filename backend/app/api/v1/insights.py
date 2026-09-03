@@ -87,6 +87,15 @@ class LabEntry(BaseModel):
     last_visited: str
 
 
+class FaceScanScoreEntry(BaseModel):
+    date: str
+    overall: float | None = None
+    hair_health: float | None = None
+    skin_quality: float | None = None
+    stress_level: float | None = None
+    sleep_quality: float | None = None
+
+
 class HealthInsights(BaseModel):
     health_score: int  # 0-100
     total_assessments: int
@@ -96,6 +105,10 @@ class HealthInsights(BaseModel):
     total_abnormal_values: int
     total_image_analyses: int
     image_severity_distribution: dict[str, int]
+    total_face_scans: int
+    face_scan_scores: list[FaceScanScoreEntry]
+    face_scan_avg_score: float | None
+    face_scan_streak: int
     risk_distribution: dict[str, int]  # {low: N, medium: N, high: N, critical: N}
     conditions: list[ConditionEntry]
     timeline: list[TimelineEvent]
@@ -103,7 +116,7 @@ class HealthInsights(BaseModel):
     risk_factors: list[RiskFactor]
     body_systems: list[BodySystemScore]
     life_expectancy: LifeExpectancy
-    monthly_activity: list[dict]  # [{month, assessments, lab_reports, image_analyses}]
+    monthly_activity: list[dict]  # [{month, assessments, lab_reports, image_analyses, face_scans}]
     doctors: list[DoctorEntry]
     labs: list[LabEntry]
 
@@ -349,6 +362,45 @@ async def get_health_insights(
     ).execute()
     image_analyses = images_resp.data or []
 
+    # Fetch face scans
+    face_scans_resp = supabase.table("face_scans").select(
+        "id, scan_date, overall_score, hair_health_score, skin_quality_score, "
+        "stress_level_score, sleep_quality_score, created_at"
+    ).eq("user_id", user_id).order("scan_date", desc=False).execute()
+    face_scans = face_scans_resp.data or []
+
+    face_scan_scores: list[dict] = []
+    face_scan_overall_sum = 0.0
+    face_scan_overall_count = 0
+    for fs in face_scans:
+        entry: dict = {"date": (fs.get("scan_date") or fs["created_at"][:10])}
+        for key in ("overall", "hair_health", "skin_quality", "stress_level", "sleep_quality"):
+            db_key = f"{key}_score" if key != "overall" else "overall_score"
+            entry[key] = fs.get(db_key)
+        face_scan_scores.append(entry)
+        if fs.get("overall_score") is not None:
+            face_scan_overall_sum += fs["overall_score"]
+            face_scan_overall_count += 1
+
+    face_scan_avg = round(face_scan_overall_sum / face_scan_overall_count, 1) if face_scan_overall_count else None
+
+    # Calculate face scan streak (consecutive days with scans, counting back from most recent)
+    face_scan_streak = 0
+    if face_scans:
+        scan_dates = sorted(set(
+            (fs.get("scan_date") or fs["created_at"][:10]) for fs in face_scans
+        ), reverse=True)
+        from datetime import timedelta
+        prev = datetime.strptime(scan_dates[0], "%Y-%m-%d").date()
+        face_scan_streak = 1
+        for d_str in scan_dates[1:]:
+            d = datetime.strptime(d_str, "%Y-%m-%d").date()
+            if (prev - d).days == 1:
+                face_scan_streak += 1
+                prev = d
+            else:
+                break
+
     # Parse image severity distribution
     image_severity_dist: dict[str, int] = {"info": 0, "mild": 0, "moderate": 0, "severe": 0}
     for img in image_analyses:
@@ -432,6 +484,17 @@ async def get_health_insights(
             title=analysis.get("report_title", "Image Analysis"),
             risk_level=analysis.get("overall_severity"),
             detail=f"Severity: {analysis.get('overall_severity', 'unknown')}",
+        ))
+
+    for fs in face_scans[-30:]:
+        score = fs.get("overall_score")
+        date = fs.get("scan_date") or fs["created_at"][:10]
+        timeline.append(TimelineEvent(
+            date=date,
+            type="face_scan",
+            title="Face Scan",
+            risk_level=None,
+            detail=f"Overall score: {score}/100" if score else "Scan completed",
         ))
 
     timeline.sort(key=lambda x: x.date, reverse=True)
@@ -592,21 +655,26 @@ async def get_health_insights(
 
     # ── Monthly activity
     monthly: dict[str, dict[str, int]] = {}
+    def _ensure_month(m: str) -> None:
+        if m not in monthly:
+            monthly[m] = {"assessments": 0, "lab_reports": 0, "image_analyses": 0, "face_scans": 0}
+
     for conv in conversations:
         month = conv["created_at"][:7]
-        if month not in monthly:
-            monthly[month] = {"assessments": 0, "lab_reports": 0, "image_analyses": 0}
+        _ensure_month(month)
         monthly[month]["assessments"] += 1
     for report in lab_reports:
         month = (report.get("report_date") or report["created_at"])[:7]
-        if month not in monthly:
-            monthly[month] = {"assessments": 0, "lab_reports": 0, "image_analyses": 0}
+        _ensure_month(month)
         monthly[month]["lab_reports"] += 1
     for img in image_analyses:
         month = img["created_at"][:7]
-        if month not in monthly:
-            monthly[month] = {"assessments": 0, "lab_reports": 0, "image_analyses": 0}
+        _ensure_month(month)
         monthly[month]["image_analyses"] += 1
+    for fs in face_scans:
+        month = (fs.get("scan_date") or fs["created_at"][:10])[:7]
+        _ensure_month(month)
+        monthly[month]["face_scans"] += 1
 
     monthly_activity = [
         {"month": m, **counts}
@@ -652,6 +720,8 @@ async def get_health_insights(
     health_score = calculate_health_score(
         risk_distribution, total_abnormal, len(conversations), image_severity_dist
     )
+    if face_scan_avg is not None and face_scan_avg >= 70:
+        health_score = min(98, health_score + 2)
     life_exp = estimate_life_expectancy(health_score, risk_factors, conditions_list)
 
     return HealthInsights(
@@ -663,6 +733,10 @@ async def get_health_insights(
         total_abnormal_values=total_abnormal,
         total_image_analyses=len(image_analyses),
         image_severity_distribution=image_severity_dist,
+        total_face_scans=len(face_scans),
+        face_scan_scores=[FaceScanScoreEntry(**s) for s in face_scan_scores],
+        face_scan_avg_score=face_scan_avg,
+        face_scan_streak=face_scan_streak,
         risk_distribution=risk_distribution,
         conditions=conditions_list[:20],
         timeline=timeline[:50],

@@ -39,7 +39,7 @@ async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -
         complaint_counts = Counter(complaints)
         for complaint, count in complaint_counts.most_common(3):
             if count >= 2:
-                recent = [c for c in convos if c.get("chief_complaint", "").lower().strip() == complaint]
+                recent = [c for c in convos if (c.get("chief_complaint") or "").lower().strip() == complaint]
                 dates = sorted([c["created_at"][:10] for c in recent])
                 alerts.append({
                     "id": f"recurring-{complaint[:20]}",
