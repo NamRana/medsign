@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase";
 import HealthAura from "@/components/HealthAura";
 import HealthAvatar from "@/components/HealthAvatar";
 import ProfileSwitcher from "@/components/ProfileSwitcher";
-import ChatWidget from "@/components/ChatWidget";
+
 import NotificationBell from "@/components/NotificationBell";
 import SmartAlerts from "@/components/SmartAlerts";
 import MedicineReminder from "@/components/MedicineReminder";
@@ -671,7 +671,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
-      <ChatWidget memberId={activeMember?.id} />
     </div>
   );
 }

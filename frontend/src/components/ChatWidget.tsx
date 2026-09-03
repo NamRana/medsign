@@ -234,7 +234,7 @@ export default function ChatWidget({ memberId }: { memberId?: string }) {
 
       {/* Chat Panel */}
       {open && (
-        <div className="fixed bottom-28 left-5 z-50 widget-panel">
+        <div className="fixed bottom-28 right-5 z-50 widget-panel">
           <div
             className={`w-[420px] max-w-[calc(100vw-40px)] h-[600px] max-h-[calc(100vh-160px)] rounded-3xl shadow-2xl shadow-black/15 flex flex-col overflow-hidden ${
               dragOver ? "ring-2 ring-purple-400 ring-offset-2" : ""
@@ -453,7 +453,7 @@ export default function ChatWidget({ memberId }: { memberId?: string }) {
       {/* Floating Button */}
       <button
         onClick={handleOpen}
-        className={`fixed bottom-6 left-5 z-50 transition-all duration-300 ${
+        className={`fixed bottom-6 right-5 z-50 transition-all duration-300 ${
           open ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100"
         }`}
       >
