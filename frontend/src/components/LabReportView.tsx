@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { LabReport, LabValue } from "@/lib/api";
 import { getLabReportFileUrl } from "@/lib/api";
+import ShareReport from "@/components/ShareReport";
 
 interface LabReportViewProps {
   report: LabReport;
@@ -346,6 +347,21 @@ export default function LabReportView({ report, onClose }: LabReportViewProps) {
           )}
         </>
       )}
+
+      {/* Share */}
+      <div className="px-5 py-3 border-t border-gray-100">
+        <ShareReport
+          content={[
+            `Lab Report: ${report.original_filename}`,
+            report.lab_name ? `Lab: ${report.lab_name}` : "",
+            report.interpretation?.summary || "",
+            report.interpretation?.patient_friendly_explanation || "",
+            abnormalValues.length > 0 ? `\nAbnormal Values:\n${abnormalValues.map((v) => `- ${v.test_name}: ${v.value}${v.unit ? ` ${v.unit}` : ""} (Ref: ${v.reference_range || "N/A"}) — ${v.abnormality_direction || "abnormal"}`).join("\n")}` : "",
+            report.interpretation?.recommendations?.length ? `\nRecommendations:\n${report.interpretation.recommendations.map((r) => `- ${r}`).join("\n")}` : "",
+          ].filter(Boolean).join("\n")}
+          variant="compact"
+        />
+      </div>
 
       {/* Disclaimer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch, getImageBlobUrl } from "@/lib/api";
 import ProfileSwitcher from "@/components/ProfileSwitcher";
+import ShareReport from "@/components/ShareReport";
 import { useFamily } from "@/lib/family-context";
 
 interface HistoryItem {
@@ -246,6 +247,15 @@ function HistoryContent() {
               Delete
             </button>
           </div>
+
+          {(() => {
+            const lastAssistant = [...selectedDetail.messages].reverse().find((m) => m.role === "assistant");
+            return lastAssistant ? (
+              <div className="hs-fade-1">
+                <ShareReport content={lastAssistant.content} conversationId={selectedDetail.id} variant="compact" />
+              </div>
+            ) : null;
+          })()}
 
           {shareUrl && (
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">

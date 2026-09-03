@@ -11,6 +11,7 @@ import LabReportView from "@/components/LabReportView";
 import MarkdownMessage from "@/components/MarkdownMessage";
 import { MedicineTrustCards, type TrustCardData } from "@/components/MedicineTrustCard";
 import UpgradeModal from "@/components/UpgradeModal";
+import ShareReport from "@/components/ShareReport";
 
 function stripMarkdown(text: string): string {
   return text
@@ -578,15 +579,7 @@ function ChatPageInner() {
                             </svg>
                           )}
                         </button>
-                        <button
-                          onClick={() => navigator.clipboard?.writeText(stripMarkdown(msg.content))}
-                          className="p-1.5 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-50 transition-all"
-                          title="Copy text"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        </button>
+                        <ShareReport content={msg.content} variant="inline" />
                       </div>
                     </div>
                     <p className="text-[9px] text-gray-300 mt-1 ml-1">MedSign AI</p>
@@ -663,6 +656,14 @@ function ChatPageInner() {
                   New Assessment
                 </button>
               </div>
+              {(() => {
+                const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+                return lastAssistant ? (
+                  <div className="w-full max-w-md mt-2">
+                    <ShareReport content={lastAssistant.content} conversationId={activeConversationId} variant="full" />
+                  </div>
+                ) : null;
+              })()}
             </div>
           ) : (
             <>

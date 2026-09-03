@@ -13,6 +13,7 @@ import {
   getFaceScanSummary,
 } from "@/lib/api";
 import type { FaceScan, FaceScanSummary } from "@/lib/api";
+import ShareReport from "@/components/ShareReport";
 
 function ScoreRing({ score, size = 120, label }: { score: number; size?: number; label?: string }) {
   const strokeWidth = 10;
@@ -386,6 +387,25 @@ export default function FaceScanPage() {
                 ))}
               </div>
             </div>
+            {/* Share Results */}
+            <ShareReport
+              content={[
+                `Face Scan Results — Overall Score: ${analysis.overall_score}/100`,
+                analysis.overall_summary,
+                `\nHair Health: ${analysis.hair_health.score}/100`,
+                ...analysis.hair_health.observations,
+                `\nSkin Quality: ${analysis.skin_quality.score}/100`,
+                ...analysis.skin_quality.observations,
+                analysis.skin_quality.estimated_skin_age ? `Estimated skin age: ~${analysis.skin_quality.estimated_skin_age} years` : "",
+                `\nStress Level: ${analysis.stress_level.score}/100`,
+                ...analysis.stress_level.observations,
+                `\nSleep Quality: ${analysis.sleep_quality.score}/100`,
+                ...analysis.sleep_quality.observations,
+                `\nTips:`,
+                ...[...analysis.hair_health.tips, ...analysis.skin_quality.tips, ...analysis.stress_level.tips, ...analysis.sleep_quality.tips].slice(0, 4),
+              ].filter(Boolean).join("\n")}
+              variant="compact"
+            />
           </>
         )}
 

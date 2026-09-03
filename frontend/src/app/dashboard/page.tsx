@@ -394,41 +394,7 @@ export default function DashboardPage() {
             <div className="dash-fade-3">
               <h3 className="text-sm font-bold text-gray-700 mb-4">Quick Actions</h3>
               <div className="grid grid-cols-4 sm:grid-cols-4 gap-3 auto-rows-[100px]">
-                {/* Face Scan — spans 2 cols */}
-                <button
-                  onClick={() => router.push("/face-scan")}
-                  className={`group relative col-span-2 rounded-2xl border overflow-hidden hover:shadow-xl hover:-translate-y-0.5 transition-all ${
-                    !scannedToday
-                      ? "bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 border-rose-200 ring-2 ring-rose-100"
-                      : "bg-white border-gray-100 hover:border-rose-200"
-                  }`}
-                >
-                  {!scannedToday && (
-                    <span className="absolute top-3 right-3 flex h-3 w-3 z-10">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500" />
-                    </span>
-                  )}
-                  <div className="h-full flex items-center gap-4 px-5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200/50 group-hover:scale-110 transition-transform shrink-0">
-                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <div className="text-left min-w-0">
-                      <p className="text-sm font-bold text-gray-900">Face Scan</p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {!scannedToday ? "Daily scan available" : faceScanScore ? `Score: ${faceScanScore}/100` : "Done today"}
-                      </p>
-                      {faceScanStreak && faceScanStreak.current_streak > 0 && (
-                        <span className="text-[10px] font-bold text-orange-600 mt-1 inline-block">🔥 {faceScanStreak.current_streak} day streak</span>
-                      )}
-                    </div>
-                  </div>
-                </button>
-
-                {/* Assess — spans 2 cols */}
+                {/* New Assessment — spans 2 cols, first position */}
                 <button
                   onClick={handleStartNew}
                   disabled={isStarting}
@@ -445,12 +411,28 @@ export default function DashboardPage() {
                   </div>
                 </button>
 
+                {/* Reports — spans 2 cols, second position */}
+                <button
+                  onClick={() => router.push("/reports")}
+                  className="group relative col-span-2 rounded-2xl warm-card overflow-hidden hover:shadow-xl hover:border-amber-200 hover:-translate-y-0.5 transition-all"
+                >
+                  <div className="h-full flex items-center gap-4 px-5">
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200/50 group-hover:scale-110 transition-transform shrink-0">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-gray-900">Reports</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Lab results</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Single-cell actions */}
                 {[
                   { label: "Medicines", sub: "Track doses", path: "/medicines", gradient: "from-blue-400 to-cyan-500", shadow: "shadow-blue-200/50", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /> },
                   { label: "Family", sub: "Profiles", path: "/family", gradient: "from-purple-400 to-indigo-500", shadow: "shadow-purple-200/50", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
-                  { label: "Reports", sub: "Lab results", path: "/reports", gradient: "from-amber-400 to-orange-500", shadow: "shadow-amber-200/50", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
                   { label: "Insights", sub: "Trends", path: "/insights", gradient: "from-indigo-400 to-violet-500", shadow: "shadow-indigo-200/50", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /> },
+                  { label: "Face Scan", sub: !scannedToday ? "Scan now" : "Done today", path: "/face-scan", gradient: "from-rose-400 to-pink-500", shadow: "shadow-rose-200/50", icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></> },
                 ].map((item) => (
                   <button key={item.label} onClick={() => router.push(item.path)} className="group rounded-2xl warm-card hover:shadow-xl hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center gap-2 p-3">
                     <div className={`w-11 h-11 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center shadow-md ${item.shadow} group-hover:scale-110 transition-transform`}>
