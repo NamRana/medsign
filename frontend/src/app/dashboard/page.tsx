@@ -105,12 +105,12 @@ function MoodCheckIn({ onSelect }: { onSelect: (mood: string) => void }) {
   ];
 
   return (
-    <div className="flex items-center justify-between gap-2 sm:gap-3">
+    <div className="flex items-center justify-between gap-1.5 sm:gap-3">
       {moods.map((mood) => (
         <button
           key={mood.value}
           onClick={() => { setSelected(mood.value); onSelect(mood.value); }}
-          className={`flex flex-col items-center gap-1.5 px-3 sm:px-4 py-3 rounded-2xl transition-all flex-1 ${
+          className={`flex flex-col items-center gap-1.5 px-2 sm:px-4 py-3 rounded-2xl transition-all flex-1 min-w-0 ${
             selected === mood.value
               ? "bg-emerald-50 border-2 border-emerald-300 scale-105 shadow-sm"
               : "bg-gray-50/80 border-2 border-transparent hover:bg-gray-100 hover:scale-105"
