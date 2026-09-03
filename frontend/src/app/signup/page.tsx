@@ -1,10 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { apiFetch } from "@/lib/api";
+
+const TIMEZONE_TO_COUNTRY: Record<string, string> = {
+  "Asia/Kolkata": "India",
+  "Asia/Calcutta": "India",
+  "Asia/Mumbai": "India",
+  "America/New_York": "United States",
+  "America/Chicago": "United States",
+  "America/Denver": "United States",
+  "America/Los_Angeles": "United States",
+  "America/Phoenix": "United States",
+  "America/Anchorage": "United States",
+  "Pacific/Honolulu": "United States",
+  "Europe/London": "United Kingdom",
+  "Asia/Dubai": "UAE",
+  "America/Toronto": "Canada",
+  "America/Vancouver": "Canada",
+  "Australia/Sydney": "Australia",
+  "Australia/Melbourne": "Australia",
+  "Australia/Perth": "Australia",
+  "Europe/Berlin": "Germany",
+  "Asia/Riyadh": "Saudi Arabia",
+  "Asia/Singapore": "Singapore",
+  "Asia/Dhaka": "Bangladesh",
+  "Asia/Kathmandu": "Nepal",
+  "Asia/Colombo": "Sri Lanka",
+  "Asia/Karachi": "Pakistan",
+  "Africa/Lagos": "Nigeria",
+  "Africa/Johannesburg": "South Africa",
+  "Asia/Manila": "Philippines",
+  "Asia/Jakarta": "Indonesia",
+  "Asia/Kuala_Lumpur": "Malaysia",
+  "Africa/Nairobi": "Kenya",
+};
+
+function detectCountry(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return TIMEZONE_TO_COUNTRY[tz] || "";
+  } catch {
+    return "";
+  }
+}
 
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -39,6 +81,11 @@ export default function SignupPage() {
   const [confirmationSent, setConfirmationSent] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const router = useRouter();
+
+  useEffect(() => {
+    const detected = detectCountry();
+    if (detected) setCountry(detected);
+  }, []);
 
   const maxDate = new Date().toISOString().split("T")[0];
   const strength = getPasswordStrength(password);
