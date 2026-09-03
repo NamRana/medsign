@@ -2,16 +2,19 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { apiFetch, closeConversation, createConversation, getConversation, getImageBlobUrl, sendMessage, type ImageAnalysis, type LabReport, type Message } from "@/lib/api";
-import ImageUpload from "@/components/ImageUpload";
-import ImageAnalysisReport from "@/components/ImageAnalysisReport";
-import VoiceInput from "@/components/VoiceInput";
-import LabReportUpload from "@/components/LabReportUpload";
-import LabReportView from "@/components/LabReportView";
 import MarkdownMessage from "@/components/MarkdownMessage";
-import { MedicineTrustCards, type TrustCardData } from "@/components/MedicineTrustCard";
-import UpgradeModal from "@/components/UpgradeModal";
-import ShareReport from "@/components/ShareReport";
+import { type TrustCardData } from "@/components/MedicineTrustCard";
+
+const ImageUpload = dynamic(() => import("@/components/ImageUpload"), { ssr: false });
+const ImageAnalysisReport = dynamic(() => import("@/components/ImageAnalysisReport"), { ssr: false });
+const VoiceInput = dynamic(() => import("@/components/VoiceInput"), { ssr: false });
+const LabReportUpload = dynamic(() => import("@/components/LabReportUpload"), { ssr: false });
+const LabReportView = dynamic(() => import("@/components/LabReportView"), { ssr: false });
+const MedicineTrustCards = dynamic(() => import("@/components/MedicineTrustCard").then(mod => ({ default: mod.MedicineTrustCards })), { ssr: false });
+const UpgradeModal = dynamic(() => import("@/components/UpgradeModal"), { ssr: false });
+const ShareReport = dynamic(() => import("@/components/ShareReport"), { ssr: false });
 
 function stripMarkdown(text: string): string {
   return text

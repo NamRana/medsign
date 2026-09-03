@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { getConversations, createConversation, getFaceScanSummary, apiFetch } from "@/lib/api";
 import type { Conversation, StreakInfo, FaceScan } from "@/lib/api";
-import DigitalTwin from "@/components/DigitalTwin";
 import { createClient } from "@/lib/supabase";
-import HealthAura from "@/components/HealthAura";
-import HealthAvatar from "@/components/HealthAvatar";
-
-import SmartAlerts from "@/components/SmartAlerts";
-import MedicineReminder from "@/components/MedicineReminder";
 import { useFamily } from "@/lib/family-context";
+
+const DigitalTwin = dynamic(() => import("@/components/DigitalTwin"), { ssr: false });
+const HealthAura = dynamic(() => import("@/components/HealthAura"), { ssr: false });
+const HealthAvatar = dynamic(() => import("@/components/HealthAvatar"), { ssr: false });
+const SmartAlerts = dynamic(() => import("@/components/SmartAlerts"), { ssr: false });
+const MedicineReminder = dynamic(() => import("@/components/MedicineReminder"), { ssr: false });
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short" });

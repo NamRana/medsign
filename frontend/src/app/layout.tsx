@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { FamilyProvider } from "@/lib/family-context";
-import GlobalChatWidget from "@/components/GlobalChatWidget";
-import TopHeader from "@/components/TopHeader";
-import BottomNav from "@/components/BottomNav";
+
+const TopHeader = dynamic(() => import("@/components/TopHeader"));
+const BottomNav = dynamic(() => import("@/components/BottomNav"));
+const GlobalChatWidget = dynamic(() => import("@/components/GlobalChatWidget"));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +42,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="preconnect" href="https://ocqfwrkehtjaqhqycnjh.supabase.co" />
+        <link rel="dns-prefetch" href="https://ocqfwrkehtjaqhqycnjh.supabase.co" />
       </head>
       <body className="min-h-full flex flex-col">
         <FamilyProvider>
