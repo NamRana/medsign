@@ -8,9 +8,7 @@ import DigitalTwin from "@/components/DigitalTwin";
 import { createClient } from "@/lib/supabase";
 import HealthAura from "@/components/HealthAura";
 import HealthAvatar from "@/components/HealthAvatar";
-import ProfileSwitcher from "@/components/ProfileSwitcher";
 
-import NotificationBell from "@/components/NotificationBell";
 import SmartAlerts from "@/components/SmartAlerts";
 import MedicineReminder from "@/components/MedicineReminder";
 import { useFamily } from "@/lib/family-context";
@@ -252,54 +250,8 @@ export default function DashboardPage() {
   })();
 
   return (
-    <div className={`min-h-screen warm-bg transition-opacity duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
-      {/* Header */}
-      <header className="warm-header sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/40">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">MedSign</h1>
-              <p className="text-[10px] text-gray-400 font-medium tracking-wider uppercase hidden sm:block">AI Health Intelligence</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-4">
-            <ProfileSwitcher />
-            <NotificationBell />
-            <button onClick={() => router.push("/pricing")} className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border border-amber-200 hover:shadow-md transition-all">
-              Upgrade to Pro
-            </button>
-            {isAdmin && (
-              <button onClick={() => router.push("/admin")} className="text-[11px] text-purple-600 font-bold px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-100 hover:bg-purple-100 transition-colors">
-                Admin Panel
-              </button>
-            )}
-            <div className="hidden sm:flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-1.5">
-              {userAvatar ? (
-                <img src={userAvatar} alt="" className="w-7 h-7 rounded-lg object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-7 h-7 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">
-                  {userInitial}
-                </div>
-              )}
-              <span className="text-xs font-medium text-gray-600 max-w-[140px] truncate">{userEmail}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs text-gray-400 font-medium px-3 py-2 rounded-xl hover:bg-red-50 hover:text-red-500 border border-gray-200 hover:border-red-200 transition-all"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-5 sm:px-8 py-8">
+    <div className={`min-h-screen warm-bg pb-20 sm:pb-0 transition-opacity duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
+      <main className="max-w-7xl mx-auto px-5 sm:px-8 py-6">
         <style>{`
           @keyframes dashFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
           @keyframes dashScaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }

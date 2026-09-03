@@ -536,7 +536,7 @@ export default function ChatWidget({ memberId }: { memberId?: string }) {
       {/* ─── Floating Action Button ─── */}
       <button
         onClick={handleOpen}
-        className={`fixed bottom-6 right-4 sm:right-5 z-50 transition-all duration-300 ${
+        className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-5 z-50 transition-all duration-300 ${
           open ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100"
         }`}
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
