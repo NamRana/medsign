@@ -7,8 +7,6 @@ import hmac
 import logging
 from datetime import datetime, timezone
 
-import razorpay
-
 from app.config import settings
 from app.dependencies import supabase
 
@@ -21,12 +19,13 @@ FREE_LIMITS = {
     "image_analyses": 1,
 }
 
-_rz_client: razorpay.Client | None = None
+_rz_client = None
 
 
-def _get_razorpay_client() -> razorpay.Client:
+def _get_razorpay_client():
     global _rz_client
     if _rz_client is None:
+        import razorpay
         _rz_client = razorpay.Client(
             auth=(settings.razorpay_key_id, settings.razorpay_key_secret)
         )

@@ -12,6 +12,7 @@ google-genai==1.*
 anthropic[bedrock]==0.*
 pypdf==5.*
 razorpay==1.*
+setuptools>=70.0
 # MedGemma (optional — install only on GPU machines)
 # torch>=2.2
 # transformers>=4.45
