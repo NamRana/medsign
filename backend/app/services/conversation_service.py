@@ -12,6 +12,7 @@ Phase 3: add_message now orchestrates the full AI interview loop:
 from __future__ import annotations
 
 import logging
+import re
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -508,24 +509,31 @@ async def add_message(
                         conversation_history=conversation_history,
                         medical_history=medical_history,
                     )
-                    assistant_content = assessment_text
-                    assistant_metadata["has_assessment"] = True
 
-                    # Generate medicine trust cards
-                    try:
-                        from app.services.medicine_trust_service import generate_trust_cards
-                        trust_cards = await generate_trust_cards(assessment_text, patient_state)
-                        if trust_cards:
-                            assistant_metadata["trust_cards"] = trust_cards
-                    except Exception as trust_exc:
-                        logger.warning("Trust card generation failed: %s", trust_exc)
+                    has_prescription = bool(
+                        re.search(r"^\|.*medicine.*\|", assessment_text, re.IGNORECASE | re.MULTILINE)
+                    )
 
-                    try:
-                        supabase.table(CONV_TABLE).update(
-                            {"status": "completed"}
-                        ).eq("id", str(conversation_id)).execute()
-                    except APIError:
-                        pass  # non-fatal
+                    if has_prescription:
+                        assistant_content = assessment_text
+                        assistant_metadata["has_assessment"] = True
+
+                        try:
+                            from app.services.medicine_trust_service import generate_trust_cards
+                            trust_cards = await generate_trust_cards(assessment_text, patient_state)
+                            if trust_cards:
+                                assistant_metadata["trust_cards"] = trust_cards
+                        except Exception as trust_exc:
+                            logger.warning("Trust card generation failed: %s", trust_exc)
+
+                        try:
+                            supabase.table(CONV_TABLE).update(
+                                {"status": "completed"}
+                            ).eq("id", str(conversation_id)).execute()
+                        except APIError:
+                            pass  # non-fatal
+                    else:
+                        logger.warning("Assessment generated without prescription — keeping interview open")
 
                 except Exception as assess_exc:
                     logger.error("RAG assessment failed: %s", assess_exc)
@@ -541,23 +549,35 @@ async def add_message(
                         conversation_history=conversation_history,
                         medical_history=medical_history,
                     )
-                    assistant_content = assessment_text
-                    assistant_metadata = {"has_assessment": True}
 
-                    try:
-                        from app.services.medicine_trust_service import generate_trust_cards
-                        trust_cards = await generate_trust_cards(assessment_text, patient_state)
-                        if trust_cards:
-                            assistant_metadata["trust_cards"] = trust_cards
-                    except Exception as trust_exc:
-                        logger.warning("Trust card generation failed (fallback): %s", trust_exc)
+                    has_prescription = bool(
+                        re.search(r"^\|.*medicine.*\|", assessment_text, re.IGNORECASE | re.MULTILINE)
+                    )
 
-                    try:
-                        supabase.table(CONV_TABLE).update(
-                            {"status": "completed"}
-                        ).eq("id", str(conversation_id)).execute()
-                    except APIError:
-                        pass
+                    if has_prescription:
+                        assistant_content = assessment_text
+                        assistant_metadata = {"has_assessment": True}
+
+                        try:
+                            from app.services.medicine_trust_service import generate_trust_cards
+                            trust_cards = await generate_trust_cards(assessment_text, patient_state)
+                            if trust_cards:
+                                assistant_metadata["trust_cards"] = trust_cards
+                        except Exception as trust_exc:
+                            logger.warning("Trust card generation failed (fallback): %s", trust_exc)
+
+                        try:
+                            supabase.table(CONV_TABLE).update(
+                                {"status": "completed"}
+                            ).eq("id", str(conversation_id)).execute()
+                        except APIError:
+                            pass
+                    else:
+                        logger.warning("Fallback assessment without prescription — keeping interview open")
+                        assistant_content = (
+                            "I need a bit more information before I can recommend anything. "
+                            "Could you please describe your main symptom in more detail?"
+                        )
                 except Exception as assess_exc:
                     logger.error("Fallback RAG assessment also failed: %s", assess_exc)
                     assistant_content = (

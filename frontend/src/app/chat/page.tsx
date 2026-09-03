@@ -561,7 +561,7 @@ function ChatPageInner() {
                       {msg.trustCards && msg.trustCards.length > 0 && (
                         <MedicineTrustCards cards={msg.trustCards} memberId={memberFromUrl || undefined} />
                       )}
-                      {/* Action bar */}
+                      {/* Action bar — share only on prescription messages */}
                       <div className="flex items-center gap-1 mt-2 pt-2 border-t border-gray-50">
                         <button
                           onClick={() => toggleSpeak(msg.id, msg.content)}
@@ -582,7 +582,9 @@ function ChatPageInner() {
                             </svg>
                           )}
                         </button>
-                        <ShareReport content={msg.content} variant="inline" />
+                        {msg.trustCards && msg.trustCards.length > 0 && (
+                          <ShareReport content={msg.content} variant="inline" />
+                        )}
                       </div>
                     </div>
                     <p className="text-[9px] text-gray-300 mt-1 ml-1">MedSign AI</p>
