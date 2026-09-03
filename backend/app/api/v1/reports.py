@@ -16,7 +16,7 @@ from app.agents.lab_extractor import LabReportExtractor
 from app.dependencies import supabase
 from app.middleware.auth import get_current_user
 from app.middleware.rate_limit import rate_limit_uploads
-from app.services import patient_service
+from app.services import billing_service, patient_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -91,6 +91,13 @@ async def upload_lab_report(
     user=Depends(get_current_user),
 ):
     """Upload a lab report PDF or image for extraction and interpretation."""
+    limit_check = billing_service.check_limit(str(user.id), "lab_reports")
+    if not limit_check["allowed"]:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Free limit reached ({limit_check['limit']} lab report/month). Upgrade to Pro for unlimited access.",
+        )
+
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=400,
@@ -287,6 +294,8 @@ async def _get_report_response(report_id: str, user_id: str) -> LabReportRespons
             patient_friendly_explanation=i["patient_friendly_explanation"],
             recommendations=i.get("recommendations", []),
         )
+
+    billing_service.increment_usage(user_id, "lab_reports")
 
     return LabReportResponse(
         id=report["id"],

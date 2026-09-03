@@ -37,5 +37,8 @@ Thumbs.db
 htmlcov/
 .pytest_cache/
 
+# Data files
+data/
+
 # Docker
 *.log

@@ -16,6 +16,7 @@ from app.ai.gemini import get_ai_provider
 from app.dependencies import supabase
 from app.middleware.auth import get_current_user
 from app.middleware.rate_limit import rate_limit_uploads
+from app.services import billing_service
 
 logger = logging.getLogger(__name__)
 
@@ -173,6 +174,13 @@ async def upload_face_scan(
     user=Depends(get_current_user),
 ) -> FaceScanResponse:
     """Upload a selfie for daily wellness face scan analysis."""
+    limit_check = billing_service.check_limit(str(user.id), "face_scans")
+    if not limit_check["allowed"]:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Free limit reached ({limit_check['limit']} face scans/month). Upgrade to Pro for unlimited access.",
+        )
+
     user_id = str(user.id)
     today = date.today().isoformat()
 
@@ -293,6 +301,7 @@ async def upload_face_scan(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save face scan")
 
     saved = insert_resp.data[0]
+    billing_service.increment_usage(user_id, "face_scans")
     return FaceScanResponse(**saved)
 
 

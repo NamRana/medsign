@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getConversations, createConversation, getFaceScanSummary } from "@/lib/api";
+import { getConversations, createConversation, getFaceScanSummary, apiFetch } from "@/lib/api";
 import type { Conversation, StreakInfo, FaceScan } from "@/lib/api";
 import DigitalTwin from "@/components/DigitalTwin";
 import { createClient } from "@/lib/supabase";
 import HealthAura from "@/components/HealthAura";
 import HealthAvatar from "@/components/HealthAvatar";
+import ProfileSwitcher from "@/components/ProfileSwitcher";
+import ChatWidget from "@/components/ChatWidget";
+import NotificationBell from "@/components/NotificationBell";
+import SmartAlerts from "@/components/SmartAlerts";
+import { useFamily } from "@/lib/family-context";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
@@ -172,12 +177,13 @@ export default function DashboardPage() {
   const [userAvatar, setUserAvatar] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [healthScore, setHealthScore] = useState(72);
+  const [healthScore, setHealthScore] = useState(92);
   const [moodLogged, setMoodLogged] = useState(false);
   const [faceScanStreak, setFaceScanStreak] = useState<StreakInfo | null>(null);
   const [faceScanScore, setFaceScanScore] = useState<number | null>(null);
   const [latestFaceScan, setLatestFaceScan] = useState<FaceScan | null>(null);
   const [scannedToday, setScannedToday] = useState(false);
+  const { activeMember, memberParam } = useFamily();
 
   useEffect(() => {
     setMounted(true);
@@ -190,16 +196,15 @@ export default function DashboardPage() {
         setIsAdmin(data.user.app_metadata?.role === "admin");
       }
     });
-    getConversations()
-      .then((convos) => {
-        setConversations(convos);
-        if (convos.length > 0) {
-          const completed = convos.filter(c => c.status === "completed").length;
-          setHealthScore(Math.max(55, Math.min(92, Math.round(60 + (completed / Math.max(convos.length, 1)) * 30))));
-        }
-      })
+    const mp = memberParam ? `&${memberParam}` : "";
+    apiFetch<Conversation[]>(`/api/v1/conversations?limit=100${mp}`)
+      .then((convos) => setConversations(convos))
       .catch(() => setListError("Could not load past assessments."))
       .finally(() => setIsLoadingList(false));
+
+    apiFetch<{ health_score: number }>(`/api/v1/insights${memberParam ? `?${memberParam}` : ""}`)
+      .then((data) => setHealthScore(data.health_score))
+      .catch(() => {});
 
     getFaceScanSummary()
       .then((summary) => {
@@ -212,12 +217,15 @@ export default function DashboardPage() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [activeMember, memberParam]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleStartNew() {
     setIsStarting(true);
-    try { const convo = await createConversation(); router.push(`/chat?id=${convo.id}`); }
-    catch { router.push("/chat"); }
+    try {
+      const convo = await createConversation(activeMember?.id);
+      const memberQ = activeMember ? `&member=${activeMember.id}` : "";
+      router.push(`/chat?id=${convo.id}${memberQ}`);
+    } catch { router.push("/chat"); }
   }
 
   async function handleLogout() {
@@ -243,9 +251,9 @@ export default function DashboardPage() {
   })();
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/20 transition-opacity duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
+    <div className={`min-h-screen warm-bg transition-opacity duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100/60 sticky top-0 z-20">
+      <header className="warm-header sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/40">
@@ -260,6 +268,11 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
+            <ProfileSwitcher />
+            <NotificationBell />
+            <button onClick={() => router.push("/pricing")} className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border border-amber-200 hover:shadow-md transition-all">
+              Upgrade to Pro
+            </button>
             {isAdmin && (
               <button onClick={() => router.push("/admin")} className="text-[11px] text-purple-600 font-bold px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-100 hover:bg-purple-100 transition-colors">
                 Admin Panel
@@ -330,6 +343,11 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* ─── Smart Health Alerts ───────────────────────────────────────── */}
+        <div className="dash-fade-2 mb-7">
+          <SmartAlerts />
         </div>
 
         {/* ─── Two Column Layout (Desktop) ─────────────────────────────────── */}
@@ -414,7 +432,7 @@ export default function DashboardPage() {
                 <button
                   onClick={handleStartNew}
                   disabled={isStarting}
-                  className="group relative col-span-2 rounded-2xl bg-white border border-gray-100 overflow-hidden hover:shadow-xl hover:border-emerald-200 hover:-translate-y-0.5 transition-all"
+                  className="group relative col-span-2 rounded-2xl warm-card overflow-hidden hover:shadow-xl hover:border-emerald-200 hover:-translate-y-0.5 transition-all"
                 >
                   <div className="h-full flex items-center gap-4 px-5">
                     <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200/50 group-hover:scale-110 transition-transform shrink-0">
@@ -434,7 +452,7 @@ export default function DashboardPage() {
                   { label: "Reports", sub: "Lab results", path: "/reports", gradient: "from-amber-400 to-orange-500", shadow: "shadow-amber-200/50", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
                   { label: "Insights", sub: "Trends", path: "/insights", gradient: "from-indigo-400 to-violet-500", shadow: "shadow-indigo-200/50", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /> },
                 ].map((item) => (
-                  <button key={item.label} onClick={() => router.push(item.path)} className="group rounded-2xl bg-white border border-gray-100 hover:shadow-xl hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center gap-2 p-3">
+                  <button key={item.label} onClick={() => router.push(item.path)} className="group rounded-2xl warm-card hover:shadow-xl hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center gap-2 p-3">
                     <div className={`w-11 h-11 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center shadow-md ${item.shadow} group-hover:scale-110 transition-transform`}>
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
                     </div>
@@ -461,7 +479,7 @@ export default function DashboardPage() {
               {isLoadingList && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 animate-pulse border border-gray-100">
+                    <div key={i} className="warm-card rounded-2xl p-4 animate-pulse">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gray-100 rounded-xl" />
                         <div className="flex-1"><div className="h-3.5 bg-gray-100 rounded-lg w-3/5 mb-2" /><div className="h-2.5 bg-gray-50 rounded-lg w-2/5" /></div>
@@ -472,7 +490,7 @@ export default function DashboardPage() {
               )}
 
               {!isLoadingList && listError && (
-                <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
+                <div className="warm-card rounded-2xl p-8 text-center">
                   <p className="text-sm text-gray-400">{listError}</p>
                   <button onClick={handleStartNew} disabled={isStarting} className="mt-4 bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60 transition-colors">
                     {isStarting ? "Starting..." : "Start Assessment"}
@@ -481,7 +499,7 @@ export default function DashboardPage() {
               )}
 
               {!isLoadingList && !listError && conversations.length === 0 && (
-                <div className="bg-white rounded-3xl p-10 text-center border border-gray-100">
+                <div className="warm-card rounded-3xl p-10 text-center">
                   <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
                     <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -498,7 +516,7 @@ export default function DashboardPage() {
                     <button
                       key={convo.id}
                       onClick={() => router.push(`/chat?id=${convo.id}`)}
-                      className="w-full group bg-white rounded-2xl p-4 text-left border border-gray-100 hover:border-emerald-200 hover:shadow-lg hover:-translate-y-0.5 transition-all focus:outline-none"
+                      className="w-full group warm-card rounded-2xl p-4 text-left hover:border-emerald-200 hover:shadow-lg hover:-translate-y-0.5 transition-all focus:outline-none"
                       style={{ animationDelay: `${0.3 + i * 0.06}s` }}
                     >
                       <div className="flex items-center gap-3">
@@ -534,7 +552,7 @@ export default function DashboardPage() {
           <div className="space-y-7">
 
             {/* Hero Wellness Score — glowing background */}
-            <div className="dash-fade-2 relative rounded-3xl p-7 border border-gray-100 shadow-lg text-center overflow-hidden" style={{ background: "linear-gradient(180deg, #ECFDF5 0%, #F0FDF4 50%, #FFFFFF 100%)" }}>
+            <div className="dash-fade-2 relative rounded-3xl p-7 border border-emerald-100/40 shadow-lg text-center overflow-hidden" style={{ background: "linear-gradient(180deg, #ECFDF5 0%, #F0FDF4 50%, #FDFBF7 100%)" }}>
               <div className="absolute inset-0 rounded-3xl" style={{ background: "radial-gradient(circle at 50% 40%, rgba(16,185,129,0.08) 0%, transparent 70%)" }} />
               <div className="relative z-10">
                 <h3 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-5">Wellness Score</h3>
@@ -557,7 +575,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Mood Check-in */}
-            <div className="dash-fade-3 bg-white rounded-3xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="dash-fade-3 warm-card rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
               {!moodLogged ? (
                 <>
                   <div className="flex items-center gap-2 mb-4">
@@ -582,7 +600,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Weekly Activity */}
-            <div className="dash-fade-4 bg-white rounded-3xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="dash-fade-4 warm-card rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
               <WeeklyActivity conversations={conversations} />
             </div>
 
@@ -646,7 +664,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Emergency + SOS Card */}
-            <div className="dash-fade-5 bg-white rounded-3xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="dash-fade-5 warm-card rounded-3xl p-5 !border-red-100/60 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-gradient-to-br from-red-400 to-rose-500 rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-red-200/40">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -665,6 +683,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+      <ChatWidget memberId={activeMember?.id} />
     </div>
   );
 }

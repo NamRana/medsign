@@ -100,12 +100,46 @@ class PatientState(BaseModel):
     def mark_complete(self) -> None:
         self.is_complete = True
 
+    def enrich_from_profile(
+        self,
+        date_of_birth: Any | None = None,
+        gender: str | None = None,
+        allergies: list[str] | None = None,
+        chronic_conditions: list[str] | None = None,
+        current_medications: list[str] | None = None,
+        location_city: str | None = None,
+        location_state: str | None = None,
+    ) -> None:
+        """Merge patient profile data without overwriting chat-extracted values."""
+        if self.age is None and date_of_birth is not None:
+            from datetime import date
+            if isinstance(date_of_birth, str):
+                date_of_birth = date.fromisoformat(date_of_birth)
+            today = date.today()
+            age = today.year - date_of_birth.year
+            if (today.month, today.day) < (date_of_birth.month, date_of_birth.day):
+                age -= 1
+            self.age = age
+        if self.gender is None and gender and gender != "prefer_not_to_say":
+            self.gender = gender
+        if not self.allergies and allergies:
+            self.allergies = allergies
+        if not self.chronic_conditions and chronic_conditions:
+            self.chronic_conditions = chronic_conditions
+        if not self.current_medications and current_medications:
+            self.current_medications = current_medications
+        if self.location is None and (location_city or location_state):
+            parts = [p for p in (location_city, location_state) if p]
+            self.location = ", ".join(parts)
+
     def to_summary_dict(self) -> dict[str, Any]:
         """Return a concise dict suitable for the AI prompt context."""
         return {
             "chief_complaint": self.chief_complaint,
             "age": self.age,
             "gender": self.gender,
+            "language": self.language,
+            "location": self.location,
             "symptoms": [s.model_dump(exclude_none=True) for s in self.symptoms],
             "vitals": self.vitals.model_dump(exclude_none=True),
             "allergies": self.allergies,

@@ -21,6 +21,12 @@ class Settings(BaseSettings):
         if self.environment == "production" and self.secret_key == "change-me":
             raise ValueError("SECRET_KEY must be set to a real secret in production")
 
+    # Razorpay
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+    razorpay_plan_id: str = ""  # Monthly pro plan ID from Razorpay dashboard
+    razorpay_webhook_secret: str = ""
+
     # MedGemma (optional — enable for superior medical image analysis)
     medgemma_enabled: bool = False
     medgemma_model_id: str = "google/medgemma-4b-it"

@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch, getImageBlobUrl } from "@/lib/api";
+import ProfileSwitcher from "@/components/ProfileSwitcher";
+import { useFamily } from "@/lib/family-context";
 
 interface HistoryItem {
   id: string;
@@ -142,13 +144,15 @@ function HistoryContent() {
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const { activeMember, memberParam } = useFamily();
 
-  useEffect(() => { loadHistory(); }, []);
+  useEffect(() => { loadHistory(); }, [activeMember]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadHistory() {
     setIsLoading(true);
     try {
       let path = "/api/v1/history/?limit=50";
+      if (memberParam) path += `&${memberParam}`;
       if (searchQuery) path += `&search=${encodeURIComponent(searchQuery)}`;
       if (riskFilter) path += `&risk_level=${riskFilter}`;
       const data = await apiFetch<HistoryItem[]>(path);
@@ -210,7 +214,7 @@ function HistoryContent() {
   // Detail view
   if (selectedDetail) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen warm-bg">
         <style>{`
           @keyframes hsFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
           .hs-fade-1 { animation: hsFadeUp 0.5s ease-out both; }
@@ -251,7 +255,7 @@ function HistoryContent() {
           )}
 
           {doctorSummary && (
-            <div className="bg-white rounded-3xl border border-gray-100 p-7 space-y-5 shadow-md shadow-gray-100/40">
+            <div className="warm-card rounded-3xl p-7 space-y-5 shadow-md shadow-gray-100/40">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2">Clinical Summary</h3>
               {doctorSummary.chief_complaint && <div><p className="text-[11px] font-semibold text-gray-400 uppercase">Chief Complaint</p><p className="text-sm text-gray-800 mt-0.5">{doctorSummary.chief_complaint}</p></div>}
               {doctorSummary.history_of_present_illness && <div><p className="text-[11px] font-semibold text-gray-400 uppercase">History of Present Illness</p><p className="text-sm text-gray-800 mt-0.5">{doctorSummary.history_of_present_illness}</p></div>}
@@ -271,7 +275,7 @@ function HistoryContent() {
             </div>
           )}
 
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
+          <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Conversation ({selectedDetail.messages.length} messages)</h3>
             <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
               {selectedDetail.messages.map((msg, i) => (
@@ -285,7 +289,7 @@ function HistoryContent() {
           </div>
 
           {selectedDetail.images && selectedDetail.images.length > 0 && (
-            <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
+            <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 Image Analyses ({selectedDetail.images.length})
@@ -362,7 +366,7 @@ function HistoryContent() {
           )}
 
           {selectedDetail.lab_reports && selectedDetail.lab_reports.length > 0 && (
-            <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
+            <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 Lab Reports ({selectedDetail.lab_reports.length})
@@ -463,7 +467,7 @@ function HistoryContent() {
           )}
 
           {selectedDetail.assessment && (
-            <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
+            <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Assessment Result</h3>
               <div className="space-y-2">
                 <div className="flex items-center gap-2"><span className="text-xs text-gray-500">Risk Level:</span><RiskBadge level={selectedDetail.assessment.risk_level} /></div>
@@ -479,7 +483,7 @@ function HistoryContent() {
 
   // List view
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen warm-bg">
       <style>{`
         @keyframes hsFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .hs-fade-1 { animation: hsFadeUp 0.5s ease-out both; }
@@ -490,14 +494,17 @@ function HistoryContent() {
         <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 25% 75%, white 1px, transparent 1px), radial-gradient(circle at 75% 25%, white 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full -translate-y-1/3 translate-x-1/4" />
         <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/dashboard")} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white">Assessment History</h1>
-              <p className="text-sm text-white/60 mt-0.5">Past conversations and results</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button onClick={() => router.push("/dashboard")} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">Assessment History</h1>
+                <p className="text-sm text-white/60 mt-0.5">Past conversations and results</p>
+              </div>
             </div>
+            <ProfileSwitcher />
           </div>
         </div>
       </header>
@@ -554,7 +561,7 @@ function HistoryContent() {
         )}
 
         {!isLoading && filteredItems.length === 0 && (
-          <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
+          <div className="text-center py-10 warm-card rounded-2xl">
             <p className="text-sm text-gray-500">No assessments found.</p>
           </div>
         )}
@@ -565,7 +572,7 @@ function HistoryContent() {
               <button
                 key={item.id}
                 onClick={() => handleSelectItem(item.id)}
-                className="w-full text-left bg-white rounded-2xl px-5 py-4 border border-gray-100 hover:border-emerald-200 hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-sm"
+                className="w-full text-left warm-card rounded-2xl px-5 py-4 hover:border-emerald-200 hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex-1 min-w-0">

@@ -90,8 +90,9 @@ export async function apiFetch<T>(
 
 // --- Typed API functions ---
 
-export async function getConversations(): Promise<Conversation[]> {
-  return apiFetch<Conversation[]>("/api/v1/conversations");
+export async function getConversations(limit = 100, memberId?: string): Promise<Conversation[]> {
+  const memberQ = memberId ? `&member=${memberId}` : "";
+  return apiFetch<Conversation[]>(`/api/v1/conversations?limit=${limit}${memberQ}`);
 }
 
 export async function getConversation(
@@ -106,8 +107,9 @@ export async function closeConversation(id: string): Promise<Conversation> {
   });
 }
 
-export async function createConversation(): Promise<Conversation> {
-  return apiFetch<Conversation>("/api/v1/conversations", {
+export async function createConversation(memberId?: string): Promise<Conversation> {
+  const query = memberId ? `?member=${memberId}` : "";
+  return apiFetch<Conversation>(`/api/v1/conversations${query}`, {
     method: "POST",
     body: JSON.stringify({}),
   });
@@ -115,13 +117,14 @@ export async function createConversation(): Promise<Conversation> {
 
 export async function sendMessage(
   conversationId: string,
-  content: string
+  content: string,
+  metadata?: Record<string, unknown>
 ): Promise<Message[]> {
   return apiFetch<Message[]>(
     `/api/v1/conversations/${conversationId}/messages`,
     {
       method: "POST",
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, ...(metadata ? { metadata } : {}) }),
     }
   );
 }
@@ -443,4 +446,126 @@ export interface FutureProjection {
 
 export async function getFutureProjection(): Promise<FutureProjection> {
   return apiFetch<FutureProjection>("/api/v1/face-scans/projection");
+}
+
+// --- Family Types ---
+
+export interface FamilyMember {
+  id: string;
+  name: string;
+  relationship: string;
+  date_of_birth: string | null;
+  gender: string | null;
+  blood_group: string | null;
+  avatar_color: string;
+  is_primary: boolean;
+  patient_id: string | null;
+  created_at: string;
+}
+
+export async function getFamilyMembers(): Promise<FamilyMember[]> {
+  return apiFetch<FamilyMember[]>("/api/v1/family");
+}
+
+// --- Billing Types ---
+
+export interface UsageEntry {
+  used: number;
+  limit: number; // -1 = unlimited (pro)
+}
+
+export interface BillingStatus {
+  plan: "free" | "pro";
+  status: string;
+  current_period_end: string | null;
+  usage: {
+    assessments: UsageEntry;
+    lab_reports: UsageEntry;
+    face_scans: UsageEntry;
+    image_analyses: UsageEntry;
+  };
+  free_limits: Record<string, number>;
+}
+
+export interface SubscribeResponse {
+  subscription_id: string;
+  razorpay_key_id: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+}
+
+export interface UsageLimitCheck {
+  allowed: boolean;
+  used: number;
+  limit: number;
+  is_pro: boolean;
+}
+
+// --- Billing API ---
+
+export async function getBillingStatus(): Promise<BillingStatus> {
+  return apiFetch<BillingStatus>("/api/v1/billing/status");
+}
+
+export async function createSubscription(): Promise<SubscribeResponse> {
+  return apiFetch<SubscribeResponse>("/api/v1/billing/subscribe", { method: "POST" });
+}
+
+export async function verifyPayment(data: {
+  razorpay_subscription_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}): Promise<{ status: string; message: string }> {
+  return apiFetch("/api/v1/billing/verify", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function cancelSubscription(): Promise<{ status: string; message: string }> {
+  return apiFetch("/api/v1/billing/cancel", { method: "POST" });
+}
+
+export async function checkUsageLimit(feature: string): Promise<UsageLimitCheck> {
+  return apiFetch<UsageLimitCheck>(`/api/v1/billing/check/${feature}`);
+}
+
+// --- Notification Types ---
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  type: string;
+  icon: string;
+  read: boolean;
+  action_url: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  unread_count: number;
+}
+
+// --- Notification API ---
+
+export async function getNotifications(limit = 20, unreadOnly = false): Promise<NotificationsResponse> {
+  return apiFetch<NotificationsResponse>(`/api/v1/notifications?limit=${limit}&unread_only=${unreadOnly}`);
+}
+
+export async function getUnreadCount(): Promise<{ unread_count: number }> {
+  return apiFetch<{ unread_count: number }>("/api/v1/notifications/count");
+}
+
+export async function markNotificationRead(id: string): Promise<void> {
+  await apiFetch(`/api/v1/notifications/${id}/read`, { method: "PATCH" });
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  await apiFetch("/api/v1/notifications/read-all", { method: "POST" });
 }

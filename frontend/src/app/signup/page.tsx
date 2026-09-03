@@ -6,6 +6,22 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { apiFetch } from "@/lib/api";
 
+function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return { score, label: "Very weak", color: "bg-red-500" };
+  if (score === 2) return { score, label: "Weak", color: "bg-orange-500" };
+  if (score === 3) return { score, label: "Fair", color: "bg-yellow-500" };
+  if (score === 4) return { score, label: "Strong", color: "bg-emerald-400" };
+  return { score, label: "Very strong", color: "bg-emerald-600" };
+}
+
+const NAME_REGEX = /^[A-Za-z\s'-]+$/;
+
 export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -13,13 +29,80 @@ export default function SignupPage() {
   const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
   const maxDate = new Date().toISOString().split("T")[0];
+  const strength = getPasswordStrength(password);
+
+  function validateField(name: string, value: string): string {
+    switch (name) {
+      case "firstName":
+      case "lastName": {
+        const label = name === "firstName" ? "First name" : "Last name";
+        if (!value.trim()) return `${label} is required`;
+        if (value.trim().length < 2) return `${label} must be at least 2 characters`;
+        if (!NAME_REGEX.test(value.trim())) return `${label} can only contain letters, spaces, hyphens, and apostrophes`;
+        return "";
+      }
+      case "email": {
+        if (!value.trim()) return "Email is required";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return "Enter a valid email address";
+        return "";
+      }
+      case "password": {
+        if (!value) return "Password is required";
+        if (value.length < 8) return "Must be at least 8 characters";
+        if (!/[A-Z]/.test(value)) return "Must include an uppercase letter";
+        if (!/[a-z]/.test(value)) return "Must include a lowercase letter";
+        if (!/[0-9]/.test(value)) return "Must include a number";
+        if (!/[^A-Za-z0-9]/.test(value)) return "Must include a special character (!@#$...)";
+        return "";
+      }
+      case "confirmPassword": {
+        if (!value) return "Please confirm your password";
+        if (value !== password) return "Passwords do not match";
+        return "";
+      }
+      case "dob": {
+        if (!value) return "Date of birth is required";
+        if (calculateAge(value) < 15) return "You must be at least 15 years old";
+        if (calculateAge(value) > 120) return "Please enter a valid date of birth";
+        return "";
+      }
+      case "gender":
+        if (!value) return "Please select your gender";
+        return "";
+      default:
+        return "";
+    }
+  }
+
+  function handleBlur(name: string, value: string) {
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const err = validateField(name, value);
+    setFieldErrors((prev) => ({ ...prev, [name]: err }));
+  }
+
+  function validateAll(): boolean {
+    const fields: Record<string, string> = { firstName, lastName, email, password, confirmPassword, dob, gender };
+    const errors: Record<string, string> = {};
+    let valid = true;
+    for (const [name, value] of Object.entries(fields)) {
+      const err = validateField(name, value);
+      if (err) { errors[name] = err; valid = false; }
+    }
+    setFieldErrors(errors);
+    setTouched(Object.fromEntries(Object.keys(fields).map((k) => [k, true])));
+    return valid;
+  }
 
   async function handleGoogleSignUp() {
     setGoogleLoading(true);
@@ -44,6 +127,11 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (!validateAll()) {
+      setLoading(false);
+      return;
+    }
 
     const supabase = createClient();
     const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
@@ -196,59 +284,65 @@ export default function SignupPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  First name
+                  First name <span className="text-red-400">*</span>
                 </label>
                 <input
                   id="firstName"
                   type="text"
-                  required
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                  onChange={(e) => { setFirstName(e.target.value); if (touched.firstName) handleBlur("firstName", e.target.value); }}
+                  onBlur={() => handleBlur("firstName", firstName)}
+                  className={`block w-full rounded-xl border px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${touched.firstName && fieldErrors.firstName ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
                   placeholder="First name"
                 />
+                {touched.firstName && fieldErrors.firstName && <p className="mt-1 text-xs text-red-500">{fieldErrors.firstName}</p>}
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Last name
+                  Last name <span className="text-red-400">*</span>
                 </label>
                 <input
                   id="lastName"
                   type="text"
-                  required
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                  onChange={(e) => { setLastName(e.target.value); if (touched.lastName) handleBlur("lastName", e.target.value); }}
+                  onBlur={() => handleBlur("lastName", lastName)}
+                  className={`block w-full rounded-xl border px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${touched.lastName && fieldErrors.lastName ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
                   placeholder="Last name"
                 />
+                {touched.lastName && fieldErrors.lastName && <p className="mt-1 text-xs text-red-500">{fieldErrors.lastName}</p>}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Date of birth
+                  Date of birth <span className="text-red-400">*</span>
                 </label>
                 <input
                   id="dob"
                   type="date"
-                  required
                   max={maxDate}
                   value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                  onChange={(e) => { setDob(e.target.value); if (touched.dob) handleBlur("dob", e.target.value); }}
+                  onBlur={() => handleBlur("dob", dob)}
+                  className={`block w-full rounded-xl border px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 transition-all ${touched.dob && fieldErrors.dob ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
                 />
+                {touched.dob && fieldErrors.dob && <p className="mt-1 text-xs text-red-500">{fieldErrors.dob}</p>}
+                {dob && !fieldErrors.dob && (
+                  <p className="mt-1 text-xs text-gray-500">Age: <span className="font-semibold text-gray-700">{calculateAge(dob)} years</span></p>
+                )}
               </div>
               <div>
                 <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Gender
+                  Gender <span className="text-red-400">*</span>
                 </label>
                 <select
                   id="gender"
-                  required
                   value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all bg-white"
+                  onChange={(e) => { setGender(e.target.value); if (touched.gender) handleBlur("gender", e.target.value); }}
+                  onBlur={() => handleBlur("gender", gender)}
+                  className={`block w-full rounded-xl border px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 transition-all bg-white ${touched.gender && fieldErrors.gender ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
                 >
                   <option value="" disabled>Select</option>
                   <option value="male">Male</option>
@@ -256,45 +350,94 @@ export default function SignupPage() {
                   <option value="other">Other</option>
                   <option value="prefer_not_to_say">Prefer not to say</option>
                 </select>
+                {touched.gender && fieldErrors.gender && <p className="mt-1 text-xs text-red-500">{fieldErrors.gender}</p>}
               </div>
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email address
+                Email address <span className="text-red-400">*</span>
               </label>
               <input
                 id="email"
                 type="email"
-                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                onChange={(e) => { setEmail(e.target.value); if (touched.email) handleBlur("email", e.target.value); }}
+                onBlur={() => handleBlur("email", email)}
+                className={`block w-full rounded-xl border px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${touched.email && fieldErrors.email ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
                 placeholder="you@example.com"
               />
+              {touched.email && fieldErrors.email && <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>}
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Password
+                Password <span className="text-red-400">*</span>
               </label>
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                placeholder="At least 6 characters"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); if (touched.password) handleBlur("password", e.target.value); }}
+                  onBlur={() => handleBlur("password", password)}
+                  className={`block w-full rounded-xl border px-4 py-3 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${touched.password && fieldErrors.password ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
+                  placeholder="Min 8 chars, upper, lower, number, symbol"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" /></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  )}
+                </button>
+              </div>
+              {password && (
+                <div className="mt-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= strength.score ? strength.color : "bg-gray-200"}`} />
+                    ))}
+                  </div>
+                  <p className={`text-xs mt-1 ${strength.score <= 2 ? "text-red-500" : strength.score <= 3 ? "text-yellow-600" : "text-emerald-600"}`}>
+                    {strength.label}
+                  </p>
+                </div>
+              )}
+              {touched.password && fieldErrors.password && <p className="mt-1 text-xs text-red-500">{fieldErrors.password}</p>}
+              {!touched.password && !password && (
+                <ul className="mt-1.5 text-[11px] text-gray-400 space-y-0.5">
+                  <li>At least 8 characters with uppercase, lowercase, number, and symbol</li>
+                </ul>
+              )}
             </div>
 
-            {dob && (
-              <p className="text-sm text-gray-500">
-                Age: <span className="font-semibold text-gray-700">{calculateAge(dob)} years</span>
-              </p>
-            )}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Confirm password <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); if (touched.confirmPassword) handleBlur("confirmPassword", e.target.value); }}
+                onBlur={() => handleBlur("confirmPassword", confirmPassword)}
+                className={`block w-full rounded-xl border px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${touched.confirmPassword && fieldErrors.confirmPassword ? "border-red-300 focus:border-red-400 focus:ring-red-200" : confirmPassword && confirmPassword === password ? "border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500/20" : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"}`}
+                placeholder="Re-enter your password"
+              />
+              {touched.confirmPassword && fieldErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{fieldErrors.confirmPassword}</p>}
+              {confirmPassword && confirmPassword === password && !fieldErrors.confirmPassword && (
+                <p className="mt-1 text-xs text-emerald-600 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  Passwords match
+                </p>
+              )}
+            </div>
 
             <button
               type="submit"

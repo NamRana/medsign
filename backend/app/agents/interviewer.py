@@ -41,6 +41,7 @@ async def get_next_question(
     patient_state: PatientState,
     conversation_history: list[dict[str, str]],
     latest_user_message: str,
+    medical_history: list[dict] | None = None,
 ) -> InterviewerResponse:
     """Return the next interviewer question for this patient.
 
@@ -49,6 +50,8 @@ async def get_next_question(
         conversation_history: List of ``{"role": ..., "content": ...}`` dicts
             representing all prior turns (NOT including the latest message).
         latest_user_message: The user's most recent message text.
+        medical_history: Structured history from past completed conversations
+            (symptoms, complaints, medications, risk levels).
 
     Returns:
         An ``InterviewerResponse`` with the next question and metadata.
@@ -74,6 +77,17 @@ async def get_next_question(
         f"Number of patient responses so far: {exchange_count}\n"
         f"Questions already asked: {json.dumps(patient_state.questions_asked, ensure_ascii=False)}"
     )
+    if medical_history:
+        conv_summary += "\n\nPATIENT MEDICAL HISTORY (from past visits):\n"
+        for entry in medical_history:
+            line = f"- [{entry.get('date', '?')}] {entry.get('complaint', 'Unknown')} (risk: {entry.get('risk_level', '?')})"
+            if entry.get("symptoms"):
+                line += f" | Symptoms: {', '.join(entry['symptoms'])}"
+            if entry.get("medications_at_time"):
+                line += f" | Meds given: {', '.join(entry['medications_at_time'])}"
+            if entry.get("red_flags"):
+                line += f" | Red flags: {', '.join(entry['red_flags'])}"
+            conv_summary += line + "\n"
 
     system_prompt = prompt_template.format(
         patient_state_json=state_summary,

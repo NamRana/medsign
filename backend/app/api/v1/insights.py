@@ -7,11 +7,12 @@ import logging
 from collections import Counter
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from app.dependencies import supabase
 from app.middleware.auth import get_current_user
+from app.middleware.family_scope import resolve_patient_id
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -166,20 +167,26 @@ def calculate_health_score(
     image_severity: dict[str, int] | None = None,
 ) -> int:
     if total_assessments == 0 and not image_severity:
-        return 85  # Default healthy score
+        return 92
 
-    score = 100
-    score -= risk_dist.get("critical", 0) * 15
-    score -= risk_dist.get("high", 0) * 10
-    score -= risk_dist.get("medium", 0) * 5
-    score -= risk_dist.get("low", 0) * 1
-    score -= min(total_abnormal * 2, 20)
+    score = 95.0
+    total_rated = sum(risk_dist.values()) or 1
+
+    critical_pct = risk_dist.get("critical", 0) / total_rated
+    high_pct = risk_dist.get("high", 0) / total_rated
+    medium_pct = risk_dist.get("medium", 0) / total_rated
+
+    score -= critical_pct * 25
+    score -= high_pct * 15
+    score -= medium_pct * 8
+
+    score -= min(total_abnormal * 0.5, 5)
 
     if image_severity:
-        score -= image_severity.get("severe", 0) * 8
-        score -= image_severity.get("moderate", 0) * 4
+        score -= min(image_severity.get("severe", 0) * 3, 8)
+        score -= min(image_severity.get("moderate", 0) * 1.5, 5)
 
-    return max(20, min(100, score))
+    return max(75, min(98, int(score)))
 
 
 def estimate_life_expectancy(
@@ -250,28 +257,73 @@ def estimate_life_expectancy(
 
 
 @router.get("", response_model=HealthInsights)
-async def get_health_insights(user=Depends(get_current_user)):
+async def get_health_insights(
+    member: str | None = Query(None),
+    user=Depends(get_current_user),
+):
     """Aggregate all health data into a unified insights view."""
     user_id = str(user.id)
+    patient_id = str(await resolve_patient_id(family_member_id=member, user=user))
 
-    # Fetch all conversations
-    convos_resp = supabase.table("conversations").select(
-        "id, chief_complaint, status, risk_level, session_type, created_at"
-    ).eq("user_id", user_id).order("created_at", desc=True).execute()
+    # Fetch all conversations (scoped to family member if provided)
+    convos_query = supabase.table("conversations").select(
+        "id, chief_complaint, status, risk_level, session_type, metadata, created_at"
+    ).eq("user_id", user_id)
+    if member:
+        convos_query = convos_query.eq("family_member_id", member)
+    else:
+        convos_query = convos_query.is_("family_member_id", "null")
+    convos_resp = convos_query.order("created_at", desc=True).execute()
     conversations = convos_resp.data or []
+
+    # Extract symptoms from conversation metadata (patient_state)
+    conv_symptoms: list[dict] = []
+    for conv in conversations:
+        ps = (conv.get("metadata") or {}).get("patient_state")
+        if not ps:
+            continue
+        for s in ps.get("symptoms", []):
+            name = s.get("name", "").strip()
+            if not name:
+                continue
+            sev = s.get("severity")
+            sev_label = "mild" if not sev or sev <= 3 else "moderate" if sev <= 6 else "severe"
+            conv_symptoms.append({
+                "name": name,
+                "severity": sev,
+                "severity_label": sev_label,
+                "duration_days": s.get("duration_days"),
+                "body_location": s.get("body_location"),
+                "description": s.get("description"),
+                "recorded_at": conv.get("created_at"),
+            })
 
     # Fetch all assessments
     assess_resp = supabase.table("assessments").select(
         "id, conversation_id, risk_level, possible_conditions, "
         "recommended_actions, red_flags, urgency_score, created_at"
-    ).eq("patient_id", _get_patient_id(user_id)).order("created_at", desc=True).execute()
+    ).eq("patient_id", patient_id).order("created_at", desc=True).execute()
     assessments = assess_resp.data or []
 
-    # Fetch all symptoms
+    # Fetch all symptoms from symptoms table
     symptoms_resp = supabase.table("symptoms").select(
         "name, severity, duration_days, body_location, description, recorded_at"
-    ).eq("patient_id", _get_patient_id(user_id)).order("recorded_at", desc=True).execute()
-    symptoms = symptoms_resp.data or []
+    ).eq("patient_id", patient_id).order("recorded_at", desc=True).execute()
+    db_symptoms = symptoms_resp.data or []
+
+    # Merge: conversation symptoms + DB symptoms, deduplicate by name (case-insensitive)
+    seen_symptoms: set[str] = set()
+    symptoms: list[dict] = []
+    for s in db_symptoms:
+        key = s.get("name", "").lower()
+        if key and key not in seen_symptoms:
+            seen_symptoms.add(key)
+            symptoms.append(s)
+    for s in conv_symptoms:
+        key = s.get("name", "").lower()
+        if key and key not in seen_symptoms:
+            seen_symptoms.add(key)
+            symptoms.append(s)
 
     # Fetch lab reports with details
     reports_resp = supabase.table("lab_reports").select(
@@ -290,7 +342,6 @@ async def get_health_insights(user=Depends(get_current_user)):
         all_lab_values = lab_values_resp.data or []
 
     # Fetch image analyses
-    patient_id = _get_patient_id(user_id)
     images_resp = supabase.table("images").select(
         "id, analysis, created_at, conversation_id"
     ).eq("patient_id", patient_id).not_.is_("analysis", "null").order(
@@ -472,6 +523,17 @@ async def get_health_insights(user=Depends(get_current_user)):
     # ── Body system scores
     system_issues: Counter[str] = Counter()
     system_details: dict[str, list[BodySystemDetail]] = {}
+    # Include chief complaints from conversations
+    for conv in conversations:
+        cc = (conv.get("chief_complaint") or "").strip()
+        if cc:
+            system = classify_body_system(cc)
+            risk = conv.get("risk_level", "low")
+            sev = "severe" if risk in ("high", "critical") else "moderate" if risk == "medium" else "mild"
+            system_issues[system] += 1
+            system_details.setdefault(system, []).append(
+                BodySystemDetail(text=cc, source="assessment", severity=sev)
+            )
     for symptom in symptoms:
         name = symptom.get("name", "")
         system = classify_body_system(name)
@@ -514,7 +576,7 @@ async def get_health_insights(user=Depends(get_current_user)):
     body_systems = []
     for sys_name in all_systems:
         issues = system_issues.get(sys_name, 0)
-        score = max(40, 100 - issues * 12)
+        score = max(70, 95 - issues * 5)
         trend = "stable"
         if issues == 0:
             trend = "stable"

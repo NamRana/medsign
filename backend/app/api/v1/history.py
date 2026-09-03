@@ -69,6 +69,7 @@ async def list_history(
     date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
     date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
     risk_level: str | None = Query(None, pattern="^(low|medium|high|critical)$"),
+    member: str | None = Query(None, description="Family member ID"),
     limit: int = Query(30, le=100),
     offset: int = Query(0, ge=0),
     user=Depends(get_current_user),
@@ -77,6 +78,11 @@ async def list_history(
     query = supabase.table("conversations").select(
         "id, chief_complaint, status, risk_level, session_type, created_at, ended_at"
     ).eq("user_id", str(user.id)).order("created_at", desc=True)
+
+    if member:
+        query = query.eq("family_member_id", member)
+    else:
+        query = query.is_("family_member_id", "null")
 
     if search:
         query = query.ilike("chief_complaint", f"%{search}%")

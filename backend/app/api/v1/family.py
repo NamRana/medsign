@@ -9,6 +9,8 @@ from pydantic import BaseModel
 
 from app.dependencies import supabase
 from app.middleware.auth import get_current_user
+from app.schemas.patients import PatientCreate
+from app.services import patient_service
 
 router = APIRouter()
 
@@ -40,6 +42,7 @@ class FamilyMemberResponse(BaseModel):
     blood_group: str | None = None
     avatar_color: str
     is_primary: bool
+    patient_id: str | None = None
     created_at: str
 
 
@@ -53,13 +56,34 @@ async def list_family_members(user=Depends(get_current_user)):
 @router.post("", response_model=FamilyMemberResponse, status_code=status.HTTP_201_CREATED)
 async def add_family_member(body: FamilyMemberCreate, user=Depends(get_current_user)):
     user_id = str(user.id)
+    user_uuid = UUID(user_id)
     data = body.model_dump(exclude_none=True)
     data["user_id"] = user_id
 
-    # If this is the first member or relationship is "self", mark as primary
     existing = supabase.table("family_members").select("id").eq("user_id", user_id).execute()
     if not existing.data or body.relationship == "self":
         data["is_primary"] = True
+
+    # Auto-create a patient record for this family member
+    dob = None
+    if body.date_of_birth:
+        from datetime import date as date_type
+        try:
+            dob = date_type.fromisoformat(body.date_of_birth)
+        except ValueError:
+            pass
+
+    if body.relationship == "self":
+        patient = await patient_service.get_patient_by_user_id(user_uuid)
+        if not patient:
+            patient = await patient_service.create_patient(
+                user_uuid, PatientCreate(full_name=body.name, date_of_birth=dob, gender=body.gender)
+            )
+    else:
+        patient = await patient_service.create_patient_for_family(
+            user_uuid, PatientCreate(full_name=body.name, date_of_birth=dob, gender=body.gender)
+        )
+    data["patient_id"] = str(patient.id)
 
     resp = supabase.table("family_members").insert(data).execute()
     return resp.data[0]

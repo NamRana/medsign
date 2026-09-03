@@ -24,6 +24,8 @@ import {
   Area,
 } from "recharts";
 import { apiFetch } from "@/lib/api";
+import ProfileSwitcher from "@/components/ProfileSwitcher";
+import { useFamily } from "@/lib/family-context";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -576,20 +578,23 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
 
 export default function InsightsPage() {
   const router = useRouter();
+  const { activeMember, memberParam } = useFamily();
   const [insights, setInsights] = useState<HealthInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<HealthInsights>("/api/v1/insights")
+    setLoading(true);
+    const mp = memberParam ? `?${memberParam}` : "";
+    apiFetch<HealthInsights>(`/api/v1/insights${mp}`)
       .then(setInsights)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeMember, memberParam]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+      <div className="min-h-screen warm-bg flex items-center justify-center">
         <div className="text-center">
           <div className="w-14 h-14 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto" />
           <p className="mt-5 text-sm text-gray-500 font-medium">Analyzing your health data...</p>
@@ -601,7 +606,7 @@ export default function InsightsPage() {
 
   if (error || !insights) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen warm-bg flex items-center justify-center p-4">
         <div className="text-center max-w-sm bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
           <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -626,7 +631,7 @@ export default function InsightsPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-emerald-50/20">
+    <div className="min-h-screen warm-bg">
       <style>{`
         @keyframes insFadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
         .ins-fade-1 { animation: insFadeUp 0.5s ease-out both; }
@@ -655,9 +660,12 @@ export default function InsightsPage() {
                 <p className="text-sm text-white/60 mt-0.5">Comprehensive analytics powered by AI</p>
               </div>
             </div>
-            <span className="text-xs bg-white/15 text-white/90 px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border border-white/10">
-              AI-Powered
-            </span>
+            <div className="flex items-center gap-2">
+              <ProfileSwitcher />
+              <span className="text-xs bg-white/15 text-white/90 px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border border-white/10">
+                AI-Powered
+              </span>
+            </div>
           </div>
 
           {/* Mini stats row inside header */}
@@ -681,7 +689,7 @@ export default function InsightsPage() {
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-7">
 
         {/* ─── Body Systems Health Nucleus — Hero ─────────────────────────── */}
-        <div className="ins-fade-1 bg-white rounded-3xl p-6 sm:p-8 shadow-lg shadow-gray-200/40 border border-gray-100 hover:shadow-xl transition-shadow">
+        <div className="ins-fade-1 warm-card rounded-3xl p-6 sm:p-8 shadow-lg shadow-gray-200/40 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200/50">
@@ -734,7 +742,7 @@ export default function InsightsPage() {
         {/* ─── Risk Distribution + Radar ─────────────────────────────────── */}
         <div className="ins-fade-2 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Risk Distribution Pie */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-amber-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -769,7 +777,7 @@ export default function InsightsPage() {
           </div>
 
           {/* Body Systems Radar */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-violet-500 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
@@ -795,7 +803,7 @@ export default function InsightsPage() {
         </div>
 
         {/* ─── Monthly Activity ──────────────────────────────────────────── */}
-        <div className="ins-fade-3 bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+        <div className="ins-fade-3 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-md shadow-emerald-200/50">
               <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
@@ -830,7 +838,7 @@ export default function InsightsPage() {
         {/* ─── Conditions + Timeline ─────────────────────────────────────── */}
         <div className="ins-fade-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Conditions Chart */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center shadow-md shadow-purple-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
@@ -861,7 +869,7 @@ export default function InsightsPage() {
           </div>
 
           {/* Health Timeline */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-md shadow-blue-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -881,7 +889,7 @@ export default function InsightsPage() {
 
         {/* ─── Lab Trends ────────────────────────────────────────────────── */}
         {insights.lab_trends.length > 0 && (
-          <div className="ins-fade-5 bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="ins-fade-5 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-rose-400 to-red-500 rounded-xl flex items-center justify-center shadow-md shadow-rose-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
@@ -934,7 +942,7 @@ export default function InsightsPage() {
 
         {/* ─── Risk Factors ──────────────────────────────────────────────── */}
         {insights.risk_factors.length > 0 && (
-          <div className="ins-fade-6 bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="ins-fade-6 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-red-400 to-rose-500 rounded-xl flex items-center justify-center shadow-md shadow-red-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -966,7 +974,7 @@ export default function InsightsPage() {
         {(insights.doctors.length > 0 || insights.labs.length > 0) && (
           <div className="ins-fade-7 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Doctors */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-9 h-9 bg-gradient-to-br from-sky-400 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-sky-200/50">
                   <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -1009,7 +1017,7 @@ export default function InsightsPage() {
             </div>
 
             {/* Labs */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-9 h-9 bg-gradient-to-br from-violet-400 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-violet-200/50">
                   <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>

@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FDFBF7;
+  --foreground: #1C1917;
+  --warm-cream: #FDFBF7;
+  --warm-sage: #F0F5F1;
+  --warm-blush: #FFF5F2;
+  --warm-sand: #F8F3EC;
 }
 
 @theme inline {
@@ -20,12 +24,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar for chat and lists */
+/* Warm ambient mesh background */
+.warm-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 80%, rgba(251, 191, 146, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(167, 139, 250, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, var(--warm-cream) 0%, var(--warm-sand) 40%, var(--warm-sage) 100%);
+}
+
+/* Warmer card style */
+.warm-card {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Warm glass header */
+.warm-header {
+  background: rgba(253, 251, 247, 0.85);
+  backdrop-filter: blur(20px) saturate(1.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Custom scrollbar — warmer tones */
 .overflow-y-auto::-webkit-scrollbar {
   width: 4px;
 }
@@ -33,9 +59,9 @@ html {
   background: transparent;
 }
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #d6cfc4;
   border-radius: 9999px;
 }
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #b5ad9f;
 }

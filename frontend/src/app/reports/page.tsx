@@ -51,7 +51,7 @@ export default function ReportsPage() {
 
   if (selectedReport) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen warm-bg">
         <header className="bg-gradient-to-r from-amber-600 to-orange-600 sticky top-0 z-10">
           <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3">
             <button onClick={() => setSelectedReport(null)} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
@@ -76,7 +76,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen warm-bg">
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes rpFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .rp-fade-1 { animation: rpFadeUp 0.5s ease-out both; }

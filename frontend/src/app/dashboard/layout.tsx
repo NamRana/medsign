@@ -32,7 +32,7 @@ export default function DashboardLayout({
   }, [router]);
 
   if (isCheckingSession) {
-    return <div className="min-h-screen bg-gray-50" />;
+    return <div className="min-h-screen" style={{ background: "var(--warm-cream, #FDFBF7)" }} />;
   }
 
   return <>{children}</>;

@@ -127,8 +127,8 @@ export default function FaceScanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-rose-50/20">
-        <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100/60 sticky top-0 z-20">
+      <div className="min-h-screen warm-bg">
+        <header className="warm-header sticky top-0 z-20">
           <div className="max-w-4xl mx-auto px-5 sm:px-8 py-3.5 flex items-center gap-3">
             <div className="w-5 h-5 bg-gray-100 rounded animate-pulse" />
             <div className="w-9 h-9 bg-gray-100 rounded-xl animate-pulse" />
@@ -158,8 +158,8 @@ export default function FaceScanPage() {
   const streak = summary?.streak;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-rose-50/20">
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100/60 sticky top-0 z-20">
+    <div className="min-h-screen warm-bg">
+      <header className="warm-header sticky top-0 z-20">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 py-3.5 flex items-center gap-3">
           <button onClick={() => router.push("/dashboard")} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

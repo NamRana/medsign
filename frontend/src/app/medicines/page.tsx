@@ -250,7 +250,7 @@ export default function MedicinesPage() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/20">
+    <div className="min-h-screen warm-bg">
       <style>{`
         @keyframes mdFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .md-fade-1 { animation: mdFadeUp 0.5s ease-out both; }

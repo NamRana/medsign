@@ -14,6 +14,7 @@ interface VoiceInputProps {
   onRecordingStateChange?: (isRecording: boolean) => void;
   onEnsureConversation?: () => Promise<string>;
   disabled: boolean;
+  language?: "en" | "hi";
 }
 
 type RecordingState = "idle" | "recording" | "transcribing" | "error";
@@ -44,6 +45,7 @@ export default function VoiceInput({
   onRecordingStateChange,
   onEnsureConversation,
   disabled,
+  language = "en",
 }: VoiceInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
@@ -90,7 +92,7 @@ export default function VoiceInput({
     const recognition = new (SR as any)();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-IN";
+    recognition.lang = language === "hi" ? "hi-IN" : "en-IN";
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = "";
@@ -132,7 +134,7 @@ export default function VoiceInput({
     timerRef.current = setInterval(() => {
       setDuration((prev) => prev + 1);
     }, 1000);
-  }, [onRecordingStateChange]);
+  }, [onRecordingStateChange, language]);
 
   const stopRecording = useCallback(async () => {
     if (timerRef.current) {
@@ -173,7 +175,7 @@ export default function VoiceInput({
         return;
       }
 
-      const [userMsg, assistantMsg] = await sendMessage(convId, transcript);
+      const [userMsg, assistantMsg] = await sendMessage(convId, transcript, { language });
       onTranscriptionComplete(transcript, userMsg, assistantMsg);
       setState("idle");
     } catch {

@@ -19,7 +19,7 @@ from app.agents.image_analyzer import ImageAnalysis, ImageAnalyzer
 from app.dependencies import supabase
 from app.middleware.auth import get_current_user
 from app.middleware.rate_limit import rate_limit_uploads
-from app.services import conversation_service, patient_service
+from app.services import billing_service, conversation_service, patient_service
 from app.services.patient_state import PatientState
 
 logger = logging.getLogger(__name__)
@@ -145,6 +145,13 @@ async def upload_image(
     Requires explicit consent. Accepts JPEG, PNG, or WebP images up to 10 MB.
     The image is stored securely and analyzed for visual observations (not diagnoses).
     """
+    limit_check = billing_service.check_limit(str(user.id), "image_analyses")
+    if not limit_check["allowed"]:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Free limit reached ({limit_check['limit']} image analysis/month). Upgrade to Pro for unlimited access.",
+        )
+
     # ── Validate consent ─────────────────────────────────────────────────────
     if not consent:
         raise HTTPException(
@@ -259,6 +266,7 @@ async def upload_image(
             # Non-fatal — the analysis is still in the images table
 
     # ── Return response ──────────────────────────────────────────────────────
+    billing_service.increment_usage(str(user.id), "image_analyses")
     saved_record = insert_resp.data[0]
     return ImageResponse(
         id=UUID(saved_record["id"]),

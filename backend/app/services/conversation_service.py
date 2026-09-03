@@ -25,6 +25,7 @@ from app.schemas.conversations import (
     MessageCreate,
     MessageResponse,
 )
+from app.services import patient_service
 from app.services.patient_state import PatientState
 
 logger = logging.getLogger(__name__)
@@ -72,15 +73,23 @@ async def get_conversation_by_id(
 
 async def list_conversations(
     user_id: UUID,
-    limit: int = 20,
+    limit: int = 100,
     offset: int = 0,
+    family_member_id: str | None = None,
 ) -> list[ConversationResponse]:
-    """Return conversations for a user, most recent first."""
+    """Return conversations for a user, most recent first. Optionally filter by family member."""
     try:
-        response = (
+        query = (
             supabase.table(CONV_TABLE)
             .select("*")
             .eq("user_id", str(user_id))
+        )
+        if family_member_id:
+            query = query.eq("family_member_id", family_member_id)
+        else:
+            query = query.is_("family_member_id", "null")
+        response = (
+            query
             .order("started_at", desc=True)
             .range(offset, offset + limit - 1)
             .execute()
@@ -140,6 +149,31 @@ async def list_messages(conversation_id: UUID) -> list[MessageResponse]:
         ) from exc
 
     return [MessageResponse(**row) for row in (response.data or [])]
+
+
+def _build_medical_history(past_conversations: list[dict]) -> list[dict]:
+    """Extract structured medical history from past completed conversations."""
+    history: list[dict] = []
+    for conv in past_conversations:
+        entry: dict = {
+            "date": (conv.get("created_at") or "")[:10],
+            "complaint": conv.get("chief_complaint", "Unknown"),
+            "risk_level": conv.get("risk_level"),
+        }
+        metadata = conv.get("metadata") or {}
+        ps = metadata.get("patient_state")
+        if ps:
+            symptoms = ps.get("symptoms", [])
+            if symptoms:
+                entry["symptoms"] = [s.get("name", "") for s in symptoms if s.get("name")]
+            if ps.get("red_flags"):
+                entry["red_flags"] = ps["red_flags"]
+            if ps.get("chronic_conditions"):
+                entry["chronic_conditions_mentioned"] = ps["chronic_conditions"]
+            if ps.get("current_medications"):
+                entry["medications_at_time"] = ps["current_medications"]
+        history.append(entry)
+    return history
 
 
 def _load_patient_state(conv_data: dict) -> PatientState:
@@ -249,6 +283,27 @@ async def add_message(
     # ── 3. Extract symptoms and update patient state ──────────────────────────
     patient_state = _load_patient_state(conv_data)
 
+    # Set language from message metadata
+    msg_lang = (data.metadata or {}).get("language")
+    if msg_lang in ("en", "hi"):
+        patient_state.language = msg_lang
+
+    # Enrich with profile data (age, gender, allergies, medications, etc.)
+    try:
+        patient_profile = await patient_service.get_patient_by_user_id(user_id)
+        if patient_profile:
+            patient_state.enrich_from_profile(
+                date_of_birth=patient_profile.date_of_birth,
+                gender=patient_profile.gender,
+                allergies=patient_profile.allergies,
+                chronic_conditions=patient_profile.chronic_conditions,
+                current_medications=patient_profile.current_medications,
+                location_city=patient_profile.location_city,
+                location_state=patient_profile.location_state,
+            )
+    except Exception as exc:
+        logger.warning("Profile enrichment failed (non-fatal): %s", exc)
+
     try:
         from app.agents.extractor import extract_from_message
         patient_state = await extract_from_message(data.content, patient_state)
@@ -342,10 +397,17 @@ async def add_message(
         ]
     )
 
-    # Force assessment if enough exchanges OR user explicitly asks
-    force_assess = (
-        patient_state.chief_complaint
-        and (user_exchange_count >= 4 or explicit_assess_request)
+    # Smart assessment trigger — assess based on info completeness, not just count
+    has_complaint = bool(patient_state.chief_complaint)
+    has_duration = any(s.duration_days is not None for s in patient_state.symptoms)
+    has_severity = any(s.severity is not None for s in patient_state.symptoms)
+    has_profile = patient_state.age is not None or patient_state.gender is not None
+    info_score = sum([has_complaint, has_duration, has_severity, has_profile])
+
+    force_assess = has_complaint and (
+        user_exchange_count >= 4
+        or explicit_assess_request
+        or (info_score >= 3 and user_exchange_count >= 2)
     )
 
     # If safety engine detected an emergency, the safety message takes priority
@@ -369,6 +431,26 @@ async def add_message(
             pass
 
     else:
+        # Fetch past conversations with full patient state for medical history
+        past_conversations: list[dict] = []
+        try:
+            past_resp = (
+                supabase.table(CONV_TABLE)
+                .select("chief_complaint, risk_level, status, metadata, created_at")
+                .eq("user_id", str(user_id))
+                .neq("id", str(conversation_id))
+                .eq("status", "completed")
+                .not_.is_("chief_complaint", "null")
+                .order("created_at", desc=True)
+                .limit(5)
+                .execute()
+            )
+            past_conversations = past_resp.data or []
+        except Exception as exc:
+            logger.debug("Could not fetch past conversations: %s", exc)
+
+        medical_history = _build_medical_history(past_conversations)
+
         # Normal flow: get next question from AI interviewer
         try:
             from app.agents.interviewer import get_next_question
@@ -376,6 +458,7 @@ async def add_message(
                 patient_state=patient_state,
                 conversation_history=conversation_history,
                 latest_user_message=data.content,
+                medical_history=medical_history,
             )
 
             assistant_content = interviewer_response.next_question
@@ -422,9 +505,20 @@ async def add_message(
                         patient_state=patient_state,
                         latest_message=data.content,
                         conversation_history=conversation_history,
+                        medical_history=medical_history,
                     )
                     assistant_content = assessment_text
                     assistant_metadata["has_assessment"] = True
+
+                    # Generate medicine trust cards
+                    try:
+                        from app.services.medicine_trust_service import generate_trust_cards
+                        trust_cards = await generate_trust_cards(assessment_text, patient_state)
+                        if trust_cards:
+                            assistant_metadata["trust_cards"] = trust_cards
+                    except Exception as trust_exc:
+                        logger.warning("Trust card generation failed: %s", trust_exc)
+
                 except Exception as assess_exc:
                     logger.error("RAG assessment failed: %s", assess_exc)
                     # Fall back to the interviewer's regular response
@@ -445,9 +539,19 @@ async def add_message(
                         patient_state=patient_state,
                         latest_message=data.content,
                         conversation_history=conversation_history,
+                        medical_history=medical_history,
                     )
                     assistant_content = assessment_text
                     assistant_metadata = {"has_assessment": True}
+
+                    try:
+                        from app.services.medicine_trust_service import generate_trust_cards
+                        trust_cards = await generate_trust_cards(assessment_text, patient_state)
+                        if trust_cards:
+                            assistant_metadata["trust_cards"] = trust_cards
+                    except Exception as trust_exc:
+                        logger.warning("Trust card generation failed (fallback): %s", trust_exc)
+
                     try:
                         supabase.table(CONV_TABLE).update(
                             {"status": "completed"}
