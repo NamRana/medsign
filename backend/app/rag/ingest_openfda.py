@@ -175,6 +175,9 @@ def _parse_label(label: dict, search_name: str) -> dict | None:
     dosage_raw = _clean_text(label.get("dosage_and_administration"))
     routes = openfda.get("route", [])
 
+    routes = openfda.get("route", [])
+    route_str = routes[0].lower() if routes else "oral"
+
     return {
         "generic_name": generic_name,
         "brand_names": brand_names,
@@ -183,8 +186,13 @@ def _parse_label(label: dict, search_name: str) -> dict | None:
         "contraindications": contraindications,
         "side_effects": side_effects,
         "interactions": interactions,
-        "pregnancy_category": pregnancy_category,
+        "pregnancy_category": pregnancy_category or "",
         "adult_dosage": "",
+        "pediatric_dosage": "",
+        "frequency": "",
+        "duration_typical": "",
+        "route": route_str,
+        "available_in_india": False,
         "otc": is_otc,
         "source": "OpenFDA",
     }
