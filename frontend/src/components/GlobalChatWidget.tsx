@@ -26,7 +26,7 @@ export default function GlobalChatWidget() {
   }, []);
 
   if (!authed) return null;
-  if (HIDDEN_PATHS.some((p) => pathname.startsWith(p))) return null;
+  if (pathname === "/" || HIDDEN_PATHS.some((p) => pathname.startsWith(p))) return null;
 
   return <ChatWidget />;
 }

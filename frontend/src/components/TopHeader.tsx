@@ -49,7 +49,7 @@ export default function TopHeader() {
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, []);
 
-  // Hide on auth pages
+  if (!user) return null;
   if (HIDDEN_PATHS.some((p) => pathname.startsWith(p))) {
     return null;
   }

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 interface Tab {
   label: string;
@@ -166,7 +168,20 @@ function isActive(pathname: string, tabPath: string): boolean {
 export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const [authed, setAuthed] = useState(false);
 
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
+      setAuthed(!!data.session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: unknown) => {
+      setAuthed(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (!authed) return null;
   if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) {
     return null;
   }
