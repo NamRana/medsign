@@ -18,7 +18,7 @@ const TABS: Tab[] = [
   { label: "More", path: "/settings" },
 ];
 
-const HIDDEN_PREFIXES = ["/login", "/signup", "/auth", "/admin"];
+const HIDDEN_PREFIXES = ["/login", "/signup", "/auth", "/admin", "/chat"];
 
 function HomeIcon({ active }: { active: boolean }) {
   return (
