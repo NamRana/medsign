@@ -335,35 +335,29 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Danger Zone */}
-            <div>
-              <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2 px-1">
-                Danger Zone
-              </p>
-              <div className="warm-card rounded-2xl shadow-sm overflow-hidden">
-                <button
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3.5 min-h-[48px] text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+            <div className="warm-card rounded-2xl shadow-sm overflow-hidden">
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 min-h-[48px] text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.8}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
-                  <span className="text-sm font-semibold">
-                    {loggingOut ? "Logging out..." : "Logout"}
-                  </span>
-                </button>
-              </div>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.8}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                <span className="text-sm font-semibold">
+                  {loggingOut ? "Logging out..." : "Logout"}
+                </span>
+              </button>
             </div>
 
             {/* Footer */}
