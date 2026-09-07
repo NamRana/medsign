@@ -85,6 +85,10 @@ export async function apiFetch<T>(
     throw new Error(body.detail || `API error: ${response.status}`);
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return response.json() as Promise<T>;
 }
 
@@ -580,4 +584,236 @@ export async function markNotificationRead(id: string): Promise<void> {
 
 export async function markAllNotificationsRead(): Promise<void> {
   await apiFetch("/api/v1/notifications/read-all", { method: "POST" });
+}
+
+// --- Health Device Hub Types ---
+
+/**
+ * Providers are stored by the API in snake_case. The UI deliberately keeps the
+ * provider list open-ended so a newly approved integration does not require a
+ * client release before its existing connection can be displayed.
+ */
+export type DeviceProvider =
+  | "apple_health"
+  | "health_connect"
+  | "fitbit"
+  | "garmin"
+  | "oura"
+  | "withings"
+  | "bluetooth"
+  | "manual"
+  | "other";
+
+export type DeviceMetricType =
+  | "heart_rate"
+  | "resting_heart_rate"
+  | "spo2"
+  | "temperature"
+  | "systolic_bp"
+  | "diastolic_bp"
+  | "weight"
+  | "steps"
+  | "sleep_duration"
+  | "respiratory_rate"
+  | "blood_glucose"
+  | "hrv"
+  | "active_energy"
+  | "height";
+
+export interface DeviceConnection {
+  id: string;
+  provider: DeviceProvider;
+  display_name: string | null;
+  device_identifier?: string | null;
+  external_account_id?: string | null;
+  granted_metric_types: DeviceMetricType[];
+  metadata: Record<string, unknown>;
+  status?: "connected" | "disconnected" | "pending" | string;
+  last_synced_at: string | null;
+  connected_at?: string;
+  disconnected_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface VitalObservation {
+  id: string;
+  connection_id: string | null;
+  metric_type: DeviceMetricType;
+  value: number;
+  unit: string | null;
+  observed_at: string;
+  source: string;
+  provider: DeviceProvider;
+  source_record_id?: string | null;
+  quality?: string | null;
+  payload?: Record<string, unknown> | null;
+  created_at?: string;
+}
+
+export interface VitalObservationInput {
+  metric_type: DeviceMetricType;
+  value: number;
+  unit?: string | null;
+  observed_at: string;
+  source?: string;
+  provider?: DeviceProvider;
+  source_record_id?: string;
+  quality?: string;
+  payload?: Record<string, unknown>;
+}
+
+export interface DeviceHubSnapshot {
+  connections: DeviceConnection[];
+  latest_observations: VitalObservation[];
+  supported_providers: DeviceProvider[];
+  consent_note: string;
+}
+
+export interface VitalObservationBatchResponse {
+  accepted: number;
+  duplicates: number;
+  observations: VitalObservation[];
+}
+
+export interface VitalTrendPoint {
+  observed_at: string;
+  value: number;
+  min_value: number | null;
+  max_value: number | null;
+  count: number;
+  unit: string | null;
+}
+
+export interface VitalTrend {
+  metric_type: DeviceMetricType;
+  unit: string | null;
+  bucket: "hour" | "day" | string;
+  points: VitalTrendPoint[];
+}
+
+export interface CreateDeviceConnectionInput {
+  provider: DeviceProvider;
+  display_name?: string;
+  device_identifier?: string;
+  external_account_id?: string;
+  granted_metric_types?: DeviceMetricType[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface UpdateDeviceConnectionInput {
+  display_name?: string;
+  granted_metric_types?: DeviceMetricType[];
+  metadata?: Record<string, unknown>;
+}
+
+// --- Health Device Hub API ---
+
+export async function getDeviceHub(): Promise<DeviceHubSnapshot> {
+  return apiFetch<DeviceHubSnapshot>("/api/v1/device-hub/connections");
+}
+
+export async function createDeviceConnection(
+  input: CreateDeviceConnectionInput
+): Promise<DeviceConnection> {
+  return apiFetch<DeviceConnection>("/api/v1/device-hub/connections", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateDeviceConnection(
+  id: string,
+  input: UpdateDeviceConnectionInput
+): Promise<DeviceConnection> {
+  return apiFetch<DeviceConnection>(`/api/v1/device-hub/connections/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function disconnectDeviceConnection(id: string): Promise<void> {
+  await apiFetch(`/api/v1/device-hub/connections/${id}`, { method: "DELETE" });
+}
+
+export async function submitVitalObservations(input: {
+  connection_id?: string;
+  observations: VitalObservationInput[];
+}): Promise<VitalObservationBatchResponse> {
+  return apiFetch<VitalObservationBatchResponse>("/api/v1/device-hub/observations/batch", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function getLatestVitalObservations(
+  metricTypes?: DeviceMetricType[],
+  limit = 24
+): Promise<VitalObservation[]> {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (metricTypes?.length) query.set("metric_types", metricTypes.join(","));
+  return apiFetch<VitalObservation[]>(`/api/v1/device-hub/observations/latest?${query.toString()}`);
+}
+
+export async function getVitalTrend(input: {
+  metric_type: DeviceMetricType;
+  from_at?: string;
+  to_at?: string;
+  bucket?: "hour" | "day";
+  limit?: number;
+}): Promise<VitalTrend> {
+  const query = new URLSearchParams({ metric_type: input.metric_type });
+  if (input.from_at) query.set("from_at", input.from_at);
+  if (input.to_at) query.set("to_at", input.to_at);
+  if (input.bucket) query.set("bucket", input.bucket);
+  if (input.limit) query.set("limit", String(input.limit));
+  return apiFetch<VitalTrend>(`/api/v1/device-hub/observations/trends?${query.toString()}`);
+}
+
+/**
+ * Device signals never enter an assessment silently. This creates a new
+ * conversation only after the caller has obtained an explicit user choice and
+ * sends the selected readings as source-labelled context.
+ */
+export async function startAssessmentWithDeviceReadings(
+  readings: VitalObservation[],
+  memberId?: string
+): Promise<Conversation> {
+  if (!readings.length) {
+    throw new Error("Choose at least one reading to add to an assessment.");
+  }
+
+  // Assessment metadata gets only the user-reviewed values needed for
+  // context—not connection identifiers, source payloads, or other timeline
+  // fields. This keeps the consented handoff intentionally small.
+  const selectedObservations = readings.slice(0, 12).map((reading) => ({
+    metric_type: reading.metric_type,
+    value: reading.value,
+    unit: reading.unit || "",
+    observed_at: reading.observed_at,
+    provider: reading.provider,
+    source: reading.source,
+  }));
+
+  const conversation = await createConversation(memberId);
+  const formattedReadings = selectedObservations
+    .map((reading) => {
+      const label = reading.metric_type.replace(/_/g, " ");
+      const value = `${reading.value}${reading.unit ? ` ${reading.unit}` : ""}`;
+      const time = new Date(reading.observed_at).toLocaleString();
+      const source = reading.source || reading.provider || "connected device";
+      return `- ${label}: ${value} (${time}; ${source})`;
+    })
+    .join("\n");
+
+  await sendMessage(
+    conversation.id,
+    `I choose to include these device readings in my assessment:\n${formattedReadings}\n\nPlease use them as context only. They may be incomplete or inaccurate and should not be used alone to diagnose or prescribe.`,
+    {
+      device_observations: selectedObservations,
+      device_observations_consent_at: new Date().toISOString(),
+    }
+  );
+
+  return conversation;
 }

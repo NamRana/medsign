@@ -15,7 +15,16 @@ class Settings(BaseSettings):
     secret_key: str = "change-me"
     sentry_dsn: str = ""
     posthog_key: str = ""
-    cors_origins: list[str] = ["http://localhost:3000"]
+    # Capacitor runs the same trusted app shell under a platform-specific
+    # origin. Keeping these local origins available lets the native health-data
+    # bridge sync to the API during development; production should still set an
+    # explicit CORS_ORIGINS allowlist.
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://localhost",
+        "https://localhost",
+        "capacitor://localhost",
+    ]
 
     def model_post_init(self, __context: object) -> None:
         if self.environment == "production" and self.secret_key == "change-me":

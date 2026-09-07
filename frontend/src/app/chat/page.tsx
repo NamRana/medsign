@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { apiFetch, closeConversation, createConversation, getConversation, getImageBlobUrl, sendMessage, type ImageAnalysis, type LabReport, type Message } from "@/lib/api";
+import { apiFetch, closeConversation, createConversation, getConversation, getImageBlobUrl, sendMessage, type ImageAnalysis, type LabReport, type Message, type VitalObservation } from "@/lib/api";
 import MarkdownMessage from "@/components/MarkdownMessage";
 import { type TrustCardData } from "@/components/MedicineTrustCard";
 import BrandLogo from "@/components/BrandLogo";
@@ -16,6 +16,7 @@ const LabReportView = dynamic(() => import("@/components/LabReportView"), { ssr:
 const MedicineTrustCards = dynamic(() => import("@/components/MedicineTrustCard").then(mod => ({ default: mod.MedicineTrustCards })), { ssr: false });
 const UpgradeModal = dynamic(() => import("@/components/UpgradeModal"), { ssr: false });
 const ShareReport = dynamic(() => import("@/components/ShareReport"), { ssr: false });
+const DeviceAssessmentContext = dynamic(() => import("@/components/DeviceAssessmentContext"), { ssr: false });
 
 function stripMarkdown(text: string): string {
   return text
@@ -318,7 +319,7 @@ function ChatPageInner() {
     };
   }, [idFromUrl]);
 
-  async function handleSend(text?: string) {
+  async function handleSend(text?: string, metadata: Record<string, unknown> = {}) {
     const content = (text || inputValue).trim();
     if (!content || isSending) return;
 
@@ -336,7 +337,7 @@ function ChatPageInner() {
         convId = await ensureConversation();
       }
 
-      const [savedUser, assistant] = await sendMessage(convId, content, { language: chatLang });
+      const [savedUser, assistant] = await sendMessage(convId, content, { ...metadata, language: chatLang });
       const assistantEntry = toAssistantChatMessage(assistant);
       const meta = assistant.metadata as Record<string, unknown> | undefined;
       if (meta?.has_assessment) {
@@ -416,6 +417,26 @@ function ChatPageInner() {
     if (isSending) return;
     setMessages((prev) => prev.filter((entry) => entry.id !== message.id));
     void handleSend(message.content);
+  }
+
+  function handleAttachDeviceReadings(readings: VitalObservation[]) {
+    const selectedReadings = readings.map((reading) => ({
+      metric_type: reading.metric_type,
+      value: reading.value,
+      unit: reading.unit || "",
+      observed_at: reading.observed_at,
+      provider: reading.provider || "connected_device",
+      source: reading.source || "device",
+    }));
+    const formattedReadings = selectedReadings.map((reading) => {
+      const label = String(reading.metric_type).replace(/_/g, " ");
+      return `• ${label}: ${reading.value}${reading.unit ? ` ${reading.unit}` : ""}`;
+    }).join("\n");
+
+    void handleSend(
+      `I choose to include these readings from my connected device in this assessment:\n${formattedReadings}\n\nPlease use them as context only.`,
+      { device_observations: selectedReadings },
+    );
   }
 
   function handleLabReportComplete(report: LabReport) {
@@ -1004,7 +1025,15 @@ function ChatPageInner() {
                     disabled={isSending || isLoadingHistory || isPreparingTools}
                     language={chatLang}
                   />
-                  <span className="text-[10px] text-slate-400 ml-1">Add images, reports, or a voice note</span>
+                  {!memberFromUrl ? (
+                    <DeviceAssessmentContext
+                      disabled={isSending || isLoadingHistory || isRecording || isPreparingTools}
+                      onAttach={handleAttachDeviceReadings}
+                    />
+                  ) : (
+                    <span className="hidden sm:inline text-[10px] text-slate-400">Device readings stay scoped to their owner.</span>
+                  )}
+                  <span className="hidden lg:inline text-[10px] text-slate-400 ml-1">Add images, reports, voice, or readings</span>
                 </div>
               )}
 

@@ -1,5 +1,7 @@
 ext {
-    minSdkVersion = 24
+    // androidx.health.connect:connect-client:1.1.0 requires Android 8 (API 26).
+    // Health Connect itself is only usable on supported Android 9+ devices/providers.
+    minSdkVersion = 26
     compileSdkVersion = 36
     targetSdkVersion = 36
     androidxActivityVersion = '1.11.0'

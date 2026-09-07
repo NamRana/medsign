@@ -13,6 +13,7 @@ from app.api.v1.history import router as history_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.conversations import router as conversations_router
 from app.api.v1.documents import router as documents_router
+from app.api.v1.device_hub import router as device_hub_router
 from app.api.v1.images import router as images_router
 from app.api.v1.insights import router as insights_router
 from app.api.v1.knowledge import router as knowledge_router
@@ -33,6 +34,7 @@ api_router.include_router(family_router, prefix="/family", tags=["family"])
 api_router.include_router(medicines_router, prefix="/medicines", tags=["medicines"])
 api_router.include_router(knowledge_router, prefix="/knowledge", tags=["knowledge"])
 api_router.include_router(documents_router, prefix="/documents", tags=["documents"])
+api_router.include_router(device_hub_router, prefix="/device-hub", tags=["device-hub"])
 api_router.include_router(images_router, prefix="/images", tags=["images"])
 api_router.include_router(audio_router, prefix="/audio", tags=["audio"])
 api_router.include_router(medgemma_router, prefix="/medgemma", tags=["medgemma"])

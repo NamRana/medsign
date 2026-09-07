@@ -74,6 +74,16 @@ export default function SettingsPage() {
 
   const healthDataItems = [
     {
+      label: "Device Hub",
+      path: "/devices",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="7" y="2.5" width="10" height="19" rx="2.5" strokeWidth={1.8} />
+          <path strokeLinecap="round" strokeWidth={1.8} d="M10 7.5h4M10 11.5h2.5M11.5 18h1" />
+        </svg>
+      ),
+    },
+    {
       label: "Health Insights",
       path: "/insights",
       icon: (

@@ -157,4 +157,8 @@ class PatientState(BaseModel):
             "red_flags": self.red_flags,
             "risk_level": self.risk_level,
             "info_gaps": self.info_gaps,
+            # These readings are included only when a person selected them for
+            # the current assessment. They remain source-labelled context, not
+            # a diagnosis or an instruction to treat.
+            "selected_device_observations": self.extra.get("selected_device_observations", []),
         }

@@ -12,6 +12,7 @@ Phase 3: add_message now orchestrates the full AI interview loop:
 from __future__ import annotations
 
 import logging
+import math
 import re
 from uuid import UUID
 
@@ -38,6 +39,91 @@ MSG_TABLE = "messages"
 def _urgency_level(urgency: str) -> int:
     """Return numeric level for urgency comparison."""
     return {"SELF_CARE": 0, "ROUTINE": 1, "URGENT": 2, "EMERGENCY": 3}.get(urgency, 0)
+
+
+# Device readings only enter an assessment when the person explicitly selects
+# them in the client.  Keep this allowlist intentionally small: it protects the
+# conversation context from arbitrary metadata while still letting the safety
+# engine evaluate the high-signal vitals it already understands.
+_DEVICE_VITAL_FIELDS: dict[str, tuple[str, float, float]] = {
+    "heart_rate": ("heart_rate", 20, 260),
+    "resting_heart_rate": ("heart_rate", 20, 260),
+    "spo2": ("spo2_percent", 50, 100),
+    "temperature": ("temperature_c", 30, 45),
+    "systolic_bp": ("systolic_bp", 50, 300),
+    "diastolic_bp": ("diastolic_bp", 30, 200),
+    "respiratory_rate": ("respiratory_rate", 4, 80),
+    "weight": ("weight_kg", 1, 500),
+}
+
+
+def _apply_selected_device_observations(
+    patient_state: PatientState,
+    raw_observations: object,
+) -> None:
+    """Add user-selected, normalized device readings to a patient state.
+
+    This intentionally does *not* fetch every connected reading.  The client
+    sends a small, reviewed subset in message metadata after the person presses
+    "Add to assessment".  Invalid or implausible values are ignored rather than
+    allowed to influence triage.
+    """
+    if not isinstance(raw_observations, list):
+        return
+
+    safe_context: list[dict[str, object]] = []
+    for raw in raw_observations[:12]:
+        if not isinstance(raw, dict):
+            continue
+        metric_type = raw.get("metric_type")
+        value = raw.get("value")
+        if not isinstance(metric_type, str) or isinstance(value, bool):
+            continue
+        try:
+            numeric_value = float(value)
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(numeric_value):
+            continue
+
+        mapping = _DEVICE_VITAL_FIELDS.get(metric_type)
+        if mapping is None:
+            # Non-vital context such as sleep and steps can inform the
+            # conversational prompt but must never alter deterministic triage.
+            if metric_type not in {"steps", "sleep_duration"}:
+                continue
+            field_name = None
+            lower_bound = 0.0
+            upper_bound = 1_000_000.0
+        else:
+            field_name, lower_bound, upper_bound = mapping
+
+        if not lower_bound <= numeric_value <= upper_bound:
+            continue
+
+        unit = raw.get("unit") if isinstance(raw.get("unit"), str) else ""
+        observed_at = raw.get("observed_at") if isinstance(raw.get("observed_at"), str) else ""
+        provider = raw.get("provider") if isinstance(raw.get("provider"), str) else "device"
+        observation_source = raw.get("source") if isinstance(raw.get("source"), str) else "device"
+        context_item = {
+            "metric_type": metric_type,
+            "value": numeric_value,
+            "unit": unit[:24],
+            "observed_at": observed_at[:64],
+            "provider": provider[:64],
+            "source": observation_source[:64],
+            "selection": "user_selected_device_data",
+        }
+        safe_context.append(context_item)
+
+        if field_name:
+            typed_value: int | float = round(numeric_value) if field_name in {
+                "heart_rate", "systolic_bp", "diastolic_bp", "respiratory_rate"
+            } else numeric_value
+            setattr(patient_state.vitals, field_name, typed_value)
+
+    if safe_context:
+        patient_state.extra["selected_device_observations"] = safe_context
 
 
 # ─── CONVERSATIONS ────────────────────────────────────────────────────────────
@@ -311,6 +397,14 @@ async def add_message(
         patient_state = await extract_from_message(data.content, patient_state)
     except Exception as exc:
         logger.warning("Symptom extraction failed (non-fatal): %s", exc)
+
+    # Only readings the person deliberately attached to this assessment are
+    # available to the interview/safety flow.  Connected-device history is not
+    # silently imported into a medical conversation.
+    _apply_selected_device_observations(
+        patient_state,
+        (data.metadata or {}).get("device_observations"),
+    )
 
     # ── 3b. Run deterministic safety engine ──────────────────────────────────
     from app.safety.engine import get_safety_engine

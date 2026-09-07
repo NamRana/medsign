@@ -4,6 +4,10 @@
 <dict>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>MedSign reads only the Apple Health data you choose to review in a health check. It does not write to Apple Health or access data in the background.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>MedSign does not write health data to Apple Health.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

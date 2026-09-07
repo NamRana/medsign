@@ -16,6 +16,7 @@ const SELF_HEADED_PATHS = [
   "/family",
   "/medicines",
   "/settings",
+  "/devices",
   "/pricing",
   "/face-scan",
   "/avatar",
