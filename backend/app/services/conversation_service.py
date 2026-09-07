@@ -406,7 +406,8 @@ async def add_message(
     has_profile = patient_state.age is not None or patient_state.gender is not None
     info_score = sum([has_complaint, has_duration, has_severity, has_profile])
 
-    force_assess = has_complaint and (
+    medicine_system_set = patient_state.medicine_system is not None
+    force_assess = has_complaint and medicine_system_set and (
         user_exchange_count >= 4
         or explicit_assess_request
         or (info_score >= 3 and user_exchange_count >= 2)
@@ -506,7 +507,8 @@ async def add_message(
                 _persist_patient_state(conversation_id, patient_state, current_metadata)
 
             # If should_assess → generate RAG-powered assessment with medicine recommendations
-            if interviewer_response.should_assess or force_assess:
+            # Block assessment if medicine_system preference hasn't been collected yet
+            if (interviewer_response.should_assess or force_assess) and patient_state.medicine_system is not None:
                 try:
                     from app.rag.assessor import generate_assessment
                     assessment_text = await generate_assessment(

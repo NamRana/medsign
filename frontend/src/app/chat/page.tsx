@@ -307,9 +307,6 @@ function ChatPageInner() {
     return convo.id;
   }
 
-  const msgCount = messages.length;
-  const progress = Math.min(msgCount / 10, 1);
-
   return (
     <div className="flex flex-col h-screen" style={{ background: "var(--warm-cream)" }}>
       <style>{`
@@ -400,20 +397,6 @@ function ChatPageInner() {
               )}
             </div>
 
-            {/* Progress Bar */}
-            {messages.length > 0 && !isClosed && (
-              <div className="pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-500"
-                      style={{ width: `${progress * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-[9px] font-medium text-gray-400 tabular-nums">{Math.round(progress * 100)}%</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </header>

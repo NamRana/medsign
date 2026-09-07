@@ -76,7 +76,7 @@ class PatientState(BaseModel):
     family_history: list[str] = Field(default_factory=list)
 
     # ── Treatment preference ────────────────────────────────────────────────
-    medicine_system: str = "allopathy"  # allopathy | homeopathy
+    medicine_system: str | None = None  # allopathy | homeopathy (None = not yet asked)
 
     # ── Risk flags ───────────────────────────────────────────────────────────
     red_flags: list[str] = Field(default_factory=list)

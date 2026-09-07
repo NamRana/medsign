@@ -357,7 +357,7 @@ async def retrieve_for_patient(
     drugs: list[RetrievedDrug] = []
     homeopathy_remedies: list[RetrievedHomeopathyRemedy] = []
 
-    if patient_state.medicine_system == "homeopathy":
+    if patient_state.medicine_system and patient_state.medicine_system == "homeopathy":
         homeopathy_remedies = await retrieve_homeopathy(query, top_k=drug_count)
     else:
         drugs = await retrieve_drugs(query, top_k=drug_count)
