@@ -63,7 +63,7 @@ export default function SmartAlerts() {
 
   if (loading) {
     return (
-      <div className="warm-card rounded-3xl shadow-md shadow-gray-100/40 p-6">
+      <div className="rounded-[1.35rem] p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-gray-100 rounded-xl animate-pulse" />
           <div>
@@ -83,7 +83,7 @@ export default function SmartAlerts() {
   if (alerts.length === 0) return null;
 
   return (
-    <div className="warm-card rounded-3xl shadow-md shadow-gray-100/40 overflow-hidden">
+    <div className="rounded-[1.35rem] overflow-hidden">
       <style>{`
         @keyframes alertSlide { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
         .alert-item { animation: alertSlide 0.3s ease-out both; }
@@ -93,20 +93,20 @@ export default function SmartAlerts() {
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200/50">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="care-module-icon w-10 h-10 rounded-xl flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900">Smart Health Alerts</h3>
-              <p className="text-[11px] text-gray-400">AI-detected patterns in your health data</p>
+              <p className="care-eyebrow !text-teal-600">Signal queue</p>
+              <h3 className="text-sm font-bold text-slate-900 mt-0.5">AI-detected health patterns</h3>
             </div>
           </div>
           {lockedCount > 0 && (
             <button
               onClick={() => router.push("/pricing")}
-              className="flex items-center gap-1.5 text-[10px] font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full hover:bg-purple-100 transition-colors"
+              className="flex items-center gap-1.5 text-[10px] font-bold text-teal-700 bg-teal-50 px-3 py-1.5 rounded-full hover:bg-teal-100 transition-colors"
             >
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
@@ -128,19 +128,19 @@ export default function SmartAlerts() {
             return (
               <div
                 key={alert.id}
-                className="alert-item relative overflow-hidden rounded-2xl border border-gray-100 p-4 cursor-pointer hover:border-purple-200 transition-all"
+                className="alert-item relative overflow-hidden rounded-2xl border border-slate-100 bg-slate-50/70 p-4 cursor-pointer hover:border-teal-200 transition-all"
                 style={{ animationDelay: `${i * 80}ms` }}
                 onClick={() => router.push("/pricing")}
               >
                 {/* Blur overlay */}
                 <div className="absolute inset-0 bg-white/70 backdrop-blur-[6px] z-10 flex flex-col items-center justify-center">
-                  <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center mb-2">
-                    <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="w-9 h-9 bg-teal-100 rounded-xl flex items-center justify-center mb-2">
+                    <svg className="w-4 h-4 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <p className="text-xs font-bold text-purple-700">Upgrade to Pro</p>
-                  <p className="text-[10px] text-purple-400 mt-0.5">Unlock this AI insight</p>
+                  <p className="text-xs font-bold text-teal-700">Upgrade to Pro</p>
+                  <p className="text-[10px] text-teal-500 mt-0.5">Unlock this AI insight</p>
                 </div>
 
                 {/* Blurred content behind */}
@@ -193,7 +193,7 @@ export default function SmartAlerts() {
                         <span className="text-[10px] text-gray-400">Based on {alert.data_points} data points</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); router.push("/chat"); }}
-                          className="ml-auto text-[11px] font-semibold text-purple-600 hover:text-purple-800 transition-colors"
+                          className="ml-auto text-[11px] font-semibold text-teal-600 hover:text-teal-800 transition-colors"
                         >
                           Start Assessment &rarr;
                         </button>

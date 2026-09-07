@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function LoginPage() {
   return (
@@ -73,17 +74,14 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+    <div className="care-auth-shell">
       {/* Left decorative panel (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-emerald-600 to-teal-700 items-center justify-center p-12">
+      <div className="care-auth-side hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-12">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="relative text-white text-center max-w-md">
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </div>
+          <span className="care-live mb-5">Secure clinical intelligence</span>
+          <BrandLogo iconClassName="w-16 h-16" showWordmark={false} className="justify-center mx-auto mb-6" />
           <h2 className="text-3xl font-bold mb-4">Welcome back</h2>
           <p className="text-emerald-100 text-base leading-relaxed">
             Your AI health assistant is ready to help. Track symptoms, analyze reports, and get personalized health insights.
@@ -106,17 +104,10 @@ function LoginForm() {
       </div>
 
       {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md space-y-8">
+      <div className="care-auth-content flex-1 flex items-center justify-center px-4 py-12">
+        <div className="care-auth-form w-full max-w-md space-y-8">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-4 lg:hidden">
-              <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold text-gray-900">MedSign</span>
-            </div>
+            <BrandLogo className="justify-center mb-4 lg:hidden" />
             <h1 className="text-2xl font-bold text-gray-900">Sign in to your account</h1>
             <p className="mt-2 text-sm text-gray-500">Continue your health journey</p>
           </div>
@@ -134,7 +125,7 @@ function LoginForm() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            className="care-auth-provider w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {googleLoading ? (
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -157,7 +148,7 @@ function LoginForm() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-3 text-gray-400">or sign in with email</span>
+              <span className="bg-white/90 px-3 text-gray-400">or sign in with email</span>
             </div>
           </div>
 
@@ -195,7 +186,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm shadow-emerald-200 hover:shadow-emerald-300"
+              className="care-auth-primary w-full rounded-xl px-4 py-3 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { getConversations, createConversation, getFaceScanSummary, apiFetch } from "@/lib/api";
-import type { Conversation, StreakInfo, FaceScan } from "@/lib/api";
+import { createConversation, getFaceScanSummary, apiFetch } from "@/lib/api";
+import type { Conversation, FaceScan } from "@/lib/api";
 import { createClient } from "@/lib/supabase";
 import { useFamily } from "@/lib/family-context";
+import { ClinicalStatusChip } from "@/components/ClinicalSignal";
 
 const DigitalTwin = dynamic(() => import("@/components/DigitalTwin"), { ssr: false });
 const HealthAura = dynamic(() => import("@/components/HealthAura"), { ssr: false });
@@ -77,7 +78,7 @@ function HealthScoreRing({ score, size = 160 }: { score: number; size?: number }
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="transform -rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f5f9" strokeWidth={strokeWidth} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth={strokeWidth} />
         <circle
           cx={size / 2} cy={size / 2} r={radius} fill="none"
           stroke={getColor(score)} strokeWidth={strokeWidth}
@@ -86,8 +87,8 @@ function HealthScoreRing({ score, size = 160 }: { score: number; size?: number }
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-gray-900">{animatedScore}</span>
-        <span className="text-xs text-gray-400 font-medium mt-1">out of 100</span>
+        <span className="text-4xl font-bold text-white">{animatedScore}</span>
+        <span className="text-xs text-white/50 font-medium mt-1">health signal</span>
       </div>
     </div>
   );
@@ -172,28 +173,20 @@ export default function DashboardPage() {
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
-  const [userAvatar, setUserAvatar] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [healthScore, setHealthScore] = useState(92);
   const [moodLogged, setMoodLogged] = useState(false);
-  const [faceScanStreak, setFaceScanStreak] = useState<StreakInfo | null>(null);
   const [faceScanScore, setFaceScanScore] = useState<number | null>(null);
   const [latestFaceScan, setLatestFaceScan] = useState<FaceScan | null>(null);
   const [scannedToday, setScannedToday] = useState(false);
+  const [now] = useState(() => Date.now());
   const { activeMember, memberParam } = useFamily();
 
   useEffect(() => {
-    setMounted(true);
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }: { data: { user: { email?: string; user_metadata?: Record<string, string>; app_metadata?: Record<string, string> } | null } }) => {
       if (data.user) {
-        setUserEmail(data.user.email || "");
         setUserName(data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "");
-        setUserAvatar(data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture || "");
-        setIsAdmin(data.user.app_metadata?.role === "admin");
       }
     });
     const mp = memberParam ? `&${memberParam}` : "";
@@ -208,7 +201,6 @@ export default function DashboardPage() {
 
     getFaceScanSummary()
       .then((summary) => {
-        setFaceScanStreak(summary.streak);
         if (summary.latest_scan) {
           setFaceScanScore(summary.latest_scan.overall_score);
           setLatestFaceScan(summary.latest_scan);
@@ -217,7 +209,7 @@ export default function DashboardPage() {
         }
       })
       .catch(() => {});
-  }, [activeMember, memberParam]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeMember, memberParam]);
 
   async function handleStartNew() {
     setIsStarting(true);
@@ -227,14 +219,6 @@ export default function DashboardPage() {
       router.push(`/chat?id=${convo.id}${memberQ}`);
     } catch { router.push("/chat"); }
   }
-
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    window.location.replace("/login");
-  }
-
-  const userInitial = (userName || userEmail || "U")[0].toUpperCase();
   const greeting = getGreeting();
   const lastAssessment = conversations[0];
   const totalAssessments = conversations.length;
@@ -243,7 +227,7 @@ export default function DashboardPage() {
 
   const smartSuggestion = (() => {
     if (!lastAssessment) return { text: "Start your first health assessment to get personalized insights", action: "begin", cta: "Get Started" };
-    const daysSince = Math.floor((Date.now() - new Date(lastAssessment.created_at).getTime()) / (1000 * 60 * 60 * 24));
+    const daysSince = Math.floor((now - new Date(lastAssessment.created_at).getTime()) / (1000 * 60 * 60 * 24));
     if (lastAssessment.status === "active") return { text: `You have an ongoing assessment about "${lastAssessment.chief_complaint || "symptoms"}". Continue to get your results.`, action: "continue", cta: "Continue Assessment" };
     if (daysSince >= 7) return { text: `It's been ${daysSince} days since your last check-in. A quick follow-up can help track your recovery.`, action: "new", cta: "Check In Now" };
     if (daysSince >= 3) return { text: "A follow-up assessment helps us monitor your progress and catch anything early.", action: "new", cta: "Follow Up" };
@@ -251,8 +235,8 @@ export default function DashboardPage() {
   })();
 
   return (
-    <div className={`min-h-screen warm-bg pb-20 sm:pb-0 transition-opacity duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
-      <main className="max-w-7xl mx-auto px-5 sm:px-8 py-6">
+    <div className="care-os care-grid min-h-screen pb-20 sm:pb-0">
+      <main className="care-content max-w-7xl mx-auto px-5 sm:px-8 py-6">
         <style>{`
           @keyframes dashFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
           @keyframes dashScaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
@@ -262,15 +246,18 @@ export default function DashboardPage() {
           .dash-fade-4 { animation: dashFadeUp 0.5s ease-out 0.24s both; }
           .dash-fade-5 { animation: dashFadeUp 0.5s ease-out 0.32s both; }
           .dash-scale { animation: dashScaleIn 0.4s ease-out both; }
+          @media (prefers-reduced-motion: reduce) { .dash-fade-1, .dash-fade-2, .dash-fade-3, .dash-fade-4, .dash-fade-5, .dash-scale { animation: none; } }
         `}</style>
 
         {/* ─── Hero: Greeting + Smart Suggestion ──────────────────────────────── */}
-        <div className="dash-fade-1 relative rounded-3xl overflow-hidden mb-8" style={{ background: "linear-gradient(135deg, #059669 0%, #0D9488 40%, #0891B2 100%)" }}>
-          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 20% 80%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
-          <div className="absolute top-0 right-0 w-80 h-80 bg-white/[0.04] rounded-full -translate-y-1/3 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-52 h-52 bg-white/[0.04] rounded-full translate-y-1/3 -translate-x-1/4" />
+        <div className="care-hero dash-fade-1 relative rounded-[2rem] overflow-hidden mb-7">
+          <div className="absolute bottom-0 left-0 w-52 h-52 bg-cyan-300/[0.05] rounded-full translate-y-1/3 -translate-x-1/4" />
 
           <div className="relative z-10 px-7 sm:px-10 py-8 sm:py-10">
+            <div className="flex items-center justify-between gap-3 mb-7">
+              <p className="care-eyebrow">MedSign Care OS / personal command</p>
+              <span className="care-live"><span className="care-live-dot" />Secure session</span>
+            </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
               {/* Avatar + Greeting */}
               <div className="flex items-center gap-4 flex-1">
@@ -278,9 +265,9 @@ export default function DashboardPage() {
                   <HealthAvatar hairHealth={latestFaceScan?.hair_health_score ?? null} skinQuality={latestFaceScan?.skin_quality_score ?? null} stressLevel={latestFaceScan?.stress_level_score ?? null} sleepQuality={latestFaceScan?.sleep_quality_score ?? null} overallScore={faceScanScore ?? null} size="sm" />
                 </button>
                 <div>
-                  <p className="text-sm text-white/60 font-medium">{greeting}</p>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mt-0.5">{userName || "there"}</h2>
-                  <p className="text-sm text-white/70 mt-1.5 max-w-sm leading-relaxed">{smartSuggestion.text}</p>
+                  <p className="text-sm text-cyan-50/60 font-medium">{greeting}</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.04em] text-white mt-0.5">{userName || "there"}</h2>
+                  <p className="text-sm text-cyan-50/70 mt-1.5 max-w-sm leading-relaxed">{smartSuggestion.text}</p>
                 </div>
               </div>
               {/* CTA */}
@@ -291,7 +278,7 @@ export default function DashboardPage() {
                   else handleStartNew();
                 }}
                 disabled={isStarting}
-                className="bg-white text-emerald-700 px-7 py-4 rounded-2xl text-sm font-bold hover:bg-emerald-50 hover:shadow-xl transition-all disabled:opacity-60 shadow-lg whitespace-nowrap self-start sm:self-center"
+                className="care-button px-7 py-4 rounded-2xl text-sm font-extrabold transition-all disabled:opacity-60 whitespace-nowrap self-start sm:self-center"
               >
                 {isStarting ? "Starting..." : smartSuggestion.cta}
               </button>
@@ -300,7 +287,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ─── Smart Health Alerts ───────────────────────────────────────── */}
-        <div className="dash-fade-2 mb-7">
+        <div className="dash-fade-2 care-panel rounded-3xl p-1 mb-7">
           <SmartAlerts />
         </div>
 
@@ -310,58 +297,61 @@ export default function DashboardPage() {
           {/* ─── LEFT COLUMN (2/3 width on desktop) ─────────────────────────── */}
           <div className="lg:col-span-2 space-y-7">
 
-            {/* Stats Row — gradient cards */}
+            {/* Care telemetry */}
             <div className="dash-fade-2 grid grid-cols-3 gap-4">
-              <div onClick={() => router.push("/history")} className="group cursor-pointer relative rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-200/30 hover:shadow-xl hover:-translate-y-0.5 transition-all">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div onClick={() => router.push("/history")} className="care-metric group cursor-pointer relative rounded-2xl p-5 hover:-translate-y-0.5 transition-transform">
                 <div className="relative z-10">
-                  <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                  <div className="care-module-icon w-9 h-9 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black text-white">{totalAssessments}</p>
-                  <p className="text-xs text-white/70 font-semibold mt-1">Total Assessments</p>
+                  <p className="text-3xl sm:text-4xl font-black tracking-[-0.06em] text-slate-900">{totalAssessments}</p>
+                  <p className="text-xs text-slate-500 font-semibold mt-1">Health records</p>
                 </div>
               </div>
-              <div onClick={() => router.push("/history?status=active")} className="group cursor-pointer relative rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200/30 hover:shadow-xl hover:-translate-y-0.5 transition-all">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div onClick={() => router.push("/history?status=active")} className="care-metric group cursor-pointer relative rounded-2xl p-5 hover:-translate-y-0.5 transition-transform" style={{ "--metric-color": "#38bdf8" } as React.CSSProperties}>
                 <div className="relative z-10">
-                  <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  <div className="w-9 h-9 bg-sky-50 text-sky-600 border border-sky-100 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black text-white">{activeAssessments}</p>
-                  <p className="text-xs text-white/70 font-semibold mt-1">In Progress</p>
+                  <p className="text-3xl sm:text-4xl font-black tracking-[-0.06em] text-slate-900">{activeAssessments}</p>
+                  <p className="text-xs text-slate-500 font-semibold mt-1">Care in progress</p>
                 </div>
               </div>
-              <div onClick={() => router.push("/history?status=completed")} className="group cursor-pointer relative rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/30 hover:shadow-xl hover:-translate-y-0.5 transition-all">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div onClick={() => router.push("/history?status=completed")} className="care-metric group cursor-pointer relative rounded-2xl p-5 hover:-translate-y-0.5 transition-transform" style={{ "--metric-color": "#818cf8" } as React.CSSProperties}>
                 <div className="relative z-10">
-                  <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                  <div className="w-9 h-9 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black text-white">{completedAssessments}</p>
-                  <p className="text-xs text-white/70 font-semibold mt-1">Completed</p>
+                  <p className="text-3xl sm:text-4xl font-black tracking-[-0.06em] text-slate-900">{completedAssessments}</p>
+                  <p className="text-xs text-slate-500 font-semibold mt-1">Completed plans</p>
                 </div>
               </div>
             </div>
 
             {/* Medicine Reminders */}
-            <div className="dash-fade-3 mb-4">
+            <div className="dash-fade-3 care-panel rounded-3xl p-1 mb-4">
               <MedicineReminder />
             </div>
 
             {/* Quick Actions — Bento Grid */}
-            <div className="dash-fade-3">
-              <h3 className="text-sm font-bold text-gray-700 mb-4">Quick Actions</h3>
+            <div className="dash-fade-3 care-panel rounded-3xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="care-eyebrow !text-teal-600">Clinical modules</p>
+                  <h3 className="care-section-title text-base mt-1">What would you like to do?</h3>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400">Select a module</span>
+              </div>
               <div className="grid grid-cols-4 sm:grid-cols-4 gap-3 auto-rows-[100px]">
                 {/* New Assessment — spans 2 cols, first position */}
                 <button
                   onClick={handleStartNew}
                   disabled={isStarting}
-                  className="group relative col-span-2 rounded-2xl warm-card overflow-hidden hover:shadow-xl hover:border-emerald-200 hover:-translate-y-0.5 transition-all"
+                  className="care-module group relative col-span-2 rounded-2xl overflow-hidden"
                 >
                   <div className="h-full flex items-center gap-4 px-5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200/50 group-hover:scale-110 transition-transform shrink-0">
-                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div className="care-module-icon w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-bold text-gray-900">New Assessment</p>
@@ -373,11 +363,11 @@ export default function DashboardPage() {
                 {/* Reports — spans 2 cols, second position */}
                 <button
                   onClick={() => router.push("/reports")}
-                  className="group relative col-span-2 rounded-2xl warm-card overflow-hidden hover:shadow-xl hover:border-amber-200 hover:-translate-y-0.5 transition-all"
+                  className="care-module group relative col-span-2 rounded-2xl overflow-hidden"
                 >
                   <div className="h-full flex items-center gap-4 px-5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200/50 group-hover:scale-110 transition-transform shrink-0">
-                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <div className="w-14 h-14 bg-amber-50 text-amber-600 border border-amber-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-bold text-gray-900">Reports</p>
@@ -393,9 +383,9 @@ export default function DashboardPage() {
                   { label: "Insights", sub: "Trends", path: "/insights", gradient: "from-indigo-400 to-violet-500", shadow: "shadow-indigo-200/50", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /> },
                   { label: "Face Scan", sub: !scannedToday ? "Scan now" : "Done today", path: "/face-scan", gradient: "from-rose-400 to-pink-500", shadow: "shadow-rose-200/50", icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></> },
                 ].map((item) => (
-                  <button key={item.label} onClick={() => router.push(item.path)} className="group rounded-2xl warm-card hover:shadow-xl hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center gap-2 p-3">
-                    <div className={`w-11 h-11 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center shadow-md ${item.shadow} group-hover:scale-110 transition-transform`}>
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
+                  <button key={item.label} onClick={() => router.push(item.path)} className="care-module group rounded-2xl flex flex-col items-center justify-center gap-2 p-3">
+                    <div className="care-module-icon w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
                     </div>
                     <div className="text-center">
                       <p className="text-[11px] font-bold text-gray-800">{item.label}</p>
@@ -407,9 +397,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent Activity */}
-            <div className="dash-fade-4">
+            <div className="dash-fade-4 care-panel rounded-3xl p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-700">Recent Activity</h3>
+                <div>
+                  <p className="care-eyebrow !text-teal-600">Care timeline</p>
+                  <h3 className="care-section-title text-base mt-1">Recent activity</h3>
+                </div>
                 {conversations.length > 4 && (
                   <button onClick={() => router.push("/history")} className="text-xs text-emerald-600 font-semibold hover:text-emerald-700 transition-colors">
                     View all →
@@ -492,20 +485,25 @@ export default function DashboardPage() {
           {/* ─── RIGHT COLUMN (1/3 width on desktop) ────────────────────────── */}
           <div className="space-y-7">
 
-            {/* Hero Wellness Score — glowing background */}
-            <div className="dash-fade-2 relative rounded-3xl p-7 border border-emerald-100/40 shadow-lg text-center overflow-hidden" style={{ background: "linear-gradient(180deg, #ECFDF5 0%, #F0FDF4 50%, #FDFBF7 100%)" }}>
-              <div className="absolute inset-0 rounded-3xl" style={{ background: "radial-gradient(circle at 50% 40%, rgba(16,185,129,0.08) 0%, transparent 70%)" }} />
+            {/* Health Signal */}
+            <div className="care-signal-panel dark dash-fade-2 relative rounded-3xl p-7 text-center overflow-hidden">
               <div className="relative z-10">
-                <h3 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-5">Wellness Score</h3>
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <div className="text-left">
+                    <p className="care-eyebrow">Health signal</p>
+                    <h3 className="text-base font-bold tracking-[-0.03em] text-white mt-1">Your current baseline</h3>
+                  </div>
+                  <ClinicalStatusChip status={healthScore >= 80 ? "optimal" : healthScore >= 60 ? "stable" : healthScore >= 40 ? "monitor" : "attention"} label={healthScore >= 80 ? "In range" : "Monitor"} />
+                </div>
                 <div className="flex justify-center mb-5">
                   <HealthAura score={healthScore}>
                     <HealthScoreRing score={healthScore} size={180} />
                   </HealthAura>
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed px-2 mb-4">{getMotivationalMessage(healthScore)}</p>
+                <p className="text-sm text-cyan-50/65 leading-relaxed px-2 mb-4">{getMotivationalMessage(healthScore)}</p>
                 <button
                   onClick={() => router.push("/insights")}
-                  className="text-xs bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-colors inline-flex items-center gap-1.5 shadow-md shadow-emerald-200/40"
+                  className="text-xs bg-white/10 text-cyan-50 border border-white/15 font-bold px-5 py-2.5 rounded-xl hover:bg-white/15 transition-colors inline-flex items-center gap-1.5"
                 >
                   View Insights
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -516,12 +514,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Mood Check-in */}
-            <div className="dash-fade-3 warm-card rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="dash-fade-3 care-panel rounded-3xl p-5">
               {!moodLogged ? (
                 <>
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-base">💭</span>
-                    <h3 className="text-sm font-bold text-gray-700">How are you feeling?</h3>
+                    <div><p className="care-eyebrow !text-teal-600">Daily signal</p><h3 className="text-sm font-bold text-slate-700 mt-0.5">How are you feeling?</h3></div>
                   </div>
                   <MoodCheckIn onSelect={() => setMoodLogged(true)} />
                 </>
@@ -533,15 +531,15 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">Mood logged!</p>
-                    <p className="text-[11px] text-gray-400">Check back tomorrow</p>
+                    <p className="text-sm font-semibold text-gray-800">Thanks for checking in</p>
+                    <p className="text-[11px] text-gray-400">Your care dashboard is up to date</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Weekly Activity */}
-            <div className="dash-fade-4 warm-card rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="dash-fade-4 care-panel rounded-3xl p-5">
               <WeeklyActivity conversations={conversations} />
             </div>
 
@@ -578,7 +576,7 @@ export default function DashboardPage() {
             )}
 
             {/* Health Tip — premium card */}
-            <div className="dash-fade-5 relative rounded-3xl p-5 overflow-hidden border border-amber-100/60" style={{ background: "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 50%, #FDE68A40 100%)" }}>
+            <div className="dash-fade-5 care-panel relative rounded-3xl p-5 overflow-hidden border-amber-100/80" style={{ background: "linear-gradient(135deg, rgba(255,251,235,.92) 0%, rgba(255,247,237,.84) 100%)" }}>
               <div className="absolute top-0 right-0 w-24 h-24 bg-amber-300/10 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-3">
@@ -605,7 +603,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Emergency + SOS Card */}
-            <div className="dash-fade-5 warm-card rounded-3xl p-5 !border-red-100/60 shadow-sm hover:shadow-md transition-shadow">
+            <div className="dash-fade-5 care-panel rounded-3xl p-5 !border-red-100/60">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-gradient-to-br from-red-400 to-rose-500 rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-red-200/40">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

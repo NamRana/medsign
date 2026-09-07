@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import BrandLogo from "@/components/BrandLogo";
 import { apiFetch } from "@/lib/api";
 
 const TIMEZONE_TO_COUNTRY: Record<string, string> = {
@@ -83,8 +84,11 @@ export default function SignupPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const detected = detectCountry();
-    if (detected) setCountry(detected);
+    const timer = window.setTimeout(() => {
+      const detected = detectCountry();
+      if (detected) setCountry(detected);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const maxDate = new Date().toISOString().split("T")[0];
@@ -220,8 +224,8 @@ export default function SignupPage() {
 
   if (confirmationSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4">
-        <div className="max-w-sm w-full text-center bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+      <div className="care-auth-shell items-center justify-center px-4">
+        <div className="care-auth-confirmation max-w-sm w-full text-center rounded-3xl p-8">
           <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-7 h-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -241,12 +245,13 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+    <div className="care-auth-shell">
       {/* Left decorative panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-teal-600 to-emerald-700 items-center justify-center p-12">
+      <div className="care-auth-side hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-12">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="relative text-white text-center max-w-md">
+          <span className="care-live mb-5">Your private health command center</span>
           <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -277,17 +282,10 @@ export default function SignupPage() {
       </div>
 
       {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md space-y-6">
+      <div className="care-auth-content flex-1 flex items-center justify-center px-4 py-12">
+        <div className="care-auth-form w-full max-w-md space-y-6">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-4 lg:hidden">
-              <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold text-gray-900">MedSign</span>
-            </div>
+            <BrandLogo className="justify-center mb-4 lg:hidden" />
             <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
             <p className="mt-2 text-sm text-gray-500">Free to use. No credit card needed.</p>
           </div>
@@ -305,7 +303,7 @@ export default function SignupPage() {
             type="button"
             onClick={handleGoogleSignUp}
             disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            className="care-auth-provider w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {googleLoading ? (
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -328,7 +326,7 @@ export default function SignupPage() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-3 text-gray-400">or sign up with email</span>
+              <span className="bg-white/90 px-3 text-gray-400">or sign up with email</span>
             </div>
           </div>
 
@@ -530,7 +528,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm shadow-emerald-200 hover:shadow-emerald-300"
+              className="care-auth-primary w-full rounded-xl px-4 py-3 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

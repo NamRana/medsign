@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import MedicineReminder from "@/components/MedicineReminder";
@@ -176,7 +176,7 @@ export default function MedicinesPage() {
     finally { setIsLoading(false); }
   }
 
-  async function searchDrugs(query?: string, category?: string) {
+  const searchDrugs = useCallback(async (query?: string, category?: string) => {
     setDrugSearching(true);
     try {
       const params = new URLSearchParams();
@@ -191,16 +191,16 @@ export default function MedicinesPage() {
     } finally {
       setDrugSearching(false);
     }
-  }
+  }, []);
 
-  async function loadDrugCategories() {
+  const loadDrugCategories = useCallback(async () => {
     try {
       const cats = await apiFetch<string[]>("/api/v1/drug-reference/categories");
       setDrugCategories(cats);
     } catch { /* ignore */ }
-  }
+  }, []);
 
-  async function searchHomeopathy(query?: string, indication?: string) {
+  const searchHomeopathy = useCallback(async (query?: string, indication?: string) => {
     setHomeoSearching(true);
     try {
       const params = new URLSearchParams();
@@ -215,37 +215,37 @@ export default function MedicinesPage() {
     } finally {
       setHomeoSearching(false);
     }
-  }
+  }, []);
 
-  async function loadHomeoIndications() {
+  const loadHomeoIndications = useCallback(async () => {
     try {
       const inds = await apiFetch<string[]>("/api/v1/homeopathy-reference/indications");
       setHomeoIndications(inds);
     } catch { /* ignore */ }
-  }
+  }, []);
 
   useEffect(() => {
-    if (activeTab === "reference" && drugResults.length === 0) {
-      searchDrugs();
-      loadDrugCategories();
+    if (activeTab === "reference") {
+      const timer = window.setTimeout(() => { void loadDrugCategories(); }, 0);
+      return () => window.clearTimeout(timer);
     }
-    if (activeTab === "homeopathy" && homeoResults.length === 0) {
-      searchHomeopathy();
-      loadHomeoIndications();
+    if (activeTab === "homeopathy") {
+      const timer = window.setTimeout(() => { void loadHomeoIndications(); }, 0);
+      return () => window.clearTimeout(timer);
     }
-  }, [activeTab]);
+  }, [activeTab, loadDrugCategories, loadHomeoIndications]);
 
   useEffect(() => {
     if (activeTab !== "reference") return;
-    const timer = setTimeout(() => searchDrugs(drugSearch, selectedCategory), 300);
-    return () => clearTimeout(timer);
-  }, [drugSearch, selectedCategory]);
+    const timer = window.setTimeout(() => { void searchDrugs(drugSearch, selectedCategory); }, 300);
+    return () => window.clearTimeout(timer);
+  }, [activeTab, drugSearch, selectedCategory, searchDrugs]);
 
   useEffect(() => {
     if (activeTab !== "homeopathy") return;
-    const timer = setTimeout(() => searchHomeopathy(homeoSearch, selectedIndication), 300);
-    return () => clearTimeout(timer);
-  }, [homeoSearch, selectedIndication]);
+    const timer = window.setTimeout(() => { void searchHomeopathy(homeoSearch, selectedIndication); }, 300);
+    return () => window.clearTimeout(timer);
+  }, [activeTab, homeoSearch, selectedIndication, searchHomeopathy]);
 
   function resetForm() {
     setFormName(""); setFormDosage(""); setFormFrequency("twice_daily");
@@ -271,7 +271,7 @@ export default function MedicinesPage() {
       });
       resetForm();
       await loadData();
-    } catch (err: any) { setError(err.message || "Failed to add medicine."); }
+    } catch (err: unknown) { setError(err instanceof Error ? err.message : "Failed to add medicine."); }
     finally { setSaving(false); }
   }
 
@@ -315,17 +315,39 @@ export default function MedicinesPage() {
   }, {});
 
   return (
-    <div className="min-h-screen warm-bg">
+    <div className="min-h-screen care-os care-grid care-medications">
       <style>{`
-        @keyframes mdFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .md-fade-1 { animation: mdFadeUp 0.5s ease-out both; }
-        .md-fade-2 { animation: mdFadeUp 0.5s ease-out 0.08s both; }
-        .md-fade-3 { animation: mdFadeUp 0.5s ease-out 0.16s both; }
+        @keyframes careMedRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .care-medications .md-fade-1 { animation: careMedRise .5s ease-out both; }
+        .care-medications .md-fade-2 { animation: careMedRise .5s ease-out .08s both; }
+        .care-medications .md-fade-3 { animation: careMedRise .5s ease-out .16s both; }
+        .care-medications .care-med-header { min-height: 158px; }
+        .care-medications .care-med-header::after { right: -7rem; top: -15rem; }
+        .care-medications .care-med-panel,
+        .care-medications .care-med-card,
+        .care-medications .care-med-empty {
+          background: rgba(255,255,255,.78); border: 1px solid rgba(207,231,230,.92);
+          box-shadow: 0 16px 40px rgba(8,47,73,.07); backdrop-filter: blur(18px) saturate(1.08);
+        }
+        .care-medications .care-med-stat { position: relative; overflow: hidden; background: rgba(255,255,255,.8); border: 1px solid rgba(207,231,230,.92); box-shadow: 0 16px 32px rgba(8,47,73,.08); }
+        .care-medications .care-med-stat::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--med-accent, #16c9b0); }
+        .care-medications .care-med-stat::after { content: ""; position: absolute; width: 6rem; height: 6rem; right: -2.5rem; top: -3.5rem; border-radius: 9999px; background: var(--med-halo, rgba(45,212,191,.18)); filter: blur(5px); }
+        .care-medications .care-med-tabs { background: rgba(10,52,64,.06); border: 1px solid rgba(13,148,136,.10); box-shadow: inset 0 1px rgba(255,255,255,.7); }
+        .care-medications .care-med-tab { color: #527078; }
+        .care-medications .care-med-tab:hover { color: #0f766e; }
+        .care-medications .care-med-tab-active { background: #fff; color: #083b42; box-shadow: 0 8px 18px rgba(8,47,73,.10); }
+        .care-medications .care-med-card:hover { border-color: rgba(45,212,191,.65); box-shadow: 0 20px 42px rgba(8,47,73,.11); }
+        .care-medications .care-med-empty { border-style: dashed; }
+        .care-medications .care-med-notice { background: linear-gradient(112deg, rgba(224,253,247,.9), rgba(224,242,254,.7)); border-color: rgba(45,212,191,.35); color: #155e75; }
+        .care-medications .care-med-notice.care-homeo-notice { background: linear-gradient(112deg, rgba(240,253,250,.96), rgba(237,233,254,.66)); border-color: rgba(167,139,250,.28); color: #5b4a86; }
+        .care-medications .care-med-input { background: rgba(255,255,255,.8); border-color: rgba(148,163,184,.25); box-shadow: 0 8px 20px rgba(8,47,73,.04); }
+        .care-medications .care-med-input:focus { border-color: #2dd4bf; box-shadow: 0 0 0 3px rgba(45,212,191,.14); }
+        .care-medications .care-med-modal { background: rgba(248,253,252,.96); border: 1px solid rgba(207,231,230,.9); }
+        @media (max-width: 640px) { .care-medications .care-med-status { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .care-medications .md-fade-1, .care-medications .md-fade-2, .care-medications .md-fade-3 { animation: none; } }
       `}</style>
       {/* Header */}
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #2563EB 0%, #0891B2 40%, #06B6D4 100%)" }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 25% 75%, white 1px, transparent 1px), radial-gradient(circle at 75% 25%, white 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full -translate-y-1/3 translate-x-1/4" />
+      <header className="care-hero care-med-header relative overflow-hidden">
         <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -333,19 +355,23 @@ export default function MedicinesPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white">Medicines</h1>
-                <p className="text-sm text-white/60 mt-0.5">Track your daily medications</p>
+                <p className="care-eyebrow mb-1">Medication intelligence</p>
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Medication Command</h1>
+                <p className="text-sm text-white/65 mt-0.5">Track, protect, and stay ahead of every dose.</p>
               </div>
             </div>
-            <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-white px-4 py-2.5 rounded-xl hover:bg-blue-50 transition-all shadow-lg">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Add Medicine
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="care-live care-med-status"><span className="care-live-dot" />Schedule live</span>
+              <button onClick={() => setShowForm(true)} className="care-button flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                Add Medicine
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-5 sm:px-8 py-8">
+      <main className="care-content max-w-4xl mx-auto px-5 sm:px-8 py-8">
         {error && (
           <div className="mb-6 px-4 py-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center justify-between">
             <span>{error}</span>
@@ -356,54 +382,51 @@ export default function MedicinesPage() {
         {/* Adherence Stats */}
         {adherence && adherence.total_scheduled > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-6 md-fade-1">
-            <div className="group cursor-pointer relative rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200/30 text-center">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="text-3xl font-black text-white">
+            <div className="care-med-stat group cursor-pointer rounded-2xl p-5 text-center" style={{ "--med-accent": "#38bdf8", "--med-halo": "rgba(56,189,248,.2)" } as React.CSSProperties}>
+              <div className="relative text-3xl font-black text-[#083b42]">
                 {adherence.adherence_percent}%
               </div>
-              <p className="text-xs text-white/70 font-semibold mt-1">Adherence (7d)</p>
+              <p className="relative text-xs text-slate-500 font-semibold mt-1">Adherence (7d)</p>
             </div>
-            <div className="group cursor-pointer relative rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-200/30 text-center">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="text-3xl font-black text-white">{adherence.taken}</div>
-              <p className="text-xs text-white/70 font-semibold mt-1">Taken</p>
+            <div className="care-med-stat group cursor-pointer rounded-2xl p-5 text-center" style={{ "--med-accent": "#22c55e", "--med-halo": "rgba(34,197,94,.16)" } as React.CSSProperties}>
+              <div className="relative text-3xl font-black text-[#083b42]">{adherence.taken}</div>
+              <p className="relative text-xs text-slate-500 font-semibold mt-1">Taken</p>
             </div>
-            <div className="group cursor-pointer relative rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-200/30 text-center">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="text-3xl font-black text-white">{adherence.missed}</div>
-              <p className="text-xs text-white/70 font-semibold mt-1">Missed</p>
+            <div className="care-med-stat group cursor-pointer rounded-2xl p-5 text-center" style={{ "--med-accent": "#fb7185", "--med-halo": "rgba(251,113,133,.16)" } as React.CSSProperties}>
+              <div className="relative text-3xl font-black text-[#083b42]">{adherence.missed}</div>
+              <p className="relative text-xs text-slate-500 font-semibold mt-1">Missed</p>
             </div>
           </div>
         )}
 
         {/* Reminders */}
-        <div className="mb-6 md-fade-1">
+        <div className="care-med-panel rounded-3xl p-1 mb-6 md-fade-1">
           <MedicineReminder />
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100/80 rounded-2xl p-1 mb-6 md-fade-2">
+        <div className="care-med-tabs flex gap-1 rounded-2xl p-1 mb-6 md-fade-2">
           <button
             onClick={() => setActiveTab("today")}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "today" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={`care-med-tab flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "today" ? "care-med-tab-active" : ""}`}
           >
             Today
           </button>
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "all" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={`care-med-tab flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "all" ? "care-med-tab-active" : ""}`}
           >
             My Medicines
           </button>
           <button
             onClick={() => setActiveTab("reference")}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "reference" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={`care-med-tab flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "reference" ? "care-med-tab-active" : ""}`}
           >
             Allopathy
           </button>
           <button
             onClick={() => setActiveTab("homeopathy")}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "homeopathy" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={`care-med-tab flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "homeopathy" ? "care-med-tab-active" : ""}`}
           >
             Homeopathy
           </button>
@@ -413,7 +436,7 @@ export default function MedicinesPage() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl p-5 animate-pulse border border-gray-100">
+              <div key={i} className="care-med-card rounded-2xl p-5 animate-pulse">
                 <div className="flex items-center gap-3"><div className="w-10 h-10 bg-gray-100 rounded-xl" /><div className="flex-1"><div className="h-4 bg-gray-100 rounded w-1/3 mb-2" /><div className="h-3 bg-gray-50 rounded w-1/4" /></div></div>
               </div>
             ))}
@@ -422,13 +445,13 @@ export default function MedicinesPage() {
           /* Today's Schedule */
           <div className="space-y-6">
             {Object.keys(groupedSchedule).length === 0 ? (
-              <div className="bg-white rounded-3xl p-10 text-center border border-gray-100">
+              <div className="care-med-empty rounded-3xl p-10 text-center">
                 <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl">💊</span>
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-2">No medicines added yet</h3>
                 <p className="text-sm text-gray-400 max-w-xs mx-auto mb-6">Add your daily medications and we&apos;ll remind you when to take them.</p>
-                <button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:from-blue-600 hover:to-cyan-700 transition-all shadow-lg shadow-blue-200/50">
+                <button onClick={() => setShowForm(true)} className="care-button px-6 py-3 rounded-2xl text-sm font-bold transition-all">
                   Add First Medicine
                 </button>
               </div>
@@ -448,7 +471,7 @@ export default function MedicinesPage() {
                       return (
                         <div
                           key={`${item.medicine.id}-${time}`}
-                          className={`bg-white rounded-2xl p-4 border transition-all ${
+                          className={`care-med-card rounded-2xl p-4 border transition-all ${
                             logStatus === "taken" ? "border-emerald-200 bg-emerald-50/30" :
                             logStatus === "skipped" ? "border-gray-200 bg-gray-50/50 opacity-60" :
                             "border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5"
@@ -514,12 +537,12 @@ export default function MedicinesPage() {
           /* All Medicines List */
           <div className="space-y-3">
             {medicines.length === 0 ? (
-              <div className="bg-white rounded-3xl p-10 text-center border border-gray-100">
+              <div className="care-med-empty rounded-3xl p-10 text-center">
                 <p className="text-sm text-gray-400">No medicines added yet.</p>
               </div>
             ) : (
               medicines.map((med) => (
-                <div key={med.id} className={`bg-white rounded-2xl p-5 border shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5 ${med.is_active ? "border-gray-100" : "border-gray-100 opacity-50"}`}>
+                <div key={med.id} className={`care-med-card rounded-2xl p-5 border transition-all hover:-translate-y-0.5 ${med.is_active ? "border-gray-100" : "border-gray-100 opacity-50"}`}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                       <span className="text-lg">💊</span>
@@ -558,7 +581,7 @@ export default function MedicinesPage() {
         ) : activeTab === "reference" ? (
           /* NFI Drug Reference */
           <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+            <div className="care-med-notice rounded-xl border px-4 py-3 text-xs">
               Source: National Formulary of India (NFI). For educational purposes only — always consult a doctor before taking any medication.
             </div>
 
@@ -573,14 +596,14 @@ export default function MedicinesPage() {
                   value={drugSearch}
                   onChange={(e) => setDrugSearch(e.target.value)}
                   placeholder="Search medicines by name or class..."
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                  className="care-med-input w-full pl-10 pr-4 py-3 rounded-xl border text-sm outline-none"
                 />
               </div>
               {drugCategories.length > 0 && (
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-3 py-3 rounded-xl border border-gray-200 text-xs text-gray-600 bg-white focus:border-blue-500 outline-none"
+                  className="care-med-input px-3 py-3 rounded-xl border text-xs text-gray-600 outline-none"
                 >
                   <option value="">All Classes</option>
                   {drugCategories.map((cat) => (
@@ -601,7 +624,7 @@ export default function MedicinesPage() {
                 <button
                   key={drug.id}
                   onClick={() => setSelectedDrug(selectedDrug?.id === drug.id ? null : drug)}
-                  className="w-full text-left bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden"
+                  className="care-med-card w-full text-left rounded-2xl border transition-all hover:-translate-y-0.5 overflow-hidden"
                 >
                   <div className="p-4">
                     <div className="flex items-center gap-3">
@@ -629,7 +652,7 @@ export default function MedicinesPage() {
 
                   {/* Expanded detail */}
                   {selectedDrug?.id === drug.id && (
-                    <div className="border-t border-gray-100 px-4 py-4 space-y-3 bg-gray-50/50" onClick={(e) => e.stopPropagation()}>
+                    <div className="border-t border-teal-100/70 px-4 py-4 space-y-3 bg-teal-50/30" onClick={(e) => e.stopPropagation()}>
                       {drug.indications.length > 0 && (
                         <div>
                           <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Indications</p>
@@ -671,7 +694,7 @@ export default function MedicinesPage() {
                 </button>
               ))}
               {drugResults.length === 0 && !drugSearching && (
-                <div className="bg-white rounded-3xl p-10 text-center border border-gray-100">
+                <div className="care-med-empty rounded-3xl p-10 text-center">
                   <p className="text-sm text-gray-400">{drugSearch ? "No medicines match your search." : "No medicines in reference database."}</p>
                 </div>
               )}
@@ -680,7 +703,7 @@ export default function MedicinesPage() {
         ) : activeTab === "homeopathy" ? (
           /* Homeopathy Reference */
           <div className="space-y-4">
-            <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 text-xs text-purple-700">
+            <div className="care-med-notice care-homeo-notice rounded-xl border px-4 py-3 text-xs">
               Source: Boericke&apos;s Materia Medica. For educational purposes only — always consult a qualified homeopathic practitioner.
             </div>
 
@@ -695,14 +718,14 @@ export default function MedicinesPage() {
                   value={homeoSearch}
                   onChange={(e) => setHomeoSearch(e.target.value)}
                   placeholder="Search remedies by name..."
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                  className="care-med-input w-full pl-10 pr-4 py-3 rounded-xl border text-sm outline-none"
                 />
               </div>
               {homeoIndications.length > 0 && (
                 <select
                   value={selectedIndication}
                   onChange={(e) => setSelectedIndication(e.target.value)}
-                  className="px-3 py-3 rounded-xl border border-gray-200 text-xs text-gray-600 bg-white focus:border-purple-500 outline-none max-w-[180px]"
+                  className="care-med-input px-3 py-3 rounded-xl border text-xs text-gray-600 outline-none max-w-[180px]"
                 >
                   <option value="">All Indications</option>
                   {homeoIndications.map((ind) => (
@@ -722,7 +745,7 @@ export default function MedicinesPage() {
                 <button
                   key={remedy.id}
                   onClick={() => setSelectedRemedy(selectedRemedy?.id === remedy.id ? null : remedy)}
-                  className="w-full text-left bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden"
+                  className="care-med-card w-full text-left rounded-2xl border transition-all hover:-translate-y-0.5 overflow-hidden"
                 >
                   <div className="p-4">
                     <div className="flex items-center gap-3">
@@ -744,7 +767,7 @@ export default function MedicinesPage() {
 
                   {/* Expanded detail */}
                   {selectedRemedy?.id === remedy.id && (
-                    <div className="border-t border-gray-100 px-4 py-4 space-y-3 bg-gray-50/50" onClick={(e) => e.stopPropagation()}>
+                    <div className="border-t border-teal-100/70 px-4 py-4 space-y-3 bg-teal-50/30" onClick={(e) => e.stopPropagation()}>
                       {remedy.description && (
                         <div>
                           <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</p>
@@ -805,7 +828,7 @@ export default function MedicinesPage() {
                 </button>
               ))}
               {homeoResults.length === 0 && !homeoSearching && (
-                <div className="bg-white rounded-3xl p-10 text-center border border-gray-100">
+                <div className="care-med-empty rounded-3xl p-10 text-center">
                   <p className="text-sm text-gray-400">{homeoSearch ? "No remedies match your search." : "No remedies in reference database."}</p>
                 </div>
               )}
@@ -817,7 +840,7 @@ export default function MedicinesPage() {
         {/* Add Medicine Modal */}
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="care-med-modal rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-gray-900">Add Medicine</h2>
                 <button onClick={resetForm} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">

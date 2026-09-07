@@ -202,7 +202,7 @@ function MetricCard({ metricKey, metric, delay }: { metricKey: string; metric: P
 
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-black flex flex-col items-center justify-center p-6">
+    <div className="future-os-shell min-h-screen bg-[#060b16] flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-lg space-y-8 animate-pulse">
         {/* Timeline skeleton */}
         <div className="h-40 rounded-2xl bg-white/5 border border-white/10" />
@@ -226,7 +226,7 @@ function LoadingSkeleton() {
 
 function NotEnoughData({ daysScanned }: { daysScanned: number }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-black flex flex-col items-center justify-center p-6 animate-[fadeInUp_0.6s_ease-out_both]">
+    <div className="future-os-shell min-h-screen bg-[#060b16] flex flex-col items-center justify-center p-6 animate-[fadeInUp_0.6s_ease-out_both]">
       <StarField />
       <div className="relative z-10 text-center max-w-sm">
         {/* Crystal ball icon */}
@@ -237,7 +237,8 @@ function NotEnoughData({ daysScanned }: { daysScanned: number }) {
           </svg>
         </div>
 
-        <h2 className="text-xl font-bold text-white mb-2">Unlock Your Future Projection</h2>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-300/80">Trajectory model</p>
+        <h2 className="text-xl font-bold text-white mb-2">Unlock your future signal</h2>
         <p className="text-sm text-gray-400 mb-8">
           Scan for 3+ days to see where you&apos;re headed. Our AI needs a few data points to project your trajectory.
         </p>
@@ -315,7 +316,7 @@ export default function FutureProjectionPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-black flex flex-col items-center justify-center p-6">
+      <div className="future-os-shell min-h-screen bg-[#060b16] flex flex-col items-center justify-center p-6">
         <StarField />
         <div className="relative z-10 text-center max-w-sm">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 border border-red-400/30 flex items-center justify-center">
@@ -339,11 +340,19 @@ export default function FutureProjectionPage() {
   if (!projection) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-black relative">
+    <div className="future-os-shell min-h-screen relative">
       <StarField />
 
       {/* Custom keyframe styles */}
       <style jsx>{`
+        .future-os-shell {
+          background: radial-gradient(circle at 82% -4%, rgba(34, 211, 238, 0.13), transparent 26%), radial-gradient(circle at 0% 70%, rgba(139, 92, 246, 0.14), transparent 31%), #060b16;
+        }
+        .future-os-header {
+          background: rgba(6, 11, 22, 0.68);
+          border-color: rgba(148, 163, 184, 0.12);
+          backdrop-filter: blur(20px);
+        }
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -370,7 +379,7 @@ export default function FutureProjectionPage() {
       `}</style>
 
       {/* Header */}
-      <header className="relative z-10 border-b border-white/5">
+      <header className="future-os-header relative z-10 border-b sticky top-0">
         <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center gap-3">
           <button
             onClick={() => router.push("/face-scan")}
@@ -380,14 +389,18 @@ export default function FutureProjectionPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20">
+          <div className="w-9 h-9 bg-gradient-to-br from-cyan-400 to-violet-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div className="flex-1">
-            <h1 className="text-base font-bold text-white">Future You</h1>
-            <p className="text-[10px] text-gray-500 font-medium">30-day projection based on {projection.days_of_data} days of data</p>
+            <h1 className="text-base font-bold text-white">Future Signal</h1>
+            <p className="text-[10px] text-slate-500 font-medium">30-day projection based on {projection.days_of_data} days of scan data</p>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-cyan-300/15 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.85)]" />
+            Model ready
           </div>
         </div>
       </header>
@@ -401,6 +414,8 @@ export default function FutureProjectionPage() {
           overallPositive={projection.overall_projected_positive}
           overallNegative={projection.overall_projected_negative}
         />
+
+        <p className="mx-auto max-w-md text-center text-[11px] leading-relaxed text-slate-500">This projection maps possible wellbeing trends from recent scan signals. It is not a medical forecast or diagnosis.</p>
 
         {/* Metric Cards - 2x2 grid */}
         <div className="grid grid-cols-2 gap-4">

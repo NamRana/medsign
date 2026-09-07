@@ -16,13 +16,13 @@ interface ReviewDetail {
     raw_ai_output: string | null;
     model_used: string | null;
     reviewed_by: string | null;
-    metadata: Record<string, any> | null;
+    metadata: Record<string, unknown> | null;
     created_at: string;
   };
   conversation: {
     chief_complaint: string | null;
     status: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   };
   messages: Array<{
     role: string;
@@ -75,8 +75,8 @@ export default function ReviewDetailPage() {
         body: JSON.stringify({ verdict: selectedVerdict, notes: notes || null }),
       });
       setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unable to submit the review");
     } finally {
       setIsSubmitting(false);
     }
@@ -84,22 +84,18 @@ export default function ReviewDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex gap-1">
-          <span className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "-0.3s" }} />
-          <span className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "-0.15s" }} />
-          <span className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce" />
-        </div>
+      <div className="care-route-loader">
+        <div className="care-route-loader-orbit" />
       </div>
     );
   }
 
   if (error || !detail) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-xl text-center">
+      <div className="care-route-loader">
+        <div className="warm-card p-6 rounded-2xl text-center">
           <p className="text-red-600 text-sm">{error || "Not found"}</p>
-          <button onClick={() => router.push("/admin")} className="mt-3 text-sm text-blue-600 font-medium">
+          <button onClick={() => router.push("/admin")} className="mt-3 text-sm text-teal-700 font-semibold">
             Back to Admin
           </button>
         </div>
@@ -108,12 +104,17 @@ export default function ReviewDetailPage() {
   }
 
   const { assessment, conversation, messages, symptoms, safety_events } = detail;
-  const existingReview = assessment.metadata?.review_verdict;
+  const existingReview = typeof assessment.metadata?.review_verdict === "string"
+    ? assessment.metadata.review_verdict
+    : null;
+  const existingNotes = typeof assessment.metadata?.review_notes === "string"
+    ? assessment.metadata.review_notes
+    : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="care-admin-shell">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <header className="care-admin-header sticky top-0 z-10 border-b">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => router.push("/admin")}
@@ -124,8 +125,9 @@ export default function ReviewDetailPage() {
             </svg>
           </button>
           <div className="flex-1">
+            <p className="care-eyebrow !text-teal-700">Clinical review workspace</p>
             <h1 className="text-base font-semibold text-gray-900">Case Review</h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 mt-0.5">
               {conversation.chief_complaint || "General Assessment"}
             </p>
           </div>
@@ -249,8 +251,8 @@ export default function ReviewDetailPage() {
           {existingReview && !submitted ? (
             <div className="px-4 py-3 bg-green-50 rounded-lg text-sm text-green-800">
               Previously reviewed as: <span className="font-semibold">{existingReview}</span>
-              {assessment.metadata?.review_notes && (
-                <p className="mt-1 text-xs text-green-600">{assessment.metadata.review_notes}</p>
+              {existingNotes && (
+                <p className="mt-1 text-xs text-green-600">{existingNotes}</p>
               )}
             </div>
           ) : submitted ? (
@@ -273,7 +275,7 @@ export default function ReviewDetailPage() {
                     onClick={() => setSelectedVerdict(opt.value)}
                     className={`px-3 py-2 rounded-lg text-xs font-medium border-2 transition-all ${
                       selectedVerdict === opt.value
-                        ? opt.color + " ring-2 ring-offset-1 ring-blue-400"
+                        ? opt.color + " ring-2 ring-offset-1 ring-teal-400"
                         : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                     }`}
                   >
@@ -286,14 +288,14 @@ export default function ReviewDetailPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Optional notes about this case..."
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500"
                 rows={3}
               />
 
               <button
                 onClick={handleSubmitReview}
                 disabled={!selectedVerdict || isSubmitting}
-                className="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="care-auth-primary mt-3 w-full text-white py-2 rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {isSubmitting ? "Submitting..." : "Submit Review"}
               </button>

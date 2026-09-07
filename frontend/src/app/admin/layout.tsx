@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [router]);
 
   if (isCheckingRole) {
-    return <div className="min-h-screen bg-gray-50" />;
+    return <div className="care-route-loader"><div className="care-route-loader-orbit" /></div>;
   }
 
   return <>{children}</>;

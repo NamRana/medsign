@@ -19,7 +19,7 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const mountedTimer = window.setTimeout(() => setMounted(true), 0);
     const supabase = createClient();
     supabase.auth.getSession().then(({ data }: { data: { session: { user: { user_metadata: Record<string, string>; email?: string } } | null } }) => {
       if (data.session?.user) {
@@ -38,6 +38,7 @@ export default function SettingsPage() {
       }
       setLoading(false);
     });
+    return () => window.clearTimeout(mountedTimer);
   }, []);
 
   async function handleLogout() {
@@ -122,19 +123,41 @@ export default function SettingsPage() {
 
   return (
     <div
-      className={`min-h-screen warm-bg transition-opacity duration-500 ${
+      className={`min-h-screen care-os care-grid care-settings-page transition-opacity duration-500 ${
         mounted ? "opacity-100" : "opacity-0"
       }`}
     >
+      <style>{`
+        .care-settings-page .care-settings-header { background: linear-gradient(132deg, #071a21 0%, #0a3b43 58%, #075e64 100%); border-bottom: 1px solid rgba(153,246,228,.16); box-shadow: 0 14px 34px rgba(8,47,73,.16); }
+        .care-settings-page .care-settings-header::after { content: ""; position: absolute; width: 16rem; height: 16rem; border-radius: 9999px; right: -5rem; top: -10rem; background: rgba(103,232,249,.16); filter: blur(8px); }
+        .care-settings-page .care-settings-profile,
+        .care-settings-page .care-settings-panel {
+          background: rgba(255,255,255,.78); border: 1px solid rgba(207,231,230,.92);
+          box-shadow: 0 16px 40px rgba(8,47,73,.08); backdrop-filter: blur(18px) saturate(1.08);
+        }
+        .care-settings-page .care-settings-profile { position: relative; overflow: hidden; padding: 1.25rem; }
+        .care-settings-page .care-settings-profile::before { content: ""; position: absolute; width: 12rem; height: 12rem; left: -6rem; top: -8rem; border-radius: 9999px; background: rgba(45,212,191,.11); filter: blur(10px); }
+        .care-settings-page .care-settings-row { position: relative; }
+        .care-settings-page .care-settings-row:hover { background: rgba(240,253,250,.74); }
+        .care-settings-page .care-settings-row svg { transition: color .2s ease, transform .2s ease; }
+        .care-settings-page .care-settings-row:hover > span:first-child { color: #0f766e; }
+        .care-settings-page .care-settings-row:hover > svg { color: #0f766e; transform: translateX(2px); }
+        .care-settings-page .care-settings-label { color: #527078; letter-spacing: .15em; }
+        .care-settings-page .care-settings-edit { color: #0f766e; background: rgba(240,253,250,.9); border-color: rgba(45,212,191,.32); }
+        .care-settings-page .care-settings-edit:hover { background: #dffaf2; }
+        .care-settings-page .care-settings-signout { border: 1px solid rgba(251,113,133,.22); color: #9f1239; }
+        .care-settings-page .care-settings-signout:hover { background: rgba(255,241,242,.9); }
+        @media (max-width: 440px) { .care-settings-page .care-settings-secure { display: none; } }
+      `}</style>
       {/* Header */}
-      <header className="warm-header sticky top-0 z-20">
-        <div className="max-w-lg mx-auto px-5 py-3.5 flex items-center gap-3">
+      <header className="care-settings-header relative overflow-hidden sticky top-0 z-20">
+        <div className="relative z-10 max-w-lg mx-auto px-5 py-3.5 flex items-center gap-3">
           <button
             onClick={() => router.push("/dashboard")}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 border border-gray-100 hover:bg-white hover:shadow-sm transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 transition-all"
           >
             <svg
-              className="w-4.5 h-4.5 text-gray-600"
+              className="w-4.5 h-4.5 text-white/80"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -147,11 +170,15 @@ export default function SettingsPage() {
               />
             </svg>
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Settings</h1>
+          <div className="flex-1">
+            <p className="care-eyebrow mb-0.5">Care OS profile</p>
+            <h1 className="text-lg font-bold tracking-tight text-white">Settings</h1>
+          </div>
+          <span className="care-live care-settings-secure"><span className="care-live-dot" />Secure</span>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-5 py-6 pb-12">
+      <main className="care-content max-w-lg mx-auto px-5 py-6 pb-12">
         {/* Loading state */}
         {loading && (
           <div className="space-y-6 animate-pulse">
@@ -174,16 +201,18 @@ export default function SettingsPage() {
         {!loading && (
           <div className="space-y-6">
             {/* Profile Section */}
-            <div className="flex flex-col items-center gap-3 py-4">
+            <div className="care-settings-profile flex flex-col items-center gap-3">
               {user?.avatarUrl ? (
+                /* External identity-provider avatar URLs are not statically known to Next image optimization. */
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
-                  className="w-20 h-20 rounded-full object-cover ring-4 ring-white shadow-lg"
+                  className="relative w-20 h-20 rounded-full object-cover ring-4 ring-white shadow-lg"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center ring-4 ring-white shadow-lg">
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center ring-4 ring-white shadow-lg">
                   <span className="text-2xl font-bold text-white">
                     {userInitial}
                   </span>
@@ -195,22 +224,22 @@ export default function SettingsPage() {
                 </h2>
                 <p className="text-sm text-gray-500">{user?.email}</p>
               </div>
-              <button className="mt-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-colors">
+              <button className="care-settings-edit relative mt-1 text-xs font-semibold px-4 py-2 rounded-xl border transition-colors">
                 Edit Profile
               </button>
             </div>
 
             {/* Account Section */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
-                Account
+              <p className="care-settings-label text-xs font-semibold uppercase mb-2 px-1">
+                Account access
               </p>
-              <div className="warm-card rounded-2xl divide-y divide-gray-100/80 shadow-sm">
+              <div className="care-settings-panel rounded-2xl divide-y divide-teal-50/90 overflow-hidden">
                 {accountItems.map((item) => (
                   <button
                     key={item.label}
                     onClick={() => router.push(item.path)}
-                    className="w-full flex items-center gap-3.5 px-4 py-3.5 min-h-[48px] hover:bg-gray-50/60 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+                    className="care-settings-row w-full flex items-center gap-3.5 px-4 py-3.5 min-h-[48px] transition-colors first:rounded-t-2xl last:rounded-b-2xl"
                   >
                     <span className="text-gray-500">{item.icon}</span>
                     <span className="flex-1 text-sm font-medium text-gray-800 text-left">
@@ -236,15 +265,15 @@ export default function SettingsPage() {
 
             {/* Health Data Section */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
-                Health Data
+              <p className="care-settings-label text-xs font-semibold uppercase mb-2 px-1">
+                Health data routes
               </p>
-              <div className="warm-card rounded-2xl divide-y divide-gray-100/80 shadow-sm">
+              <div className="care-settings-panel rounded-2xl divide-y divide-teal-50/90 overflow-hidden">
                 {healthDataItems.map((item) => (
                   <button
                     key={item.label}
                     onClick={() => router.push(item.path)}
-                    className="w-full flex items-center gap-3.5 px-4 py-3.5 min-h-[48px] hover:bg-gray-50/60 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+                    className="care-settings-row w-full flex items-center gap-3.5 px-4 py-3.5 min-h-[48px] transition-colors first:rounded-t-2xl last:rounded-b-2xl"
                   >
                     <span className="text-gray-500">{item.icon}</span>
                     <span className="flex-1 text-sm font-medium text-gray-800 text-left">
@@ -270,12 +299,12 @@ export default function SettingsPage() {
 
             {/* App Section */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
-                App
+              <p className="care-settings-label text-xs font-semibold uppercase mb-2 px-1">
+                App operations
               </p>
-              <div className="warm-card rounded-2xl divide-y divide-gray-100/80 shadow-sm">
+              <div className="care-settings-panel rounded-2xl divide-y divide-teal-50/90 overflow-hidden">
                 {/* Notifications toggle */}
-                <div className="flex items-center gap-3.5 px-4 py-3.5 min-h-[48px]">
+                <div className="care-settings-row flex items-center gap-3.5 px-4 py-3.5 min-h-[48px]">
                   <span className="text-gray-500">
                     <svg
                       className="w-5 h-5"
@@ -309,7 +338,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* About */}
-                <div className="flex items-center gap-3.5 px-4 py-3.5 min-h-[48px]">
+                <div className="care-settings-row flex items-center gap-3.5 px-4 py-3.5 min-h-[48px]">
                   <span className="text-gray-500">
                     <svg
                       className="w-5 h-5"
@@ -335,11 +364,11 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="warm-card rounded-2xl shadow-sm overflow-hidden">
+            <div className="care-settings-panel rounded-2xl overflow-hidden">
               <button
                 onClick={handleLogout}
                 disabled={loggingOut}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 min-h-[48px] text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="care-settings-signout w-full flex items-center justify-center gap-2 px-4 py-3.5 min-h-[48px] transition-colors disabled:opacity-50"
               >
                 <svg
                   className="w-5 h-5"
@@ -362,7 +391,7 @@ export default function SettingsPage() {
 
             {/* Footer */}
             <p className="text-center text-xs text-gray-400 pt-4 pb-2">
-              MedSign v1.0.0 — Made with love in India
+              MedSign Care OS · v1.0.0
             </p>
           </div>
         )}

@@ -10,7 +10,7 @@ const ICON_MAP: Record<string, { emoji: string; bg: string }> = {
   bell: { emoji: "🔔", bg: "bg-amber-50" },
   check: { emoji: "✅", bg: "bg-emerald-50" },
   alert: { emoji: "⚠️", bg: "bg-orange-50" },
-  pill: { emoji: "💊", bg: "bg-purple-50" },
+  pill: { emoji: "💊", bg: "bg-violet-50" },
   tip: { emoji: "💡", bg: "bg-blue-50" },
 };
 
@@ -45,9 +45,16 @@ export default function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
+    const startupTimer = window.setTimeout(() => {
+      void fetchNotifications();
+    }, 0);
+    const interval = window.setInterval(() => {
+      void fetchNotifications();
+    }, 60000);
+    return () => {
+      window.clearTimeout(startupTimer);
+      window.clearInterval(interval);
+    };
   }, [fetchNotifications]);
 
   useEffect(() => {
@@ -88,13 +95,13 @@ export default function NotificationBell() {
       {/* Bell Button */}
       <button
         onClick={handleOpen}
-        className="relative p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+        className="care-notification-trigger relative p-2.5 rounded-xl transition-all"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -102,7 +109,7 @@ export default function NotificationBell() {
 
       {/* Dropdown Panel */}
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-[360px] max-w-[calc(100vw-32px)] rounded-2xl shadow-2xl shadow-black/15 z-50 overflow-hidden" style={{ background: "rgba(253,251,247,0.95)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,0,0,0.06)" }}>
+        <div className="care-notification-panel absolute top-full right-0 mt-2 w-[360px] max-w-[calc(100vw-32px)] rounded-2xl shadow-2xl shadow-black/15 z-50 overflow-hidden" style={{ backdropFilter: "blur(20px)" }}>
           <style>{`
             @keyframes notifSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
             .notif-panel { animation: notifSlide 0.2s ease-out both; }
@@ -113,7 +120,7 @@ export default function NotificationBell() {
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
                 {unreadCount > 0 && (
-                  <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">
                     {unreadCount} new
                   </span>
                 )}
@@ -121,7 +128,7 @@ export default function NotificationBell() {
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="text-[11px] font-medium text-purple-500 hover:text-purple-700 transition-colors"
+                  className="text-[11px] font-medium text-teal-600 hover:text-teal-800 transition-colors"
                 >
                   Mark all read
                 </button>
@@ -133,9 +140,9 @@ export default function NotificationBell() {
               {loading ? (
                 <div className="flex items-center justify-center py-10">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2 h-2 bg-purple-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2 h-2 bg-purple-200 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 bg-sky-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               ) : notifications.length === 0 ? (
@@ -156,7 +163,7 @@ export default function NotificationBell() {
                       key={n.id}
                       onClick={() => handleClick(n)}
                       className={`w-full flex items-start gap-3 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${
-                        !n.read ? "bg-purple-50/30" : ""
+                        !n.read ? "bg-teal-50/40" : ""
                       }`}
                     >
                       {/* Icon */}
@@ -171,14 +178,14 @@ export default function NotificationBell() {
                             {n.title}
                           </p>
                           {!n.read && (
-                            <span className="w-2 h-2 bg-purple-500 rounded-full shrink-0 mt-1.5" />
+                            <span className="w-2 h-2 bg-teal-500 rounded-full shrink-0 mt-1.5" />
                           )}
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
                         <div className="flex items-center gap-2 mt-1.5">
                           <span className="text-[10px] text-gray-400">{timeAgo(n.created_at)}</span>
                           {n.action_url && (
-                            <span className="text-[10px] font-medium text-purple-500">Tap to respond &rarr;</span>
+                            <span className="text-[10px] font-medium text-teal-600">Tap to respond &rarr;</span>
                           )}
                         </div>
                       </div>

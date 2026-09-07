@@ -29,11 +29,14 @@ export default function MedicineReminder() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
-    setPermissionState(Notification.permission as "default" | "granted" | "denied");
-    const stored = localStorage.getItem("medsign_reminders");
-    if (stored === "true" && Notification.permission === "granted") {
-      setEnabled(true);
-    }
+    const restorePreference = window.setTimeout(() => {
+      setPermissionState(Notification.permission as "default" | "granted" | "denied");
+      const stored = localStorage.getItem("medsign_reminders");
+      if (stored === "true" && Notification.permission === "granted") {
+        setEnabled(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(restorePreference);
   }, []);
 
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function MedicineReminder() {
                   checkedTimesRef.current.add(key);
                   new Notification("Medicine Reminder", {
                     body: `Time to take ${item.medicine.name}${item.medicine.dosage ? ` (${item.medicine.dosage})` : ""} — ${formatTime12(time)}`,
-                    icon: "/icon-192x192.png",
+                    icon: "/icons/icon-192.png",
                     tag: key,
                   });
                 }
@@ -116,16 +119,16 @@ export default function MedicineReminder() {
     return (
       <button
         onClick={handleEnable}
-        className="w-full flex items-center gap-3 bg-blue-50 rounded-xl px-4 py-3 border border-blue-100 hover:bg-blue-100 transition-all"
+        className="w-full flex items-center gap-3 bg-teal-50 rounded-xl px-4 py-3 border border-teal-100 hover:bg-teal-100 transition-all"
       >
-        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center shrink-0">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
         </div>
         <div className="text-left">
-          <p className="text-xs font-bold text-blue-800">Enable Reminders</p>
-          <p className="text-[10px] text-blue-600">Get notified when it's time to take your medicine</p>
+          <p className="text-xs font-bold text-teal-800">Enable reminders</p>
+          <p className="text-[10px] text-teal-600">Get notified when it&apos;s time to take your medicine</p>
         </div>
       </button>
     );
@@ -141,7 +144,7 @@ export default function MedicineReminder() {
         </div>
         <div>
           <p className="text-xs font-bold text-emerald-800">Reminders Active</p>
-          <p className="text-[10px] text-emerald-600">You'll be notified at each scheduled time</p>
+          <p className="text-[10px] text-emerald-600">You&apos;ll be notified at each scheduled time</p>
         </div>
       </div>
       <button onClick={handleDisable} className="text-[11px] text-emerald-600 hover:text-emerald-800 font-medium">

@@ -88,6 +88,38 @@ function getScoreLabel(score: number): string {
   return "Needs Attention";
 }
 
+function TwinAtmosphere() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="twin-os-grid absolute inset-0" />
+      <div className="twin-os-orb absolute -top-32 left-[54%] h-[30rem] w-[30rem] rounded-full bg-cyan-400/10 blur-3xl" />
+      <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-cyan-400/[0.045] to-transparent" />
+    </div>
+  );
+}
+
+function TwinOsStyles() {
+  return (
+    <style jsx global>{`
+      .twin-os-shell { background: #060b16; color: #e2e8f0; }
+      .twin-os-grid {
+        opacity: 0.38;
+        background-image: linear-gradient(rgba(56, 189, 248, 0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.055) 1px, transparent 1px);
+        background-size: 34px 34px;
+        mask-image: linear-gradient(to bottom, black, transparent 72%);
+      }
+      .twin-os-header { background: rgba(6, 11, 22, 0.76); border-color: rgba(148, 163, 184, 0.14); }
+      .twin-os-panel { background: linear-gradient(145deg, rgba(15, 23, 42, 0.93), rgba(8, 15, 29, 0.9)); border-color: rgba(148, 163, 184, 0.15); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22); }
+      .twin-os-stage { background: radial-gradient(circle at 50% 30%, rgba(34, 211, 238, 0.16), transparent 33%), linear-gradient(145deg, rgba(14, 28, 50, 0.93), rgba(7, 14, 28, 0.95)); border-color: rgba(103, 232, 249, 0.16); box-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 26px 80px rgba(8, 145, 178, 0.1); }
+      .twin-os-orb { animation: twin-os-drift 15s ease-in-out infinite; }
+      .twin-os-live { animation: twin-os-pulse 2.2s ease-in-out infinite; }
+      @keyframes twin-os-drift { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(-1.25rem, 1rem, 0) scale(1.08); } }
+      @keyframes twin-os-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.4); } 50% { box-shadow: 0 0 0 6px rgba(45, 212, 191, 0); } }
+      @media (prefers-reduced-motion: reduce) { .twin-os-orb, .twin-os-live { animation: none; } }
+    `}</style>
+  );
+}
+
 export default function DigitalTwinPage() {
   const router = useRouter();
   const [summary, setSummary] = useState<FaceScanSummary | null>(null);
@@ -113,8 +145,10 @@ export default function DigitalTwinPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950">
-        <header className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-20">
+      <div className="twin-os-shell relative isolate min-h-screen overflow-hidden">
+        <TwinAtmosphere />
+        <TwinOsStyles />
+        <header className="twin-os-header backdrop-blur-xl border-b sticky top-0 z-20">
           <div className="max-w-4xl mx-auto px-5 sm:px-8 py-3.5 flex items-center gap-3">
             <div className="w-5 h-5 bg-slate-800 rounded animate-pulse" />
             <div className="w-9 h-9 bg-slate-800 rounded-xl animate-pulse" />
@@ -124,8 +158,8 @@ export default function DigitalTwinPage() {
             </div>
           </div>
         </header>
-        <main className="max-w-4xl mx-auto px-5 sm:px-8 py-8">
-          <div className="bg-slate-900 rounded-3xl p-8 animate-pulse border border-slate-800">
+        <main className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 py-8">
+          <div className="twin-os-panel rounded-3xl p-8 animate-pulse border">
             <div className="h-[300px] bg-slate-800 rounded-2xl" />
           </div>
         </main>
@@ -134,9 +168,11 @@ export default function DigitalTwinPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950">
+    <div className="twin-os-shell relative isolate min-h-screen overflow-hidden">
+      <TwinAtmosphere />
+      <TwinOsStyles />
       {/* Header */}
-      <header className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-20">
+      <header className="twin-os-header backdrop-blur-xl border-b sticky top-0 z-20">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 py-3.5 flex items-center gap-3">
           <button
             onClick={() => router.push("/face-scan")}
@@ -156,7 +192,7 @@ export default function DigitalTwinPage() {
               />
             </svg>
           </button>
-          <div className="w-9 h-9 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm shadow-cyan-500/20">
+          <div className="w-9 h-9 bg-gradient-to-br from-cyan-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <svg
               className="w-5 h-5 text-white"
               fill="none"
@@ -173,22 +209,26 @@ export default function DigitalTwinPage() {
           </div>
           <div className="flex-1">
             <h1 className="text-base font-bold text-slate-100">
-              Digital Twin
+              Digital Twin Lab
             </h1>
             <p className="text-[10px] text-slate-500 font-medium">
-              Interactive body health map
+              Interactive wellness signal map
             </p>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-teal-300/15 bg-teal-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-teal-200">
+            <span className="twin-os-live h-1.5 w-1.5 rounded-full bg-teal-300" />
+            Interactive
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-5 sm:px-8 py-8 space-y-6">
+      <main className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 py-8 space-y-6">
         {error && (
-          <div className="px-4 py-3 bg-red-950/50 text-red-400 text-sm rounded-xl border border-red-900/50 flex items-center justify-between">
+          <div className="px-4 py-3 bg-rose-500/10 text-rose-200 text-sm rounded-xl border border-rose-300/15 flex items-center justify-between">
             <span>{error}</span>
             <button
               onClick={() => setError(null)}
-              className="text-xs font-medium text-red-500 hover:text-red-300"
+              className="text-xs font-medium text-rose-300 hover:text-white"
             >
               Dismiss
             </button>
@@ -197,8 +237,8 @@ export default function DigitalTwinPage() {
 
         {/* No scans state */}
         {!latestScan && !error && (
-          <div className="bg-slate-900 rounded-3xl p-10 text-center border border-slate-800">
-            <div className="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-5">
+          <div className="twin-os-panel rounded-3xl p-10 text-center border">
+            <div className="w-20 h-20 bg-cyan-400/10 border border-cyan-300/15 rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-cyan-950/20">
               <svg
                 className="w-10 h-10 text-cyan-400"
                 fill="none"
@@ -213,8 +253,9 @@ export default function DigitalTwinPage() {
                 />
               </svg>
             </div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-300/80">Twin offline</p>
             <h3 className="text-lg font-bold text-slate-100 mb-2">
-              Activate Your Digital Twin
+              Activate your digital twin
             </h3>
             <p className="text-sm text-slate-400 max-w-xs mx-auto mb-6">
               Take your first face scan to bring your digital body map to life.
@@ -222,7 +263,7 @@ export default function DigitalTwinPage() {
             </p>
             <button
               onClick={() => router.push("/face-scan")}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:from-cyan-600 hover:to-blue-700 transition-all shadow-lg shadow-cyan-500/20"
+              className="bg-gradient-to-r from-cyan-300 to-teal-300 text-slate-950 px-6 py-3 rounded-2xl text-sm font-bold hover:from-cyan-200 hover:to-teal-200 transition-all shadow-lg shadow-cyan-950/30"
             >
               Take Your First Scan
             </button>
@@ -232,29 +273,33 @@ export default function DigitalTwinPage() {
         {/* Digital Twin visualization */}
         {latestScan && (
           <>
-            <div className="flex justify-center">
-              <div className="w-full max-w-sm">
-                <DigitalTwin
-                  hairHealth={latestScan.hair_health_score}
-                  skinQuality={latestScan.skin_quality_score}
-                  stressLevel={latestScan.stress_level_score}
-                  sleepQuality={latestScan.sleep_quality_score}
-                  onZoneTap={(zone) => setSelectedZone(zone as ZoneId)}
-                  size="full"
-                />
+            <div className="twin-os-stage relative overflow-hidden rounded-3xl border p-3 sm:p-5">
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: "radial-gradient(circle at 50% 35%, rgba(103,232,249,0.22) 0, transparent 1px)", backgroundSize: "18px 18px", maskImage: "radial-gradient(circle at center, black, transparent 72%)" }} />
+              <div className="relative flex justify-center">
+                <div className="w-full max-w-sm">
+                  <DigitalTwin
+                    hairHealth={latestScan.hair_health_score}
+                    skinQuality={latestScan.skin_quality_score}
+                    stressLevel={latestScan.stress_level_score}
+                    sleepQuality={latestScan.sleep_quality_score}
+                    onZoneTap={(zone) => setSelectedZone(zone as ZoneId)}
+                    size="full"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Instruction hint */}
             {!selectedZone && (
-              <p className="text-center text-xs text-slate-500 animate-pulse">
-                Tap a zone on the body map to see details
+              <p className="mx-auto flex w-fit items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1.5 text-center text-xs text-slate-400">
+                <span className="twin-os-live h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                Select a zone to inspect its signal
               </p>
             )}
 
             {/* Detail panel */}
             {detail && (
-              <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-lg">
+              <div className="twin-os-panel rounded-3xl p-6 border">
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -317,8 +362,8 @@ export default function DigitalTwinPage() {
                 {/* Observations */}
                 {detail.observations.length > 0 && (
                   <div className="mb-4">
-                    <h4 className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                      Observations
+                    <h4 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.16em] mb-2">
+                      Observed signals
                     </h4>
                     <div className="space-y-1.5">
                       {detail.observations.map((obs, i) => (
@@ -334,14 +379,14 @@ export default function DigitalTwinPage() {
                 {/* Tips */}
                 {detail.tips.length > 0 && (
                   <div className="mb-4">
-                    <h4 className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                      AI Recommendations
+                    <h4 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.16em] mb-2">
+                      Suggested care moves
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {detail.tips.map((tip, i) => (
                         <div
                           key={i}
-                          className="bg-slate-800/60 rounded-xl p-3 border border-slate-700/50"
+                          className="bg-slate-950/35 rounded-xl p-3 border border-slate-700/50"
                         >
                           <p className="text-xs text-slate-300">{tip}</p>
                         </div>
@@ -369,7 +414,7 @@ export default function DigitalTwinPage() {
 
             {/* Overall summary card */}
             {analysis && (
-              <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl p-5 border border-slate-700/50">
+              <div className="twin-os-panel rounded-2xl p-5 border">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-6 h-6 bg-cyan-500/20 rounded-lg flex items-center justify-center">
                     <svg
@@ -387,7 +432,7 @@ export default function DigitalTwinPage() {
                     </svg>
                   </div>
                   <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                    Overall Assessment
+                    Overall signal readout
                   </h4>
                 </div>
                 <p className="text-sm text-slate-400 leading-relaxed">

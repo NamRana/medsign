@@ -6,6 +6,7 @@ import { apiFetch, getImageBlobUrl } from "@/lib/api";
 import ProfileSwitcher from "@/components/ProfileSwitcher";
 import ShareReport from "@/components/ShareReport";
 import { useFamily } from "@/lib/family-context";
+import BrandLogo from "@/components/BrandLogo";
 
 interface HistoryItem {
   id: string;
@@ -107,6 +108,10 @@ function formatDate(dateStr: string) {
   });
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 function RiskBadge({ level }: { level: string | null }) {
   if (!level) return null;
   const styles: Record<string, string> = {
@@ -137,7 +142,6 @@ function HistoryContent() {
   const [selectedDetail, setSelectedDetail] = useState<HistoryDetail | null>(null);
   const [doctorSummary, setDoctorSummary] = useState<DoctorSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("");
@@ -158,12 +162,11 @@ function HistoryContent() {
       if (riskFilter) path += `&risk_level=${riskFilter}`;
       const data = await apiFetch<HistoryItem[]>(path);
       setItems(data);
-    } catch (err: any) { setError(err.message); }
+    } catch (err: unknown) { setError(getErrorMessage(err, "Could not load assessment history.")); }
     finally { setIsLoading(false); }
   }
 
   async function handleSelectItem(id: string) {
-    setIsLoadingDetail(true);
     setDoctorSummary(null);
     setShareUrl(null);
     try {
@@ -177,8 +180,7 @@ function HistoryContent() {
         }));
         setImageUrls(urls);
       }
-    } catch (err: any) { setError(err.message); }
-    finally { setIsLoadingDetail(false); }
+    } catch (err: unknown) { setError(getErrorMessage(err, "Could not load assessment details.")); }
   }
 
   async function handleGenerateSummary() {
@@ -187,7 +189,7 @@ function HistoryContent() {
     try {
       const summary = await apiFetch<DoctorSummary>(`/api/v1/history/${selectedDetail.id}/summary`);
       setDoctorSummary(summary);
-    } catch (err: any) { setError(err.message); }
+    } catch (err: unknown) { setError(getErrorMessage(err, "Could not generate the clinical summary.")); }
     finally { setIsLoadingSummary(false); }
   }
 
@@ -196,7 +198,7 @@ function HistoryContent() {
     try {
       const resp = await apiFetch<{ share_url: string; expires_at: string }>(`/api/v1/history/${selectedDetail.id}/share?hours=48`, { method: "POST" });
       setShareUrl(resp.share_url);
-    } catch (err: any) { setError(err.message); }
+    } catch (err: unknown) { setError(getErrorMessage(err, "Could not create a share link.")); }
   }
 
   async function handleDelete(id: string) {
@@ -205,7 +207,7 @@ function HistoryContent() {
       await apiFetch(`/api/v1/history/${id}`, { method: "DELETE" });
       setSelectedDetail(null);
       await loadHistory();
-    } catch (err: any) { setError(err.message); }
+    } catch (err: unknown) { setError(getErrorMessage(err, "Could not delete this assessment.")); }
   }
 
   function handleSearch(e: React.FormEvent) { e.preventDefault(); loadHistory(); }
@@ -215,32 +217,34 @@ function HistoryContent() {
   // Detail view
   if (selectedDetail) {
     return (
-      <div className="min-h-screen warm-bg">
+      <div className="care-os care-grid min-h-screen">
         <style>{`
           @keyframes hsFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
           .hs-fade-1 { animation: hsFadeUp 0.5s ease-out both; }
           .hs-fade-2 { animation: hsFadeUp 0.5s ease-out 0.08s both; }
           .hs-fade-3 { animation: hsFadeUp 0.5s ease-out 0.16s both; }
         `}</style>
-        <header className="bg-gradient-to-r from-emerald-600 to-teal-600 sticky top-0 z-10">
+        <header className="care-hero relative sticky top-0 z-20 border-b border-white/10">
           <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3">
             <button onClick={() => setSelectedDetail(null)} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
+            <BrandLogo iconClassName="w-9 h-9" showWordmark={false} />
             <div className="flex-1">
+              <p className="care-eyebrow mb-1">Care archive / verified record</p>
               <p className="text-sm font-bold text-white">{selectedDetail.chief_complaint || "Assessment"}</p>
-              <p className="text-[11px] text-white/60">{formatDate(selectedDetail.messages[0]?.created_at || "")}</p>
+              <p className="text-[11px] text-teal-100/60">{formatDate(selectedDetail.messages[0]?.created_at || "")}</p>
             </div>
             <RiskBadge level={selectedDetail.risk_level} />
           </div>
         </header>
 
-        <main className="max-w-3xl mx-auto px-5 sm:px-8 py-8 space-y-6">
+        <main className="care-content max-w-3xl mx-auto px-5 sm:px-8 py-8 space-y-6">
           <div className="hs-fade-1 flex gap-2 flex-wrap">
-            <button onClick={handleGenerateSummary} disabled={isLoadingSummary} className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-md shadow-emerald-200/40">
+            <button onClick={handleGenerateSummary} disabled={isLoadingSummary} className="care-button px-5 py-2.5 text-sm font-bold rounded-xl disabled:opacity-50 transition-all">
               {isLoadingSummary ? "Generating..." : "Doctor Summary"}
             </button>
-            <button onClick={handleShare} className="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors shadow-sm">
+            <button onClick={handleShare} className="care-panel px-4 py-2 text-slate-700 text-sm font-medium rounded-xl hover:border-teal-300 hover:bg-teal-50/30 transition-colors">
               Share with Doctor
             </button>
             <button onClick={() => handleDelete(selectedDetail.id)} className="px-4 py-2 text-red-600 text-sm font-medium rounded-xl border border-red-200 hover:bg-red-50 transition-colors ml-auto">
@@ -258,15 +262,15 @@ function HistoryContent() {
           })()}
 
           {shareUrl && (
-            <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
+            <div className="care-panel border-teal-100 rounded-xl px-4 py-3">
               <p className="text-xs text-emerald-700 font-medium mb-1">Shareable link (48h):</p>
               <code className="text-xs text-emerald-800 break-all">{window.location.origin}{shareUrl}</code>
             </div>
           )}
 
           {doctorSummary && (
-            <div className="warm-card rounded-3xl p-7 space-y-5 shadow-md shadow-gray-100/40">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2">Clinical Summary</h3>
+            <div className="care-panel rounded-3xl p-7 space-y-5">
+              <h3 className="text-sm font-bold care-section-title uppercase tracking-wide border-b border-teal-50 pb-2">Clinical Summary</h3>
               {doctorSummary.chief_complaint && <div><p className="text-[11px] font-semibold text-gray-400 uppercase">Chief Complaint</p><p className="text-sm text-gray-800 mt-0.5">{doctorSummary.chief_complaint}</p></div>}
               {doctorSummary.history_of_present_illness && <div><p className="text-[11px] font-semibold text-gray-400 uppercase">History of Present Illness</p><p className="text-sm text-gray-800 mt-0.5">{doctorSummary.history_of_present_illness}</p></div>}
               {doctorSummary.symptoms.length > 0 && <div><p className="text-[11px] font-semibold text-gray-400 uppercase">Symptoms</p><ul className="list-disc list-inside text-sm text-gray-800 mt-0.5">{doctorSummary.symptoms.map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
@@ -285,12 +289,13 @@ function HistoryContent() {
             </div>
           )}
 
-          <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Conversation ({selectedDetail.messages.length} messages)</h3>
+          <div className="care-panel rounded-3xl p-6">
+            <p className="care-eyebrow !text-teal-700 mb-1">Care conversation</p>
+            <h3 className="text-sm font-semibold care-section-title mb-3">Conversation ({selectedDetail.messages.length} messages)</h3>
             <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
               {selectedDetail.messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${msg.role === "user" ? "bg-emerald-50 text-emerald-900 border border-emerald-100" : "bg-gray-50 text-gray-800 border border-gray-100"}`}>
+                  <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${msg.role === "user" ? "bg-teal-50 text-teal-900 border border-teal-100" : "bg-white/70 text-slate-800 border border-slate-100"}`}>
                     <span className="whitespace-pre-wrap">{msg.content}</span>
                   </div>
                 </div>
@@ -299,7 +304,7 @@ function HistoryContent() {
           </div>
 
           {selectedDetail.images && selectedDetail.images.length > 0 && (
-            <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
+            <div className="care-panel rounded-3xl p-6">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 Image Analyses ({selectedDetail.images.length})
@@ -376,7 +381,7 @@ function HistoryContent() {
           )}
 
           {selectedDetail.lab_reports && selectedDetail.lab_reports.length > 0 && (
-            <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
+            <div className="care-panel rounded-3xl p-6">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 Lab Reports ({selectedDetail.lab_reports.length})
@@ -477,7 +482,7 @@ function HistoryContent() {
           )}
 
           {selectedDetail.assessment && (
-            <div className="warm-card rounded-3xl p-6 shadow-md shadow-gray-100/40 hover:shadow-lg transition-shadow">
+            <div className="care-panel rounded-3xl p-6">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Assessment Result</h3>
               <div className="space-y-2">
                 <div className="flex items-center gap-2"><span className="text-xs text-gray-500">Risk Level:</span><RiskBadge level={selectedDetail.assessment.risk_level} /></div>
@@ -493,25 +498,25 @@ function HistoryContent() {
 
   // List view
   return (
-    <div className="min-h-screen warm-bg">
+    <div className="care-os care-grid min-h-screen">
       <style>{`
         @keyframes hsFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .hs-fade-1 { animation: hsFadeUp 0.5s ease-out both; }
         .hs-fade-2 { animation: hsFadeUp 0.5s ease-out 0.08s both; }
         .hs-fade-3 { animation: hsFadeUp 0.5s ease-out 0.16s both; }
       `}</style>
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #059669 0%, #0D9488 40%, #0891B2 100%)" }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 25% 75%, white 1px, transparent 1px), radial-gradient(circle at 75% 25%, white 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full -translate-y-1/3 translate-x-1/4" />
+      <header className="care-hero relative border-b border-white/10">
         <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button onClick={() => router.push("/dashboard")} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
+              <BrandLogo iconClassName="w-11 h-11" showWordmark={false} />
               <div>
+                <p className="care-eyebrow mb-1">Care OS / Longitudinal record</p>
                 <h1 className="text-xl sm:text-2xl font-bold text-white">Assessment History</h1>
-                <p className="text-sm text-white/60 mt-0.5">Past conversations and results</p>
+                <p className="text-sm text-teal-100/60 mt-0.5">Your past conversations, signals, and decisions.</p>
               </div>
             </div>
             <ProfileSwitcher />
@@ -519,19 +524,19 @@ function HistoryContent() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-5 sm:px-8 py-8 space-y-6">
-        <form onSubmit={handleSearch} className="hs-fade-1 flex gap-2">
+      <main className="care-content max-w-3xl mx-auto px-5 sm:px-8 py-8 space-y-6">
+        <form onSubmit={handleSearch} className="hs-fade-1 care-panel rounded-2xl p-2 flex flex-wrap sm:flex-nowrap gap-2">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by complaint..."
-            className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+            className="min-w-[12rem] flex-1 rounded-xl border border-teal-100 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
           />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+            className="flex-1 sm:flex-none rounded-xl border border-teal-100 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
           >
             <option value="">All status</option>
             <option value="active">In Progress</option>
@@ -540,7 +545,7 @@ function HistoryContent() {
           <select
             value={riskFilter}
             onChange={(e) => setRiskFilter(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+            className="flex-1 sm:flex-none rounded-xl border border-teal-100 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
           >
             <option value="">All risks</option>
             <option value="low">Low</option>
@@ -548,7 +553,7 @@ function HistoryContent() {
             <option value="high">High</option>
             <option value="critical">Critical</option>
           </select>
-          <button type="submit" className="px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-200/40">
+          <button type="submit" className="care-button px-4 py-2.5 text-sm font-bold rounded-xl transition-all">
             Search
           </button>
         </form>
@@ -571,7 +576,7 @@ function HistoryContent() {
         )}
 
         {!isLoading && filteredItems.length === 0 && (
-          <div className="text-center py-10 warm-card rounded-2xl">
+          <div className="text-center py-10 care-panel rounded-2xl">
             <p className="text-sm text-gray-500">No assessments found.</p>
           </div>
         )}
@@ -582,7 +587,7 @@ function HistoryContent() {
               <button
                 key={item.id}
                 onClick={() => handleSelectItem(item.id)}
-                className="w-full text-left warm-card rounded-2xl px-5 py-4 hover:border-emerald-200 hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-sm"
+                className="care-module w-full text-left rounded-2xl px-5 py-4 hover:-translate-y-0.5"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex-1 min-w-0">

@@ -26,6 +26,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import ProfileSwitcher from "@/components/ProfileSwitcher";
 import { useFamily } from "@/lib/family-context";
+import BrandLogo from "@/components/BrandLogo";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -140,12 +141,6 @@ const RISK_COLORS: Record<string, string> = {
 };
 
 const PIE_COLORS = ["#10B981", "#F59E0B", "#EF4444", "#7C3AED"];
-
-const SYSTEM_COLORS: Record<string, string> = {
-  improving: "#10B981",
-  stable: "#6366F1",
-  declining: "#EF4444",
-};
 
 // ── Body System Bubbles (Orbital Nucleus) ───────────────────────────────────
 
@@ -485,9 +480,7 @@ function LifeExpectancyGauge({ data }: { data: LifeExpectancy }) {
       <div className="absolute bottom-0 left-0 w-28 h-28 bg-purple-400/10 rounded-full translate-y-1/3 -translate-x-1/4" />
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-300/50">
-            <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-          </div>
+          <BrandLogo iconClassName="w-9 h-9" showWordmark={false} />
           <div>
             <h3 className="text-sm font-bold text-indigo-900">Life Expectancy Estimate</h3>
             <p className="text-[11px] text-indigo-500">Based on your health data analysis</p>
@@ -600,20 +593,34 @@ export default function InsightsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
+    let isCurrent = true;
+    queueMicrotask(() => {
+      if (!isCurrent) return;
+      setLoading(true);
+      setError(null);
+    });
     const mp = memberParam ? `?${memberParam}` : "";
     apiFetch<HealthInsights>(`/api/v1/insights${mp}`)
-      .then(setInsights)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (isCurrent) setInsights(data);
+      })
+      .catch((err: unknown) => {
+        if (isCurrent) setError(err instanceof Error ? err.message : "Could not load health insights.");
+      })
+      .finally(() => {
+        if (isCurrent) setLoading(false);
+      });
+    return () => {
+      isCurrent = false;
+    };
   }, [activeMember, memberParam]);
 
   if (loading) {
     return (
-      <div className="min-h-screen warm-bg flex items-center justify-center">
+      <div className="care-os care-grid min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-14 h-14 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto" />
-          <p className="mt-5 text-sm text-gray-500 font-medium">Analyzing your health data...</p>
+          <div className="w-14 h-14 border-4 border-teal-100 border-t-teal-600 rounded-full animate-spin mx-auto" />
+          <p className="mt-5 text-sm text-slate-600 font-medium">Mapping your health signals...</p>
           <p className="mt-1 text-xs text-gray-300">This may take a moment</p>
         </div>
       </div>
@@ -622,13 +629,13 @@ export default function InsightsPage() {
 
   if (error || !insights) {
     return (
-      <div className="min-h-screen warm-bg flex items-center justify-center p-4">
-        <div className="text-center max-w-sm bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+      <div className="care-os care-grid min-h-screen flex items-center justify-center p-4">
+        <div className="care-panel text-center max-w-sm rounded-3xl p-8">
           <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
           </div>
           <p className="text-sm font-semibold text-gray-800">{error || "Failed to load insights"}</p>
-          <button onClick={() => router.push("/dashboard")} className="mt-4 text-sm text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+          <button onClick={() => router.push("/dashboard")} className="mt-4 text-sm text-teal-700 font-semibold hover:text-teal-800 transition-colors">
             ← Back to Dashboard
           </button>
         </div>
@@ -647,7 +654,7 @@ export default function InsightsPage() {
   }));
 
   return (
-    <div className="min-h-screen warm-bg">
+    <div className="care-os care-grid min-h-screen">
       <style>{`
         @keyframes insFadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
         .ins-fade-1 { animation: insFadeUp 0.5s ease-out both; }
@@ -661,26 +668,23 @@ export default function InsightsPage() {
       `}</style>
 
       {/* ─── Hero Header ─────────────────────────────────────────────────── */}
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 40%, #8B5CF6 100%)" }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 25% 75%, white 1px, transparent 1px), radial-gradient(circle at 75% 25%, white 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-white/[0.04] rounded-full -translate-y-1/3 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/[0.04] rounded-full translate-y-1/3 -translate-x-1/4" />
+      <header className="care-hero relative border-b border-white/10">
         <div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button onClick={() => router.push("/dashboard")} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
+              <BrandLogo iconClassName="w-11 h-11" showWordmark={false} />
               <div>
+                <p className="care-eyebrow mb-1">Care OS / intelligence layer</p>
                 <h1 className="text-xl sm:text-2xl font-bold text-white">Health Insights</h1>
-                <p className="text-sm text-white/60 mt-0.5">Comprehensive analytics powered by AI</p>
+                <p className="text-sm text-teal-100/60 mt-0.5">A connected view of your health signals and trends.</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <ProfileSwitcher />
-              <span className="text-xs bg-white/15 text-white/90 px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border border-white/10">
-                AI-Powered
-              </span>
+              <span className="care-live hidden sm:inline-flex"><span className="care-live-dot" />live intelligence</span>
             </div>
           </div>
 
@@ -694,7 +698,7 @@ export default function InsightsPage() {
               { val: insights.total_face_scans, label: "Face Scans", color: "from-pink-500/20 to-pink-500/5", href: "/face-scan" },
               { val: insights.total_abnormal_values, label: "Abnormal", color: "from-red-500/20 to-red-500/5", href: "/reports" },
             ].map((s) => (
-              <button key={s.label} onClick={() => router.push(s.href)} className={`bg-gradient-to-br ${s.color} backdrop-blur-sm rounded-2xl p-3.5 border border-white/10 text-center hover:border-white/30 hover:scale-[1.04] active:scale-100 transition-all cursor-pointer`}>
+              <button key={s.label} onClick={() => router.push(s.href)} className={`bg-gradient-to-br ${s.color} backdrop-blur-sm rounded-2xl p-3.5 border border-white/10 text-center hover:border-teal-100/45 hover:scale-[1.04] active:scale-100 transition-all cursor-pointer`}>
                 <p className="text-2xl sm:text-3xl font-black text-white">{s.val}</p>
                 <p className="text-[10px] text-white/60 font-semibold mt-0.5">{s.label}</p>
               </button>
@@ -703,15 +707,13 @@ export default function InsightsPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-7">
+      <main className="care-content max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-7">
 
         {/* ─── Body Systems Health Nucleus — Hero ─────────────────────────── */}
-        <div className="ins-fade-1 warm-card rounded-3xl p-6 sm:p-8 shadow-lg shadow-gray-200/40 hover:shadow-xl transition-shadow">
+        <div className="ins-fade-1 care-panel rounded-3xl p-6 sm:p-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200/50">
-                <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-              </div>
+              <BrandLogo iconClassName="w-9 h-9" showWordmark={false} />
               <div>
                 <h3 className="text-sm font-bold text-gray-900">Body Systems Health Map</h3>
                 <p className="text-[11px] text-gray-400">Interactive visualization of your body systems</p>
@@ -758,7 +760,7 @@ export default function InsightsPage() {
 
         {/* ─── Face Scan Progress ─────────────────────────────────────────── */}
         {insights.total_face_scans > 0 && (
-          <div className="ins-fade-2 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+          <div className="ins-fade-2 care-panel rounded-3xl p-6 sm:p-7">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center shadow-md shadow-pink-200/50">
@@ -840,7 +842,7 @@ export default function InsightsPage() {
         {/* ─── Risk Distribution + Radar ─────────────────────────────────── */}
         <div className="ins-fade-2 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Risk Distribution Pie */}
-          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+          <div className="care-panel rounded-3xl p-6 sm:p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-amber-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -875,7 +877,7 @@ export default function InsightsPage() {
           </div>
 
           {/* Body Systems Radar */}
-          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+          <div className="care-panel rounded-3xl p-6 sm:p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-violet-500 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
@@ -901,7 +903,7 @@ export default function InsightsPage() {
         </div>
 
         {/* ─── Monthly Activity ──────────────────────────────────────────── */}
-        <div className="ins-fade-3 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+        <div className="ins-fade-3 care-panel rounded-3xl p-6 sm:p-7">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-md shadow-emerald-200/50">
               <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
@@ -938,7 +940,7 @@ export default function InsightsPage() {
         {/* ─── Conditions + Timeline ─────────────────────────────────────── */}
         <div className="ins-fade-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Conditions Chart */}
-          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+          <div className="care-panel rounded-3xl p-6 sm:p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center shadow-md shadow-purple-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
@@ -969,7 +971,7 @@ export default function InsightsPage() {
           </div>
 
           {/* Health Timeline */}
-          <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+          <div className="care-panel rounded-3xl p-6 sm:p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-md shadow-blue-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -989,7 +991,7 @@ export default function InsightsPage() {
 
         {/* ─── Lab Trends ────────────────────────────────────────────────── */}
         {insights.lab_trends.length > 0 && (
-          <div className="ins-fade-5 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+          <div className="ins-fade-5 care-panel rounded-3xl p-6 sm:p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-rose-400 to-red-500 rounded-xl flex items-center justify-center shadow-md shadow-rose-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
@@ -1042,7 +1044,7 @@ export default function InsightsPage() {
 
         {/* ─── Risk Factors ──────────────────────────────────────────────── */}
         {insights.risk_factors.length > 0 && (
-          <div className="ins-fade-6 warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+          <div className="ins-fade-6 care-panel rounded-3xl p-6 sm:p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-gradient-to-br from-red-400 to-rose-500 rounded-xl flex items-center justify-center shadow-md shadow-red-200/50">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -1074,7 +1076,7 @@ export default function InsightsPage() {
         {(insights.doctors.length > 0 || insights.labs.length > 0) && (
           <div className="ins-fade-7 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Doctors */}
-            <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+            <div className="care-panel rounded-3xl p-6 sm:p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-9 h-9 bg-gradient-to-br from-sky-400 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-sky-200/50">
                   <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -1117,7 +1119,7 @@ export default function InsightsPage() {
             </div>
 
             {/* Labs */}
-            <div className="warm-card rounded-3xl p-6 sm:p-7 shadow-md shadow-gray-100/60 hover:shadow-lg transition-shadow">
+            <div className="care-panel rounded-3xl p-6 sm:p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-9 h-9 bg-gradient-to-br from-violet-400 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-violet-200/50">
                   <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>

@@ -93,20 +93,7 @@ export default function FamilyPage() {
   const [formBloodGroup, setFormBloodGroup] = useState("");
   const [formColor, setFormColor] = useState("blue");
 
-  useEffect(() => { loadMembers(); }, []);
-
-  async function loadMembers() {
-    try {
-      const data = await apiFetch<FamilyMember[]>("/api/v1/family");
-      setMembers(data);
-      loadAllScores(data);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Could not load family members.";
-      setError(msg);
-    } finally { setIsLoading(false); }
-  }
-
-  async function loadAllScores(membersList: FamilyMember[]) {
+  const loadAllScores = useCallback(async (membersList: FamilyMember[]) => {
     const results: Record<string, number | null> = {};
     await Promise.all(
       membersList.map(async (m) => {
@@ -120,7 +107,23 @@ export default function FamilyPage() {
       })
     );
     setScores(results);
-  }
+  }, []);
+
+  const loadMembers = useCallback(async () => {
+    try {
+      const data = await apiFetch<FamilyMember[]>("/api/v1/family");
+      setMembers(data);
+      void loadAllScores(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Could not load family members.";
+      setError(msg);
+    } finally { setIsLoading(false); }
+  }, [loadAllScores]);
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => { void loadMembers(); }, 0);
+    return () => window.clearTimeout(loadTimer);
+  }, [loadMembers]);
 
   const loadProfile = useCallback(async (member: FamilyMember) => {
     setProfile(p => ({ ...p, loading: true }));
@@ -224,18 +227,36 @@ export default function FamilyPage() {
   }
 
   return (
-    <div className="min-h-screen warm-bg">
+    <div className="min-h-screen care-os care-grid care-family-page">
       <style>{`
-        @keyframes fmFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        .fm-fade-1 { animation: fmFadeUp 0.5s ease-out both; }
-        .profile-panel { animation: slideUp 0.35s ease-out both; }
+        @keyframes careFamilyRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes careFamilyPanel { from { opacity: 0; transform: translateY(22px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .care-family-page .fm-fade-1 { animation: careFamilyRise .5s ease-out both; }
+        .care-family-page .profile-panel { animation: careFamilyPanel .38s cubic-bezier(.16,1,.3,1) both; }
+        .care-family-page .care-family-header { min-height: 158px; }
+        .care-family-page .care-family-header::after { right: -7rem; top: -15rem; }
+        .care-family-page .care-family-card,
+        .care-family-page .care-family-empty,
+        .care-family-page .care-family-profile {
+          background: rgba(255,255,255,.78); border: 1px solid rgba(207,231,230,.92);
+          box-shadow: 0 16px 42px rgba(8,47,73,.08); backdrop-filter: blur(18px) saturate(1.08);
+        }
+        .care-family-page .care-family-card:hover { border-color: rgba(45,212,191,.68); box-shadow: 0 24px 48px rgba(8,47,73,.12); }
+        .care-family-page .care-family-card-selected { border-color: rgba(20,184,166,.72); box-shadow: 0 0 0 2px rgba(45,212,191,.14), 0 24px 48px rgba(8,47,73,.12); }
+        .care-family-page .care-family-empty { border-style: dashed; }
+        .care-family-page .care-family-add { border-color: rgba(45,212,191,.34); background: rgba(255,255,255,.46); }
+        .care-family-page .care-family-add:hover { border-color: rgba(45,212,191,.85); background: rgba(240,253,250,.72); box-shadow: 0 18px 36px rgba(8,47,73,.09); }
+        .care-family-page .care-family-modal { background: rgba(248,253,252,.97); border: 1px solid rgba(207,231,230,.92); }
+        .care-family-page .care-family-modal input:focus,
+        .care-family-page .care-family-modal select:focus { border-color: #2dd4bf; box-shadow: 0 0 0 3px rgba(45,212,191,.14); }
+        .care-family-page .care-family-action { background: rgba(248,253,252,.78); border: 1px solid rgba(207,231,230,.82); }
+        .care-family-page .care-family-action:hover { border-color: rgba(45,212,191,.65); background: #fff; transform: translateY(-2px); box-shadow: 0 12px 24px rgba(8,47,73,.08); }
+        @media (max-width: 640px) { .care-family-page .care-family-status { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .care-family-page .fm-fade-1, .care-family-page .profile-panel { animation: none; } }
       `}</style>
 
       {/* Header */}
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #7C3AED 0%, #6366F1 40%, #4F46E5 100%)" }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 25% 75%, white 1px, transparent 1px), radial-gradient(circle at 75% 25%, white 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full -translate-y-1/3 translate-x-1/4" />
+      <header className="care-hero care-family-header relative overflow-hidden">
         <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -243,19 +264,23 @@ export default function FamilyPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white">Family Health</h1>
-                <p className="text-sm text-white/60 mt-0.5">Manage your family&apos;s health profiles</p>
+                <p className="care-eyebrow mb-1">Family care network</p>
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Family Health Network</h1>
+                <p className="text-sm text-white/65 mt-0.5">A shared view of the people you care for.</p>
               </div>
             </div>
-            <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-white px-4 py-2.5 rounded-xl hover:bg-purple-50 transition-all shadow-lg">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Add Member
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="care-live care-family-status"><span className="care-live-dot" />Profiles connected</span>
+              <button onClick={() => { resetForm(); setShowForm(true); }} className="care-button flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                Add Member
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-5 sm:px-8 py-8">
+      <main className="care-content max-w-4xl mx-auto px-5 sm:px-8 py-8">
         {error && (
           <div className="mb-6 px-4 py-3 bg-red-50 text-red-600 text-sm rounded-2xl border border-red-100 flex items-center justify-between">
             <span>{error}</span>
@@ -266,7 +291,7 @@ export default function FamilyPage() {
         {/* Add/Edit Form Modal */}
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="care-family-modal rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-gray-900">{editingId ? "Edit Member" : "Add Family Member"}</h2>
                 <button onClick={resetForm} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
@@ -376,7 +401,7 @@ export default function FamilyPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 animate-pulse border border-gray-100">
+              <div key={i} className="care-family-card rounded-2xl p-6 animate-pulse">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-full" />
                   <div><div className="h-4 bg-gray-100 rounded-lg w-24 mb-2" /><div className="h-3 bg-gray-50 rounded-lg w-16" /></div>
@@ -385,7 +410,7 @@ export default function FamilyPage() {
             ))}
           </div>
         ) : members.length === 0 ? (
-          <div className="fm-fade-1 bg-white rounded-3xl p-14 shadow-md shadow-gray-100/40 text-center border border-gray-100">
+          <div className="care-family-empty fm-fade-1 rounded-3xl p-14 text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
               <span className="text-4xl">👨‍👩‍👧‍👦</span>
             </div>
@@ -395,7 +420,7 @@ export default function FamilyPage() {
             </p>
             <button
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:from-purple-600 hover:to-indigo-700 transition-all shadow-lg shadow-purple-200/50"
+              className="care-button px-6 py-3 rounded-2xl text-sm font-bold transition-all"
             >
               Add First Member
             </button>
@@ -415,10 +440,10 @@ export default function FamilyPage() {
                   <div
                     key={member.id}
                     onClick={() => openMemberProfile(member)}
-                    className={`group bg-white rounded-3xl p-6 border shadow-md shadow-gray-100/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer ${
+                    className={`care-family-card group rounded-3xl p-6 border hover:-translate-y-1 transition-all duration-200 cursor-pointer ${
                       isSelected
-                        ? "border-purple-400 ring-2 ring-purple-200 shadow-purple-100/60"
-                        : "border-gray-100 hover:border-purple-200"
+                        ? "care-family-card-selected"
+                        : "border-gray-100"
                     }`}
                   >
                     {/* Top: Avatar + Info + Score */}
@@ -487,7 +512,7 @@ export default function FamilyPage() {
                           🎂 {new Date(member.date_of_birth).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                         </span>
                       )}
-                      <span className={`ml-auto text-[11px] font-semibold ${isSelected ? "text-purple-500" : "text-gray-300 group-hover:text-purple-400"} transition-colors`}>
+                      <span className={`ml-auto text-[11px] font-semibold ${isSelected ? "text-teal-600" : "text-gray-300 group-hover:text-teal-600"} transition-colors`}>
                         View Profile &rarr;
                       </span>
                     </div>
@@ -498,14 +523,14 @@ export default function FamilyPage() {
               {/* Add new card */}
               <button
                 onClick={() => { resetForm(); setShowForm(true); }}
-                className="flex flex-col items-center justify-center gap-3 p-10 rounded-3xl border-2 border-dashed border-gray-200 hover:border-purple-300 hover:bg-purple-50/30 hover:shadow-lg transition-all group min-h-[140px]"
+                className="care-family-add flex flex-col items-center justify-center gap-3 p-10 rounded-3xl border-2 border-dashed transition-all group min-h-[140px]"
               >
-                <div className="w-12 h-12 bg-gray-100 group-hover:bg-purple-100 rounded-2xl flex items-center justify-center transition-colors">
-                  <svg className="w-6 h-6 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="care-module-icon w-12 h-12 rounded-2xl flex items-center justify-center transition-colors">
+                  <svg className="w-6 h-6 text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 </div>
-                <span className="text-sm font-medium text-gray-400 group-hover:text-purple-600 transition-colors">Add Member</span>
+                <span className="text-sm font-medium text-slate-500 group-hover:text-teal-700 transition-colors">Add Member</span>
               </button>
             </div>
 
@@ -516,7 +541,7 @@ export default function FamilyPage() {
                   const m = selectedMember;
                   const colors = AVATAR_COLORS[m.avatar_color] || AVATAR_COLORS.emerald;
                   return (
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-lg shadow-gray-100/60 overflow-hidden">
+                    <div className="care-family-profile rounded-3xl overflow-hidden">
                       {/* Profile Header */}
                       <div className={`bg-gradient-to-r ${colors.gradient} p-6 relative`}>
                         <button
@@ -605,28 +630,28 @@ export default function FamilyPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           <button
                             onClick={() => navigateAs(m, "/chat")}
-                            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md shadow-purple-200/40"
+                            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700 transition-all shadow-md shadow-teal-200/40"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                             <span className="text-[11px] font-semibold">Assessment</span>
                           </button>
                           <button
                             onClick={() => navigateAs(m, "/insights")}
-                            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                            className="care-family-action flex flex-col items-center gap-2 p-4 rounded-2xl transition-all"
                           >
                             <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                             <span className="text-[11px] font-semibold text-gray-700">Insights</span>
                           </button>
                           <button
                             onClick={() => navigateAs(m, "/history")}
-                            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                            className="care-family-action flex flex-col items-center gap-2 p-4 rounded-2xl transition-all"
                           >
                             <svg className="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <span className="text-[11px] font-semibold text-gray-700">History</span>
                           </button>
                           <button
                             onClick={() => navigateAs(m, "/dashboard")}
-                            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                            className="care-family-action flex flex-col items-center gap-2 p-4 rounded-2xl transition-all"
                           >
                             <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                             <span className="text-[11px] font-semibold text-gray-700">Dashboard</span>

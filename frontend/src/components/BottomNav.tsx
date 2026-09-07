@@ -181,17 +181,16 @@ export default function BottomNav() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (!authed) return null;
+  if (!authed || pathname === "/") return null;
   if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) {
     return null;
   }
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[40] bg-white border-t border-gray-200 sm:hidden"
+      className="care-bottom-nav fixed bottom-0 left-0 right-0 z-[40] sm:hidden"
       style={{
         paddingBottom: "env(safe-area-inset-bottom)",
-        boxShadow: "0 -1px 6px rgba(0, 0, 0, 0.06)",
       }}
     >
       <div className="flex items-end justify-around h-[60px]">
@@ -211,8 +210,8 @@ export default function BottomNav() {
                 <span
                   className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors duration-200 ${
                     active
-                      ? "bg-purple-600 text-white shadow-lg shadow-purple-200"
-                      : "bg-purple-100 text-purple-600"
+                      ? "care-nav-center text-white"
+                      : "care-nav-center care-nav-center-idle"
                   }`}
                 >
                   <TabIcon tab={tab} active={active} />
@@ -220,8 +219,8 @@ export default function BottomNav() {
                 <span
                   className={`mt-0.5 transition-colors duration-200 ${
                     active
-                      ? "text-purple-600 font-bold"
-                      : "text-gray-400 font-normal"
+                      ? "care-nav-label-active font-bold"
+                      : "care-nav-label-idle font-normal"
                   }`}
                   style={{ fontSize: "10px", lineHeight: "14px" }}
                 >
@@ -242,7 +241,7 @@ export default function BottomNav() {
             >
               <span
                 className={`transition-colors duration-200 ${
-                  active ? "text-emerald-600" : "text-gray-400"
+                    active ? "text-teal-700" : "text-slate-400"
                 }`}
               >
                 <TabIcon tab={tab} active={active} />
@@ -250,8 +249,8 @@ export default function BottomNav() {
               <span
                 className={`mt-0.5 transition-colors duration-200 ${
                   active
-                    ? "text-emerald-600 font-bold"
-                    : "text-gray-400 font-normal"
+                    ? "care-nav-label-active font-bold"
+                    : "care-nav-label-idle font-normal"
                 }`}
                 style={{ fontSize: "10px", lineHeight: "14px" }}
               >

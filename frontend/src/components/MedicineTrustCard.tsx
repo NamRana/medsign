@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { apiFetch } from "@/lib/api";
 
 interface SafetyCheck {
@@ -139,9 +139,20 @@ function parseFrequencyFromCard(card: TrustCardData): { frequency: string; times
 function AddToTrackerButton({ card, memberId }: { card: TrustCardData; memberId?: string }) {
   const [added, setAdded] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function startConfirmation() {
+    setError(null);
+    setReviewConfirmed(false);
+    setConfirming(true);
+  }
 
   async function handleAdd() {
+    if (!reviewConfirmed) return;
     setAdding(true);
+    setError(null);
     try {
       const parsed = parseFrequencyFromCard(card);
       const body: Record<string, unknown> = {
@@ -158,7 +169,7 @@ function AddToTrackerButton({ card, memberId }: { card: TrustCardData; memberId?
       await apiFetch("/api/v1/medicines", { method: "POST", body: JSON.stringify(body) });
       setAdded(true);
     } catch {
-      // silently fail — user can add manually
+      setError("Could not save this medicine. You can add it manually from Medicines.");
     } finally {
       setAdding(false);
     }
@@ -170,22 +181,61 @@ function AddToTrackerButton({ card, memberId }: { card: TrustCardData; memberId?
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
         </svg>
-        Added to Tracker
+        Saved for review
       </span>
     );
   }
 
   return (
-    <button
-      onClick={handleAdd}
-      disabled={adding}
-      className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-purple-600 hover:text-purple-800 bg-purple-50 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-all disabled:opacity-50"
-    >
-      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-      </svg>
-      {adding ? "Adding..." : "Add to Tracker"}
-    </button>
+    <div className="flex flex-col items-end gap-2">
+      {confirming ? (
+        <div className="w-64 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left shadow-sm" role="alert">
+          <p className="text-[11px] font-semibold text-amber-900">Confirm medication record</p>
+          <p className="mt-1 text-[10px] leading-relaxed text-amber-800">
+            Only save this if it matches advice from a licensed clinician or pharmacist. Saving a record does not prescribe, authorize, or validate a medicine.
+          </p>
+          <label className="mt-2.5 flex cursor-pointer items-start gap-1.5 text-[10px] leading-relaxed text-amber-900">
+            <input
+              type="checkbox"
+              checked={reviewConfirmed}
+              onChange={(event) => setReviewConfirmed(event.target.checked)}
+              className="mt-0.5 h-3.5 w-3.5 rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+            />
+            <span>I confirm this matches existing clinician or pharmacist guidance.</span>
+          </label>
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              disabled={adding}
+              className="rounded-lg px-2 py-1 text-[10px] font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={!reviewConfirmed || adding}
+              className="rounded-lg bg-amber-700 px-2.5 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {adding ? "Saving..." : "Save confirmed"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={startConfirmation}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-purple-50 px-3 py-1.5 text-[11px] font-semibold text-purple-700 transition-all hover:bg-purple-100 hover:text-purple-900"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Save for review
+        </button>
+      )}
+      {error && <p className="max-w-64 text-right text-[10px] text-red-600">{error}</p>}
+    </div>
   );
 }
 
@@ -198,14 +248,20 @@ export default function MedicineTrustCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const status = STATUS_STYLES[card.safety_status];
+  const detailsId = useId();
 
   return (
     <div className={`rounded-2xl border ${status.border} bg-gradient-to-br ${status.bg} overflow-hidden shadow-md ${status.glow} transition-all hover:shadow-lg`}>
       {/* Header */}
-      <div
-        className="px-4 py-3.5 cursor-pointer"
-        onClick={() => setExpanded(!expanded)}
-      >
+      <div className="relative px-4 py-3.5">
+        <button
+          type="button"
+          onClick={() => setExpanded((current) => !current)}
+          aria-expanded={expanded}
+          aria-controls={detailsId}
+          aria-label={`${expanded ? "Collapse" : "Expand"} medication details for ${card.medicine_name}`}
+          className="absolute inset-0 z-10 cursor-pointer rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-purple-500"
+        />
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             {/* Verified badge */}
@@ -252,7 +308,7 @@ export default function MedicineTrustCard({
         </div>
 
         {/* Safety check strip — always visible */}
-        <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {card.safety_checks.map((check, i) => (
             <span
               key={i}
@@ -270,7 +326,7 @@ export default function MedicineTrustCard({
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-black/5 px-4 py-4 space-y-4 bg-white/40">
+        <div id={detailsId} className="space-y-4 border-t border-black/5 bg-white/40 px-4 py-4">
           {/* Safety checks detail */}
           <div>
             <h4 className="text-[11px] font-bold text-gray-700 uppercase tracking-wide mb-2">Safety Verification</h4>
@@ -294,7 +350,7 @@ export default function MedicineTrustCard({
           {/* Evidence & reasoning */}
           {card.evidence.guidelines && (
             <div>
-              <h4 className="text-[11px] font-bold text-gray-700 uppercase tracking-wide mb-2">Why This Medicine</h4>
+              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-700">Evidence context</h4>
               <div className="bg-white/60 rounded-xl p-3 border border-white/80">
                 <p className="text-xs text-gray-700 leading-relaxed">{card.evidence.guidelines}</p>
                 {card.evidence.source && card.evidence.source !== "unknown" && (
@@ -355,9 +411,9 @@ export default function MedicineTrustCard({
           )}
 
           {/* Add to tracker */}
-          <div className="pt-2 border-t border-black/5 flex items-center justify-between">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-t border-black/5 pt-2">
             <span className="text-[10px] text-gray-400">
-              {card.verified ? "✓ Verified in medical database" : "⚠ Not found in database — verify with pharmacist"}
+              {card.verified ? "Database match found — confirm suitability with a clinician or pharmacist" : "No database match — verify with a pharmacist"}
             </span>
             <AddToTrackerButton card={card} memberId={memberId} />
           </div>
@@ -385,8 +441,8 @@ export function MedicineTrustCards({
           </svg>
         </div>
         <div>
-          <p className="text-xs font-bold text-gray-800">Medicine Safety Report</p>
-          <p className="text-[10px] text-gray-400">Each medicine verified against your profile</p>
+          <p className="text-xs font-bold text-gray-800">Medication context &amp; safety checks</p>
+          <p className="text-[10px] text-gray-400">Use this information with clinician or pharmacist guidance</p>
         </div>
       </div>
       {cards.map((card, i) => (

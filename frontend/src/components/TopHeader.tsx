@@ -2,10 +2,25 @@
 
 import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import type { Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase";
 import NotificationBell from "@/components/NotificationBell";
+import BrandLogo from "@/components/BrandLogo";
 
 const HIDDEN_PATHS = ["/login", "/signup", "/auth"];
+const SELF_HEADED_PATHS = [
+  "/chat",
+  "/insights",
+  "/history",
+  "/reports",
+  "/family",
+  "/medicines",
+  "/settings",
+  "/pricing",
+  "/face-scan",
+  "/avatar",
+  "/admin",
+];
 
 interface UserInfo {
   name: string;
@@ -23,7 +38,7 @@ export default function TopHeader() {
   // Fetch user session
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }: { data: { session: { user: { user_metadata: Record<string, string>; email?: string } } | null } }) => {
+    function syncUser(session: Session | null) {
       if (session?.user) {
         const meta = session.user.user_metadata;
         setUser({
@@ -31,8 +46,18 @@ export default function TopHeader() {
           email: session.user.email || "",
           avatarUrl: meta?.avatar_url || null,
         });
+      } else {
+        setUser(null);
       }
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
+      syncUser(session);
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
+      syncUser(session);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   // Close dropdown on outside click
@@ -49,8 +74,8 @@ export default function TopHeader() {
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, []);
 
-  if (!user) return null;
-  if (HIDDEN_PATHS.some((p) => pathname.startsWith(p))) {
+  if (!user || pathname === "/") return null;
+  if (HIDDEN_PATHS.some((p) => pathname.startsWith(p)) || SELF_HEADED_PATHS.some((p) => pathname.startsWith(p))) {
     return null;
   }
 
@@ -75,28 +100,15 @@ export default function TopHeader() {
     : "U";
 
   return (
-    <header
-      className="warm-header sticky top-0 z-30 pt-[env(safe-area-inset-top)]"
-    >
-      <div className="flex items-center justify-between h-14 px-4">
+    <header className="care-top-header sticky top-0 z-30 pt-[env(safe-area-inset-top)]">
+      <div className="max-w-[1440px] mx-auto flex items-center justify-between h-14 px-4">
         {/* Left: Logo */}
         <button
           onClick={() => navigateTo("/dashboard")}
           className="flex items-center gap-2 active:scale-95 transition-transform"
         >
-          {/* Heart icon */}
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-sm">
-            <svg
-              className="w-4.5 h-4.5 text-white"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35z" />
-            </svg>
-          </div>
-          <span className="text-base font-bold text-gray-900 hidden min-[360px]:inline">
-            MedSign
-          </span>
+          <BrandLogo iconClassName="w-8 h-8" wordmarkClassName="text-base hidden min-[360px]:inline" compact />
+          <span className="care-header-status hidden md:inline-flex">Care OS</span>
         </button>
 
         {/* Right: Notification bell + Avatar */}
@@ -113,10 +125,10 @@ export default function TopHeader() {
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-emerald-300 transition-all"
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-teal-300 transition-all"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-transparent hover:ring-emerald-300 transition-all">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 via-cyan-600 to-blue-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-transparent hover:ring-teal-300 transition-all">
                   {initials}
                 </div>
               )}
@@ -125,10 +137,8 @@ export default function TopHeader() {
             {/* Dropdown menu */}
             {dropdownOpen && (
               <div
-                className="absolute top-full right-0 mt-2 w-[220px] rounded-2xl shadow-2xl shadow-black/15 overflow-hidden"
+                className="care-header-dropdown absolute top-full right-0 mt-2 w-[220px] rounded-2xl shadow-2xl shadow-black/15 overflow-hidden"
                 style={{
-                  background: "#fff",
-                  border: "1px solid rgba(0,0,0,0.06)",
                   animation: "headerDropdownIn 0.18s ease-out both",
                 }}
               >

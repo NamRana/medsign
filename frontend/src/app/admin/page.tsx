@@ -190,14 +190,14 @@ export default function AdminPage() {
         router.replace("/dashboard");
       }
     });
-  }, []);
+  }, [router]);
 
   async function loadDashboard() {
     try {
       const data = await apiFetch<Dashboard>("/api/v1/admin/dashboard");
       setDashboard(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load dashboard");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load dashboard");
     } finally {
       setIsLoading(false);
     }
@@ -214,24 +214,20 @@ export default function AdminPage() {
 
   if (!authorized || isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="flex gap-1">
-          <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "-0.3s" }} />
-          <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "-0.15s" }} />
-          <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce" />
-        </div>
+      <div className="care-route-loader">
+        <div className="care-route-loader-orbit" />
       </div>
     );
   }
 
   if (error || !dashboard) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-xl text-center max-w-sm">
+      <div className="care-route-loader">
+        <div className="warm-card p-6 rounded-2xl text-center max-w-sm">
           <p className="text-red-600 text-sm">{error || "Failed to load"}</p>
           <button
             onClick={() => { setIsLoading(true); setError(null); loadDashboard(); }}
-            className="mt-3 text-sm text-blue-600 font-medium"
+            className="mt-3 text-sm text-teal-700 font-semibold"
           >
             Retry
           </button>
@@ -241,9 +237,9 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="care-admin-shell">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
+      <header className="care-admin-header sticky top-0 z-10 border-b">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -254,34 +250,34 @@ export default function AdminPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center ring-1 ring-teal-100">
+              <svg className="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-gray-900">Admin Dashboard</h1>
-              <p className="text-[11px] text-gray-400">System overview & management</p>
+              <p className="care-eyebrow !text-teal-700">Clinical operations</p>
+              <h1 className="text-sm font-semibold text-gray-900">Admin Command Center</h1>
             </div>
           </div>
-          <span className="text-xs bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-medium border border-purple-200">
-            Admin
+          <span className="care-header-status">
+            Admin live
           </span>
         </div>
       </header>
 
       {/* Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-4">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit border border-teal-100/80">
           {(["overview", "reviews", "safety"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${
                 activeTab === tab
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "care-admin-tab-active"
+                  : "text-gray-500 hover:text-teal-700"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}

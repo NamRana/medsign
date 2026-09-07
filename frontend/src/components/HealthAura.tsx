@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 interface HealthAuraProps {
   score: number;
   children?: React.ReactNode;
@@ -45,19 +43,16 @@ function getAuraColors(score: number) {
 }
 
 const PARTICLE_COUNT = 7;
+const PARTICLES = Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+  id: i,
+  size: 3 + (i % 3) * 0.8,
+  delay: i * (4 / PARTICLE_COUNT),
+  startAngle: (360 / PARTICLE_COUNT) * i + (i % 2) * 12,
+  distance: 62 + (i % 4) * 8,
+}));
 
 export default function HealthAura({ score, children }: HealthAuraProps) {
-  const colors = useMemo(() => getAuraColors(score), [score]);
-
-  const particles = useMemo(() => {
-    return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
-      id: i,
-      size: 3 + Math.random() * 2,
-      delay: i * (4 / PARTICLE_COUNT),
-      startAngle: (360 / PARTICLE_COUNT) * i + Math.random() * 20,
-      distance: 60 + Math.random() * 30,
-    }));
-  }, []);
+  const colors = getAuraColors(score);
 
   return (
     <div className="relative w-48 h-48 sm:w-48 sm:h-48 flex items-center justify-center" style={{ overflow: "visible" }}>
@@ -154,7 +149,7 @@ export default function HealthAura({ score, children }: HealthAuraProps) {
       />
 
       {/* Floating particles */}
-      {particles.map((p) => {
+      {PARTICLES.map((p) => {
         const rad = (p.startAngle * Math.PI) / 180;
         const dx = Math.cos(rad) * p.distance;
         const dy = Math.sin(rad) * p.distance;

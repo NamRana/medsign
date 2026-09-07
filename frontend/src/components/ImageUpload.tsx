@@ -21,12 +21,20 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<UploadState>("idle");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [consentAcknowledged, setConsentAcknowledged] = useState(false);
 
   function handleButtonClick() {
     if (disabled || !conversationId) return;
+    setConsentAcknowledged(false);
+    setConsentOpen(true);
+  }
+
+  function confirmImageConsent() {
+    if (!consentAcknowledged) return;
+    setConsentOpen(false);
     fileInputRef.current?.click();
   }
 
@@ -51,7 +59,6 @@ export default function ImageUpload({
       return;
     }
 
-    setSelectedFile(file);
     const preview = URL.createObjectURL(file);
     setPreviewUrl(preview);
     setState("uploading");
@@ -72,7 +79,6 @@ export default function ImageUpload({
 
   function reset() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(null);
     setPreviewUrl(null);
     setErrorMessage(null);
     setState("idle");
@@ -91,6 +97,48 @@ export default function ImageUpload({
         aria-hidden="true"
       />
 
+      {consentOpen && (
+        <div
+          className="absolute bottom-14 left-0 z-50 w-72 rounded-2xl border border-cyan-100 bg-white p-4 shadow-xl"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="image-upload-consent-title"
+        >
+          <p id="image-upload-consent-title" className="text-sm font-semibold text-slate-900">
+            Before you share an image
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+            Confirm that you have permission to share this image. It may contain sensitive health information, and AI analysis provides context only—it does not replace a clinician&apos;s assessment.
+          </p>
+          <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-relaxed text-slate-700">
+            <input
+              type="checkbox"
+              checked={consentAcknowledged}
+              onChange={(event) => setConsentAcknowledged(event.target.checked)}
+              className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+            />
+            <span>I understand and want to choose an image.</span>
+          </label>
+          <div className="mt-4 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setConsentOpen(false)}
+              className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmImageConsent}
+              disabled={!consentAcknowledged}
+              className="rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Choose image
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Camera button */}
       <button
         type="button"
@@ -98,6 +146,8 @@ export default function ImageUpload({
         disabled={disabled || !conversationId}
         className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl text-gray-500 hover:text-blue-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         aria-label="Upload image"
+        aria-haspopup="dialog"
+        aria-expanded={consentOpen}
         title={!conversationId ? "Send a message first to start a conversation" : "Upload image"}
       >
         <CameraIcon />

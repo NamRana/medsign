@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getLabReports, getLabReport, deleteLabReport, uploadLabReport, type LabReport, type LabReportListItem } from "@/lib/api";
 import LabReportView from "@/components/LabReportView";
+import BrandLogo from "@/components/BrandLogo";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
@@ -51,57 +52,62 @@ export default function ReportsPage() {
 
   if (selectedReport) {
     return (
-      <div className="min-h-screen warm-bg">
-        <header className="bg-gradient-to-r from-amber-600 to-orange-600 sticky top-0 z-10">
+      <div className="care-os care-grid min-h-screen">
+        <header className="care-hero relative sticky top-0 z-20 border-b border-white/10">
           <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3">
             <button onClick={() => setSelectedReport(null)} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
+            <BrandLogo iconClassName="w-9 h-9" showWordmark={false} />
             <div className="flex-1">
+              <p className="text-[10px] font-bold tracking-[0.16em] uppercase text-teal-100/60">Clinical signal</p>
               <p className="text-sm font-bold text-white">Report Details</p>
-              <p className="text-[11px] text-white/60">{selectedReport.original_filename}</p>
+              <p className="text-[11px] text-white/60 truncate max-w-[12rem] sm:max-w-sm">{selectedReport.original_filename}</p>
             </div>
-            <button onClick={() => handleDelete(selectedReport.id)} className="text-xs text-white/80 hover:text-white font-semibold px-3 py-1.5 rounded-xl border border-white/20 hover:bg-white/10 transition-colors">
+            <button onClick={() => handleDelete(selectedReport.id)} className="text-xs text-rose-100 hover:text-white font-semibold px-3 py-1.5 rounded-xl border border-rose-200/30 hover:bg-rose-400/20 transition-colors">
               Delete
             </button>
           </div>
         </header>
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8">
-          <LabReportView report={selectedReport} />
+        <div className="care-content max-w-3xl mx-auto px-5 sm:px-8 py-8">
+          <div className="care-panel rounded-3xl p-1 sm:p-2">
+            <LabReportView report={selectedReport} />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen warm-bg">
+    <div className="care-os care-grid min-h-screen">
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes rpFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .rp-fade-1 { animation: rpFadeUp 0.5s ease-out both; }
         .rp-fade-2 { animation: rpFadeUp 0.5s ease-out 0.08s both; }
         .rp-fade-3 { animation: rpFadeUp 0.5s ease-out 0.16s both; }
       ` }} />
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #D97706 0%, #EA580C 40%, #DC2626 100%)" }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 25% 75%, white 1px, transparent 1px), radial-gradient(circle at 75% 25%, white 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full -translate-y-1/3 translate-x-1/4" />
+      <header className="care-hero relative border-b border-white/10">
         <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push("/dashboard")} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
+            <BrandLogo iconClassName="w-11 h-11" showWordmark={false} />
             <div>
+              <p className="care-eyebrow mb-1">Care OS / Document Intelligence</p>
               <h1 className="text-xl sm:text-2xl font-bold text-white">Lab Reports</h1>
-              <p className="text-sm text-white/60 mt-0.5">Upload and analyze your medical reports</p>
+              <p className="text-sm text-teal-100/60 mt-0.5">Upload, extract, and track your clinical signals.</p>
             </div>
+            <div className="ml-auto hidden sm:flex care-live"><span className="care-live-dot" />secure vault</div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 space-y-6">
+      <div className="care-content max-w-3xl mx-auto px-5 sm:px-8 py-8 space-y-6">
         {/* Upload area */}
-        <div className="rp-fade-1 bg-white rounded-3xl border-2 border-dashed border-amber-200 p-10 text-center hover:border-amber-400 transition-all hover:shadow-lg bg-gradient-to-br from-amber-50/30 to-orange-50/30">
+        <div className="rp-fade-1 care-panel rounded-3xl border-teal-200 p-10 text-center hover:border-teal-400 transition-all hover:shadow-lg" style={{ borderStyle: "dashed", borderWidth: 2 }}>
           <input
             type="file"
             id="lab-upload"
@@ -113,19 +119,19 @@ export default function ReportsPage() {
           <label htmlFor="lab-upload" className={`cursor-pointer flex flex-col items-center gap-3 ${isUploading ? "opacity-50 cursor-wait" : ""}`}>
             {isUploading ? (
               <>
-                <div className="w-10 h-10 border-3 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
-                <p className="text-sm text-amber-600 font-medium">Processing report...</p>
+                <div className="w-10 h-10 border-3 border-teal-100 border-t-teal-600 rounded-full animate-spin" />
+                <p className="text-sm text-teal-700 font-medium">Extracting clinical signals...</p>
               </>
             ) : (
               <>
-                <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50 rounded-2xl flex items-center justify-center">
+                <div className="w-14 h-14 bg-gradient-to-br from-teal-400 to-cyan-500 shadow-lg shadow-teal-200/50 rounded-2xl flex items-center justify-center">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-700 font-medium">Upload a lab report</p>
-                  <p className="text-xs text-gray-400 mt-0.5">PDF or image (JPEG, PNG, WebP) up to 20 MB</p>
+                  <p className="text-sm text-slate-800 font-semibold">Upload a lab report</p>
+                  <p className="text-xs text-slate-400 mt-0.5">PDF or image (JPEG, PNG, WebP) up to 20 MB</p>
                 </div>
               </>
             )}
@@ -133,7 +139,7 @@ export default function ReportsPage() {
         </div>
 
         {error && (
-          <div className="px-4 py-2.5 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center justify-between">
+          <div className="care-panel px-4 py-2.5 text-red-600 text-sm rounded-xl border-red-100 flex items-center justify-between">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-xs font-medium text-red-400 hover:text-red-600">Dismiss</button>
           </div>
@@ -142,21 +148,21 @@ export default function ReportsPage() {
         {isLoading && (
           <div className="flex justify-center py-10">
             <div className="flex gap-1">
-              <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "-0.3s" }} />
-              <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "-0.15s" }} />
-              <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" />
+              <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: "-0.3s" }} />
+              <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: "-0.15s" }} />
+              <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" />
             </div>
           </div>
         )}
 
         {!isLoading && reports.length === 0 && (
-          <div className="rp-fade-2 text-center py-10 bg-white rounded-3xl shadow-md border border-gray-100">
-            <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="rp-fade-2 care-panel text-center py-10 rounded-3xl">
+            <div className="w-14 h-14 bg-gradient-to-br from-teal-100 to-sky-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <p className="text-sm text-gray-500">No lab reports yet. Upload one to get started.</p>
+            <p className="text-sm text-slate-500">No lab reports yet. Upload one to start your signal record.</p>
           </div>
         )}
 
@@ -166,11 +172,11 @@ export default function ReportsPage() {
               <button
                 key={report.id}
                 onClick={() => handleSelectReport(report.id)}
-                className="w-full text-left bg-white rounded-2xl px-5 py-4 border border-gray-100 hover:border-amber-200 hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-sm"
+                className="care-module w-full text-left rounded-2xl px-5 py-4 hover:-translate-y-0.5"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-amber-200/40 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="care-module-icon flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>

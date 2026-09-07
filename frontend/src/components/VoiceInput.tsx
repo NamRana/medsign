@@ -39,6 +39,19 @@ interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
+function preferredEnglishLocale(): string {
+  if (typeof navigator !== "undefined" && navigator.language.toLowerCase().startsWith("en")) {
+    return navigator.language;
+  }
+  return "en-US";
+}
+
+function supportsSpeechRecognition(): boolean {
+  if (typeof window === "undefined") return false;
+  const browserWindow = window as unknown as Record<string, unknown>;
+  return Boolean(browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition);
+}
+
 export default function VoiceInput({
   conversationId,
   onTranscriptionComplete,
@@ -50,23 +63,12 @@ export default function VoiceInput({
   const [state, setState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSupported, setIsSupported] = useState(true);
+  const [isSupported] = useState(supportsSpeechRecognition);
   const [liveTranscript, setLiveTranscript] = useState("");
 
   const recognitionRef = useRef<unknown>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const finalTranscriptRef = useRef("");
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      setIsSupported(false);
-      return;
-    }
-    const SR =
-      (window as unknown as Record<string, unknown>).SpeechRecognition ||
-      (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
-    if (!SR) setIsSupported(false);
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -92,7 +94,7 @@ export default function VoiceInput({
     const recognition = new (SR as any)();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = language === "hi" ? "hi-IN" : "en-IN";
+    recognition.lang = language === "hi" ? "hi-IN" : preferredEnglishLocale();
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = "";
@@ -185,7 +187,7 @@ export default function VoiceInput({
 
     setDuration(0);
     setLiveTranscript("");
-  }, [conversationId, onTranscriptionComplete, onRecordingStateChange, onEnsureConversation, liveTranscript]);
+  }, [conversationId, language, onTranscriptionComplete, onRecordingStateChange, onEnsureConversation, liveTranscript]);
 
   const handleClick = useCallback(() => {
     if (disabled) return;
