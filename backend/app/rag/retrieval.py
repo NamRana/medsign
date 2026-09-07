@@ -48,6 +48,21 @@ class RetrievedDrug:
 
 
 @dataclass
+class RetrievedHomeopathyRemedy:
+    generic_name: str
+    abbreviation: str | None
+    common_name: str | None
+    description: str | None
+    indications: list[str]
+    adult_dosage: str | None
+    organ_system_symptoms: dict
+    modalities: dict | None
+    relationships: str | None
+    source: str
+    similarity: float = 0.0
+
+
+@dataclass
 class RetrievedChunk:
     id: str
     document_id: str
@@ -61,6 +76,7 @@ class RetrievedChunk:
 class RetrievalResult:
     conditions: list[RetrievedCondition] = field(default_factory=list)
     drugs: list[RetrievedDrug] = field(default_factory=list)
+    homeopathy_remedies: list[RetrievedHomeopathyRemedy] = field(default_factory=list)
     chunks: list[RetrievedChunk] = field(default_factory=list)
     query_used: str = ""
 
@@ -188,6 +204,53 @@ async def retrieve_drugs(
     return results
 
 
+async def retrieve_homeopathy(
+    query: str,
+    top_k: int = 5,
+) -> list[RetrievedHomeopathyRemedy]:
+    """Find the most relevant homeopathy remedies using vector similarity."""
+    try:
+        query_embedding = await generate_embedding(query)
+    except Exception as exc:
+        logger.error("Failed to generate query embedding for homeopathy: %s", exc)
+        return []
+
+    try:
+        response = supabase.rpc(
+            "match_homeopathy",
+            {
+                "query_embedding": query_embedding,
+                "match_threshold": 0.3,
+                "match_count": top_k,
+            },
+        ).execute()
+    except Exception as exc:
+        logger.warning("Homeopathy vector search failed: %s", exc)
+        return []
+
+    if not response.data:
+        return []
+
+    results = []
+    for row in response.data:
+        results.append(
+            RetrievedHomeopathyRemedy(
+                generic_name=row["generic_name"],
+                abbreviation=row.get("abbreviation"),
+                common_name=row.get("common_name"),
+                description=row.get("description"),
+                indications=row.get("indications", []),
+                adult_dosage=row.get("adult_dosage"),
+                organ_system_symptoms=row.get("organ_system_symptoms", {}),
+                modalities=row.get("modalities"),
+                relationships=row.get("relationships"),
+                source=row.get("source", ""),
+                similarity=row.get("similarity", 0.0),
+            )
+        )
+    return results
+
+
 async def _keyword_search_conditions(query: str, top_k: int) -> list[RetrievedCondition]:
     """Fallback: search conditions by keyword matching on symptoms."""
     keywords = [w.lower().strip() for w in query.split() if len(w) > 3]
@@ -285,16 +348,24 @@ async def retrieve_for_patient(
     drug_count: int = 5,
     chunk_count: int = 5,
 ) -> RetrievalResult:
-    """Main retrieval entry point: find relevant conditions, drugs, and chunks for a patient."""
+    """Main retrieval entry point: find relevant conditions, drugs/remedies, and chunks for a patient."""
     query = _build_query_from_state(patient_state, latest_message)
 
     conditions = await retrieve_conditions(query, top_k=condition_count)
-    drugs = await retrieve_drugs(query, top_k=drug_count)
     chunks = await retrieve_chunks(query, top_k=chunk_count)
+
+    drugs: list[RetrievedDrug] = []
+    homeopathy_remedies: list[RetrievedHomeopathyRemedy] = []
+
+    if patient_state.medicine_system == "homeopathy":
+        homeopathy_remedies = await retrieve_homeopathy(query, top_k=drug_count)
+    else:
+        drugs = await retrieve_drugs(query, top_k=drug_count)
 
     return RetrievalResult(
         conditions=conditions,
         drugs=drugs,
+        homeopathy_remedies=homeopathy_remedies,
         chunks=chunks,
         query_used=query,
     )
@@ -302,7 +373,7 @@ async def retrieve_for_patient(
 
 def format_knowledge_for_prompt(result: RetrievalResult) -> str:
     """Format retrieved knowledge into a string suitable for the AI prompt."""
-    if not result.conditions and not result.drugs and not result.chunks:
+    if not result.conditions and not result.drugs and not result.homeopathy_remedies and not result.chunks:
         return ""
 
     sections = []
@@ -347,6 +418,29 @@ def format_knowledge_for_prompt(result: RetrievalResult) -> str:
             )
             if drug.contraindications:
                 sections.append(f"  Contraindications: {', '.join(drug.contraindications[:3])}")
+
+    if result.homeopathy_remedies:
+        sections.append("## Relevant Homeopathy Remedies\n")
+        sections.append("**Treatment system: Homeopathy (Boericke's Materia Medica)**\n")
+        for remedy in result.homeopathy_remedies:
+            common = f" ({remedy.common_name})" if remedy.common_name else ""
+            abbr = f" [{remedy.abbreviation}]" if remedy.abbreviation else ""
+            sections.append(f"### {remedy.generic_name}{common}{abbr}")
+            if remedy.description:
+                sections.append(f"- **Key indications**: {remedy.description[:300]}")
+            if remedy.indications:
+                sections.append(f"- **Organ systems**: {', '.join(remedy.indications[:6])}")
+            if remedy.adult_dosage:
+                sections.append(f"- **Potency/Dosage**: {remedy.adult_dosage}")
+            if remedy.modalities:
+                if remedy.modalities.get("better"):
+                    sections.append(f"- **Better from**: {', '.join(remedy.modalities['better'][:4])}")
+                if remedy.modalities.get("worse"):
+                    sections.append(f"- **Worse from**: {', '.join(remedy.modalities['worse'][:4])}")
+            if remedy.relationships:
+                sections.append(f"- **Relationships**: {remedy.relationships[:200]}")
+            sections.append(f"- **Source**: {remedy.source}")
+            sections.append("")
 
     if result.chunks:
         sections.append("\n## Retrieved Document Excerpts\n")

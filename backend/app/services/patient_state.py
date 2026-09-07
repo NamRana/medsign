@@ -75,6 +75,9 @@ class PatientState(BaseModel):
     current_medications: list[str] = Field(default_factory=list)
     family_history: list[str] = Field(default_factory=list)
 
+    # ── Treatment preference ────────────────────────────────────────────────
+    medicine_system: str = "allopathy"  # allopathy | homeopathy
+
     # ── Risk flags ───────────────────────────────────────────────────────────
     red_flags: list[str] = Field(default_factory=list)
     risk_level: str | None = None  # low | medium | high | critical
@@ -150,6 +153,7 @@ class PatientState(BaseModel):
             "allergies": self.allergies,
             "chronic_conditions": self.chronic_conditions,
             "current_medications": self.current_medications,
+            "medicine_system": self.medicine_system,
             "red_flags": self.red_flags,
             "risk_level": self.risk_level,
             "info_gaps": self.info_gaps,

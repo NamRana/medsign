@@ -122,3 +122,7 @@ class ExtractionResult(BaseModel):
             "(e.g. 'chest pain', 'difficulty breathing', 'sudden vision loss')."
         ),
     )
+    medicine_system: str | None = Field(
+        default=None,
+        description="Patient's preferred treatment system: 'allopathy' or 'homeopathy'.",
+    )

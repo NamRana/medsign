@@ -465,6 +465,12 @@ async def add_message(
 
             assistant_content = interviewer_response.next_question
 
+            # Pick up medicine_system from interviewer extracted_info
+            med_sys = interviewer_response.extracted_info.get("medicine_system")
+            if med_sys in ("allopathy", "homeopathy"):
+                patient_state.medicine_system = med_sys
+                _persist_patient_state(conversation_id, patient_state, current_metadata)
+
             # AI detected emergency — validate against safety engine
             if interviewer_response.is_emergency and interviewer_response.emergency_message:
                 assistant_content = interviewer_response.emergency_message

@@ -24,6 +24,7 @@ Extract:
 - current_medications
 - allergies
 - red_flags (any emergency symptoms like chest pain, difficulty breathing, etc.)
+- medicine_system: if the patient mentions a preference for "homeopathy"/"homeopathic" or "allopathy"/"allopathic"/"modern medicine", extract it as "homeopathy" or "allopathy". Leave null if not mentioned.
 
 Be conservative — only extract what is clearly stated. Do not infer or assume.
 If nothing relevant is mentioned for a field, leave it empty/null.
@@ -100,6 +101,9 @@ async def extract_from_message(
     for flag in result.red_flags:
         if flag not in patient_state.red_flags:
             patient_state.red_flags.append(flag)
+
+    if result.medicine_system and result.medicine_system in ("allopathy", "homeopathy"):
+        patient_state.medicine_system = result.medicine_system
 
     # Bump risk level if red flags found
     if result.red_flags and patient_state.risk_level not in ("critical",):

@@ -68,6 +68,29 @@ interface DrugSearchResult {
   total: number;
 }
 
+interface HomeopathyRemedy {
+  id: string;
+  generic_name: string;
+  abbreviation: string | null;
+  common_name: string | null;
+  description: string | null;
+  indications: string[];
+  adult_dosage: string | null;
+  frequency: string;
+  duration_typical: string | null;
+  route: string;
+  organ_system_symptoms: Record<string, string>;
+  modalities: { better: string[]; worse: string[] } | null;
+  relationships: string | null;
+  otc: boolean;
+  source: string;
+}
+
+interface HomeopathySearchResult {
+  remedies: HomeopathyRemedy[];
+  total: number;
+}
+
 const FREQUENCIES = [
   { value: "once_daily", label: "Once daily", times: ["09:00"] },
   { value: "twice_daily", label: "Twice daily", times: ["08:00", "20:00"] },
@@ -113,7 +136,7 @@ export default function MedicinesPage() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"today" | "all" | "reference">("today");
+  const [activeTab, setActiveTab] = useState<"today" | "all" | "reference" | "homeopathy">("today");
   const [drugResults, setDrugResults] = useState<DrugReference[]>([]);
   const [drugSearch, setDrugSearch] = useState("");
   const [drugSearching, setDrugSearching] = useState(false);
@@ -121,6 +144,13 @@ export default function MedicinesPage() {
   const [selectedDrug, setSelectedDrug] = useState<DrugReference | null>(null);
   const [drugCategories, setDrugCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [homeoResults, setHomeoResults] = useState<HomeopathyRemedy[]>([]);
+  const [homeoSearch, setHomeoSearch] = useState("");
+  const [homeoSearching, setHomeoSearching] = useState(false);
+  const [homeoTotal, setHomeoTotal] = useState(0);
+  const [selectedRemedy, setSelectedRemedy] = useState<HomeopathyRemedy | null>(null);
+  const [homeoIndications, setHomeoIndications] = useState<string[]>([]);
+  const [selectedIndication, setSelectedIndication] = useState<string>("");
 
   // Form state
   const [formName, setFormName] = useState("");
@@ -170,10 +200,38 @@ export default function MedicinesPage() {
     } catch { /* ignore */ }
   }
 
+  async function searchHomeopathy(query?: string, indication?: string) {
+    setHomeoSearching(true);
+    try {
+      const params = new URLSearchParams();
+      if (query) params.set("q", query);
+      if (indication) params.set("indication", indication);
+      params.set("limit", "50");
+      const data = await apiFetch<HomeopathySearchResult>(`/api/v1/homeopathy-reference?${params}`);
+      setHomeoResults(data.remedies);
+      setHomeoTotal(data.total);
+    } catch {
+      setHomeoResults([]);
+    } finally {
+      setHomeoSearching(false);
+    }
+  }
+
+  async function loadHomeoIndications() {
+    try {
+      const inds = await apiFetch<string[]>("/api/v1/homeopathy-reference/indications");
+      setHomeoIndications(inds);
+    } catch { /* ignore */ }
+  }
+
   useEffect(() => {
     if (activeTab === "reference" && drugResults.length === 0) {
       searchDrugs();
       loadDrugCategories();
+    }
+    if (activeTab === "homeopathy" && homeoResults.length === 0) {
+      searchHomeopathy();
+      loadHomeoIndications();
     }
   }, [activeTab]);
 
@@ -182,6 +240,12 @@ export default function MedicinesPage() {
     const timer = setTimeout(() => searchDrugs(drugSearch, selectedCategory), 300);
     return () => clearTimeout(timer);
   }, [drugSearch, selectedCategory]);
+
+  useEffect(() => {
+    if (activeTab !== "homeopathy") return;
+    const timer = setTimeout(() => searchHomeopathy(homeoSearch, selectedIndication), 300);
+    return () => clearTimeout(timer);
+  }, [homeoSearch, selectedIndication]);
 
   function resetForm() {
     setFormName(""); setFormDosage(""); setFormFrequency("twice_daily");
@@ -335,7 +399,13 @@ export default function MedicinesPage() {
             onClick={() => setActiveTab("reference")}
             className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "reference" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
           >
-            NFI Reference
+            Allopathy
+          </button>
+          <button
+            onClick={() => setActiveTab("homeopathy")}
+            className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${activeTab === "homeopathy" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Homeopathy
           </button>
         </div>
 
@@ -485,7 +555,7 @@ export default function MedicinesPage() {
               ))
             )}
           </div>
-        ) : (
+        ) : activeTab === "reference" ? (
           /* NFI Drug Reference */
           <div className="space-y-4">
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
@@ -607,7 +677,141 @@ export default function MedicinesPage() {
               )}
             </div>
           </div>
-        )}
+        ) : activeTab === "homeopathy" ? (
+          /* Homeopathy Reference */
+          <div className="space-y-4">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 text-xs text-purple-700">
+              Source: Boericke&apos;s Materia Medica. For educational purposes only — always consult a qualified homeopathic practitioner.
+            </div>
+
+            {/* Search and Filter */}
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={homeoSearch}
+                  onChange={(e) => setHomeoSearch(e.target.value)}
+                  placeholder="Search remedies by name..."
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                />
+              </div>
+              {homeoIndications.length > 0 && (
+                <select
+                  value={selectedIndication}
+                  onChange={(e) => setSelectedIndication(e.target.value)}
+                  className="px-3 py-3 rounded-xl border border-gray-200 text-xs text-gray-600 bg-white focus:border-purple-500 outline-none max-w-[180px]"
+                >
+                  <option value="">All Indications</option>
+                  {homeoIndications.map((ind) => (
+                    <option key={ind} value={ind}>{ind}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <p className="text-xs text-gray-400">
+              {homeoSearching ? "Searching..." : `${homeoTotal} remedies found`}
+            </p>
+
+            {/* Remedy list */}
+            <div className="space-y-2.5">
+              {homeoResults.map((remedy) => (
+                <button
+                  key={remedy.id}
+                  onClick={() => setSelectedRemedy(selectedRemedy?.id === remedy.id ? null : remedy)}
+                  className="w-full text-left bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden"
+                >
+                  <div className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-purple-50">
+                        <span className="text-lg">🌿</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900">{remedy.generic_name}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {remedy.abbreviation && <span className="text-[11px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{remedy.abbreviation}</span>}
+                          {remedy.common_name && <span className="text-[11px] text-gray-400">{remedy.common_name}</span>}
+                        </div>
+                      </div>
+                      <svg className={`w-4 h-4 text-gray-400 transition-transform ${selectedRemedy?.id === remedy.id ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Expanded detail */}
+                  {selectedRemedy?.id === remedy.id && (
+                    <div className="border-t border-gray-100 px-4 py-4 space-y-3 bg-gray-50/50" onClick={(e) => e.stopPropagation()}>
+                      {remedy.description && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</p>
+                          <p className="text-xs text-gray-700 leading-relaxed">{remedy.description.slice(0, 400)}{remedy.description.length > 400 ? "..." : ""}</p>
+                        </div>
+                      )}
+                      {remedy.indications.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Indications</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {remedy.indications.map((ind, i) => (
+                              <span key={i} className="text-xs text-purple-700 bg-purple-50 px-2 py-1 rounded-lg border border-purple-100">{ind}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {remedy.adult_dosage && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Potency / Dosage</p>
+                          <p className="text-xs text-gray-700">{remedy.adult_dosage}</p>
+                        </div>
+                      )}
+                      {remedy.organ_system_symptoms && Object.keys(remedy.organ_system_symptoms).length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Organ System Symptoms</p>
+                          <div className="space-y-1.5">
+                            {Object.entries(remedy.organ_system_symptoms).slice(0, 6).map(([system, symptom]) => (
+                              <div key={system} className="flex gap-2">
+                                <span className="text-[11px] font-semibold text-purple-600 min-w-[70px]">{system}:</span>
+                                <span className="text-xs text-gray-600">{String(symptom).slice(0, 150)}{String(symptom).length > 150 ? "..." : ""}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {remedy.modalities && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Modalities</p>
+                          <div className="space-y-1">
+                            {remedy.modalities.better && remedy.modalities.better.length > 0 && (
+                              <p className="text-xs"><span className="text-emerald-600 font-medium">Better:</span> <span className="text-gray-600">{remedy.modalities.better.join(", ")}</span></p>
+                            )}
+                            {remedy.modalities.worse && remedy.modalities.worse.length > 0 && (
+                              <p className="text-xs"><span className="text-red-600 font-medium">Worse:</span> <span className="text-gray-600">{remedy.modalities.worse.join(", ")}</span></p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {remedy.relationships && (
+                        <div>
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Relationships</p>
+                          <p className="text-xs text-gray-600">{remedy.relationships.slice(0, 300)}{remedy.relationships.length > 300 ? "..." : ""}</p>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-gray-400 pt-1">Source: {remedy.source}</p>
+                    </div>
+                  )}
+                </button>
+              ))}
+              {homeoResults.length === 0 && !homeoSearching && (
+                <div className="bg-white rounded-3xl p-10 text-center border border-gray-100">
+                  <p className="text-sm text-gray-400">{homeoSearch ? "No remedies match your search." : "No remedies in reference database."}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
         </div>
 
         {/* Add Medicine Modal */}

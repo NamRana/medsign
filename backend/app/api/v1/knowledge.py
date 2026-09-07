@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class IngestResponse(BaseModel):
     conditions_ingested: int
     drugs_ingested: int
+    homeopathy_ingested: int = 0
     message: str
 
 
@@ -45,7 +46,11 @@ async def ingest_knowledge(user=Depends(get_current_user)):
         return IngestResponse(
             conditions_ingested=result["conditions"],
             drugs_ingested=result["drugs"],
-            message=f"Successfully ingested {result['conditions']} conditions and {result['drugs']} drugs.",
+            homeopathy_ingested=result.get("homeopathy", 0),
+            message=(
+                f"Successfully ingested {result['conditions']} conditions, "
+                f"{result['drugs']} drugs, and {result.get('homeopathy', 0)} homeopathy remedies."
+            ),
         )
     except Exception as exc:
         logger.error("Ingestion failed: %s", exc)

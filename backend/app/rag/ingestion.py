@@ -152,6 +152,13 @@ async def ingest_drugs() -> int:
 
 async def ingest_all() -> dict[str, int]:
     """Run full ingestion pipeline."""
+    from app.rag.homeopathy_ingestion import ingest_homeopathy
+
     conditions_count = await ingest_conditions()
     drugs_count = await ingest_drugs()
-    return {"conditions": conditions_count, "drugs": drugs_count}
+    homeopathy_count = await ingest_homeopathy()
+    return {
+        "conditions": conditions_count,
+        "drugs": drugs_count,
+        "homeopathy": homeopathy_count,
+    }
