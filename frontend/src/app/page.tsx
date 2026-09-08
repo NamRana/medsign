@@ -25,8 +25,8 @@ const DEMO_MODES: DemoMode[] = [
     icon: "✦",
     prompt: "What changed today?",
     input: "Headache + mild fever since yesterday",
-    signal: "Guidance path ready",
-    summary: "Your concern is turned into a clear timeline, so the next questions are easier to answer.",
+    signal: "AI symptom assessment ready",
+    summary: "AI organizes your symptoms, surfaces possible conditions, and makes the next questions easier to answer.",
     nextStep: "Clarify duration, severity, and urgent warning signs.",
     score: 72,
   },
@@ -36,8 +36,8 @@ const DEMO_MODES: DemoMode[] = [
     icon: "⌁",
     prompt: "Make the numbers understandable",
     input: "CBC report · 3 values need context",
-    signal: "Report context organized",
-    summary: "Results are translated into plain language and collected with the questions worth taking to a clinician.",
+    signal: "AI report analysis ready",
+    summary: "AI flags values against report ranges, explains the context in plain language, and prepares questions for review.",
     nextStep: "Create a simple, doctor-ready discussion summary.",
     score: 84,
   },
@@ -47,8 +47,8 @@ const DEMO_MODES: DemoMode[] = [
     icon: "◌",
     prompt: "Track a visible change",
     input: "New image · compare with your notes",
-    signal: "Visual record prepared",
-    summary: "A visual record can add context to a care conversation when it is paired with symptoms and history.",
+    signal: "AI visual context prepared",
+    summary: "AI can organize visual observations alongside symptoms and history to add context to a care conversation.",
     nextStep: "Track changes and decide when to seek in-person care.",
     score: 64,
   },
@@ -58,8 +58,8 @@ const DEMO_MODES: DemoMode[] = [
     icon: "▣",
     prompt: "Bring prescription context together",
     input: "Symptoms + report notes + existing prescription",
-    signal: "Medication review prepared",
-    summary: "Medication history can be organized for a licensed clinician to review alongside the relevant care context.",
+    signal: "AI medicine guidance ready",
+    summary: "AI brings medication history and health context together to prepare medicine guidance for professional review.",
     nextStep: "Review medication suitability, dose, and any prescription with a qualified clinician.",
     score: 88,
   },
@@ -210,23 +210,21 @@ export default function LandingPage() {
             <div className="landing-hero-copy">
               <div className="landing-system-chip">
                 <span className="landing-system-chip-dot" />
-                <span>AI health companion</span>
-                <span className="hidden sm:inline landing-system-chip-separator">•</span>
-                <span className="hidden sm:inline">Review health decisions with a professional</span>
+                <span>AI-powered symptom assessments, lab-report analysis &amp; medicine guidance</span>
               </div>
 
               <h1 className="landing-next-title">
-                Understand your lab reports and symptoms
-                <span> before your doctor visit.</span>
+                AI-powered clarity for symptoms and lab reports
+                <span>—plus better medicine questions.</span>
               </h1>
 
               <p className="landing-next-lede">
-                MedSign helps you organize symptoms, blood test reports, medicines, and questions into plain-language context—so you can have a clearer conversation with a qualified clinician.
+                Describe symptoms, upload a lab report, or add your current medicines. MedSign uses AI to create a plain-language symptom assessment, report context, and medicine guidance—so you can take a clearer next step with a qualified clinician.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                 <Link href="/signup" className="landing-button-shine landing-primary-cta">
-                  Start your care space
+                  Start free AI health assessment
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-5-5 5 5-5 5" /></svg>
                 </Link>
                 <a href="#experience" className="landing-secondary-cta">
@@ -236,10 +234,11 @@ export default function LandingPage() {
               </div>
 
               <div className="landing-hero-proof">
-                <div><span className="landing-proof-mark">✓</span> Built for clear next steps</div>
-                <div><span className="landing-proof-mark">✓</span> Designed around privacy</div>
-                <div><span className="landing-proof-mark">✓</span> Prescription context, in one place</div>
+                <div><span className="landing-proof-mark">✓</span> AI symptom assessments</div>
+                <div><span className="landing-proof-mark">✓</span> AI lab-report analysis</div>
+                <div><span className="landing-proof-mark">✓</span> Medicine guidance with professional review</div>
               </div>
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">For non-emergencies. AI guidance supports—not replaces—qualified clinical care.</p>
             </div>
 
             <div className="landing-console-stage">
@@ -325,17 +324,17 @@ export default function LandingPage() {
             </div>
 
             <div className="landing-product-grid">
-              <ProductFeature type="conversation" label="01 · START NATURALLY" title="Talk in your own words.">
-                Describe a concern without needing medical vocabulary. The experience guides you toward the details that matter.
+              <ProductFeature type="conversation" label="01 · AI SYMPTOM ASSESSMENT" title="Turn symptoms into an AI assessment.">
+                Describe a concern in your own words. AI organizes the details, surfaces possible conditions, and prepares next questions for professional review.
               </ProductFeature>
-              <ProductFeature type="report" label="02 · ORGANIZE CONTEXT" title="Make reports readable.">
-                Keep values, questions, and a plain-language explanation together before your next appointment.
+              <ProductFeature type="report" label="02 · AI LAB-REPORT ANALYSIS" title="Make report values readable.">
+                AI reads report values, flags results against the reference ranges shown, and puts the context into plain language before your next appointment.
               </ProductFeature>
-              <ProductFeature type="timeline" label="03 · NOTICE PATTERNS" title="See your care over time.">
-                Use a connected view of activities, reminders, and observations to notice what has changed.
+              <ProductFeature type="timeline" label="03 · AI HEALTH CONTEXT" title="Connect the details that matter.">
+                AI brings symptoms, activities, reminders, and observations together so it is easier to notice what has changed over time.
               </ProductFeature>
-              <ProductFeature type="share" label="04 · MEDICATION CONTINUITY" title="Prepare a safer medication review.">
-                Bring symptoms, images, reports, and existing prescription context together before a medication conversation with a qualified clinician.
+              <ProductFeature type="share" label="04 · AI PRESCRIPTION GUIDANCE" title="Prepare a safer medication review.">
+                AI brings symptoms, images, reports, and existing prescription context together to generate medicine guidance that needs qualified professional review.
               </ProductFeature>
             </div>
           </div>
