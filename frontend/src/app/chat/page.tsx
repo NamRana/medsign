@@ -225,6 +225,7 @@ function ChatPageInner() {
   const localMessageSequenceRef = useRef(0);
   const isNearBottomRef = useRef(true);
   const conversationLoadRef = useRef(0);
+  const pendingInsightQuestionRef = useRef<string | null>(null);
 
   function createLocalMessageId(prefix: string) {
     localMessageSequenceRef.current += 1;
@@ -236,6 +237,27 @@ function ChatPageInner() {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isSending]);
+
+  // Insight cards keep the question locally so it never needs to be placed in
+  // the URL. Prefill a new conversation only; an existing conversation should
+  // always remain focused on its own history.
+  useEffect(() => {
+    if (idFromUrl) return;
+    try {
+      const insightQuestion = pendingInsightQuestionRef.current ?? window.sessionStorage.getItem("medsign:insight-question");
+      if (!insightQuestion) return;
+      pendingInsightQuestionRef.current = insightQuestion;
+      window.sessionStorage.removeItem("medsign:insight-question");
+      const prefillTimer = window.setTimeout(() => {
+        setInputValue(insightQuestion);
+        inputRef.current?.focus();
+        pendingInsightQuestionRef.current = null;
+      }, 0);
+      return () => window.clearTimeout(prefillTimer);
+    } catch {
+      // Storage can be unavailable in private browsing modes. The chat remains usable.
+    }
+  }, [idFromUrl]);
 
   function handleMessageScroll(event: React.UIEvent<HTMLDivElement>) {
     const { scrollHeight, scrollTop, clientHeight } = event.currentTarget;

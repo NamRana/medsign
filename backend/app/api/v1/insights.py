@@ -1,11 +1,16 @@
-"""Health Insights API — aggregates all assessments, lab reports, and symptoms
-into a unified analytics view with health score and life expectancy estimate."""
+"""Health Insights API — aggregates health records into a unified analytics view.
+
+The longevity section deliberately provides preventive-health signals rather
+than an individual life-expectancy or mortality prediction.  The data collected
+by this endpoint has not been clinically validated for that use.
+"""
 
 from __future__ import annotations
 
 import logging
 from collections import Counter
 from datetime import datetime
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -64,12 +69,51 @@ class BodySystemScore(BaseModel):
     details: list[BodySystemDetail] = []
 
 
-class LifeExpectancy(BaseModel):
-    estimated_years: float
-    national_average: float
-    factors_positive: list[str]
-    factors_negative: list[str]
-    confidence: str  # low | medium | high
+class PreventiveHealthSignal(BaseModel):
+    """A factual, record-derived prompt for preventive follow-up.
+
+    This model intentionally does not make a diagnostic, prognostic, or
+    life-expectancy claim.
+    """
+
+    title: str
+    severity: Literal["info", "attention", "high"]
+    detail: str
+    recommendation: str
+    source: str
+
+
+class LongevityDataCoverage(BaseModel):
+    """Record counts shown for transparency in the non-predictive overview.
+
+    Wellness face scans are reported separately and are not used to produce
+    preventive-health signals.
+    """
+
+    assessment_count: int
+    lab_report_count: int
+    abnormal_lab_value_count: int
+    symptom_count: int
+    image_analysis_count: int
+    face_scan_count: int
+    summary: str
+
+
+class LongevityOutlook(BaseModel):
+    """Non-predictive longevity and preventive-health context for the UI."""
+
+    title: str
+    status: Literal["informational_only"]
+    personal_estimate_available: Literal[False]
+    preventive_signals: list[PreventiveHealthSignal]
+    data_coverage: LongevityDataCoverage
+    methodology: str
+    source_label: str
+    source_version: str
+    reference_source_label: str
+    reference_source_version: str
+    reference_url: str
+    reference_note: str
     disclaimer: str
 
 
@@ -115,7 +159,7 @@ class HealthInsights(BaseModel):
     lab_trends: list[LabTrend]
     risk_factors: list[RiskFactor]
     body_systems: list[BodySystemScore]
-    life_expectancy: LifeExpectancy
+    longevity_outlook: LongevityOutlook
     monthly_activity: list[dict]  # [{month, assessments, lab_reports, image_analyses, face_scans}]
     doctors: list[DoctorEntry]
     labs: list[LabEntry]
@@ -161,10 +205,6 @@ BODY_SYSTEM_MAPPING = {
     "throat": "ENT",
 }
 
-# India average life expectancy (WHO 2023)
-INDIA_LIFE_EXPECTANCY = 73.7
-
-
 def classify_body_system(text: str) -> str:
     text_lower = text.lower()
     for keyword, system in BODY_SYSTEM_MAPPING.items():
@@ -202,66 +242,176 @@ def calculate_health_score(
     return max(75, min(98, int(score)))
 
 
-def estimate_life_expectancy(
-    health_score: int,
+def _scope_face_scans_query(query, *, user_id: str, member_id: str | None):
+    """Keep wellness-face-scan records within the active profile.
+
+    A null ``family_member_id`` represents the account holder's own scan.
+    Older scans have no family member attached, so they remain visible only on
+    the account holder's profile instead of being included in every family
+    member's Insights view.
+    """
+
+    query = query.eq("user_id", user_id)
+    if member_id:
+        return query.eq("family_member_id", member_id)
+    return query.is_("family_member_id", "null")
+
+
+def build_longevity_outlook(
     risk_factors: list[RiskFactor],
     conditions: list[ConditionEntry],
-) -> LifeExpectancy:
-    base = INDIA_LIFE_EXPECTANCY
-    adjustment = 0.0
-    positives = []
-    negatives = []
+    *,
+    assessment_count: int,
+    lab_report_count: int,
+    abnormal_lab_value_count: int,
+    symptom_count: int,
+    image_analysis_count: int,
+    face_scan_count: int,
+) -> LongevityOutlook:
+    """Build a non-predictive preventive-health overview from recorded data.
 
-    if health_score >= 80:
-        adjustment += 4.0
-        positives.append("Overall good health profile")
-    elif health_score >= 60:
-        adjustment += 1.5
-        positives.append("Moderate health status")
-    elif health_score < 40:
-        adjustment -= 3.0
-        negatives.append("Multiple health concerns detected")
+    There is deliberately no score-to-years conversion here.  The application
+    does not have an India-validated survival model or sufficient inputs to make
+    an individual longevity prediction.
+    """
 
-    chronic_count = sum(1 for c in conditions if c.occurrences >= 3)
-    if chronic_count == 0:
-        adjustment += 2.0
-        positives.append("No chronic recurring conditions")
-    elif chronic_count <= 2:
-        adjustment -= 1.5
-        negatives.append(f"{chronic_count} recurring condition(s)")
+    signals: list[PreventiveHealthSignal] = []
+    high_priority_count = sum(1 for factor in risk_factors if factor.severity == "high")
+    attention_count = sum(1 for factor in risk_factors if factor.severity == "medium")
+    recurring_findings_count = sum(1 for condition in conditions if condition.occurrences >= 3)
+
+    if high_priority_count:
+        signals.append(PreventiveHealthSignal(
+            title="Prompt clinical follow-up may be needed",
+            severity="high",
+            detail=(
+                f"{high_priority_count} high-priority item(s) are recorded in your "
+                "health history. This is a follow-up prompt, not a prognosis."
+            ),
+            recommendation=(
+                "Review these items with a qualified clinician, especially if symptoms "
+                "are new, worsening, severe, or persistent."
+            ),
+            source="Recorded assessments and health records",
+        ))
+
+    if abnormal_lab_value_count:
+        signals.append(PreventiveHealthSignal(
+            title="Review out-of-range lab values",
+            severity="attention" if abnormal_lab_value_count <= 5 else "high",
+            detail=(
+                f"{abnormal_lab_value_count} lab value(s) were marked outside the "
+                "reported reference range. A lab flag alone does not establish a diagnosis."
+            ),
+            recommendation=(
+                "Discuss the report and its reference ranges with the clinician who knows "
+                "your history; ask whether repeat testing or follow-up is appropriate."
+            ),
+            source="Uploaded lab reports",
+        ))
+
+    if recurring_findings_count:
+        signals.append(PreventiveHealthSignal(
+            title="Track recurring assessment findings",
+            severity="attention",
+            detail=(
+                f"{recurring_findings_count} finding(s) have appeared in three or more "
+                "recorded assessments. These are not confirmed diagnoses."
+            ),
+            recommendation=(
+                "Bring a timeline of recurring symptoms or findings to a qualified clinician "
+                "for assessment."
+            ),
+            source="Recorded assessments",
+        ))
+
+    if attention_count and not abnormal_lab_value_count and not recurring_findings_count:
+        signals.append(PreventiveHealthSignal(
+            title="Review health items needing attention",
+            severity="attention",
+            detail=(
+                f"{attention_count} item(s) in your records were marked as needing attention. "
+                "This is a record summary, not a prediction."
+            ),
+            recommendation="Review these items at your next appropriate clinical visit.",
+            source="Recorded assessments and health records",
+        ))
+
+    if not signals:
+        if assessment_count or lab_report_count or symptom_count:
+            signals.append(PreventiveHealthSignal(
+                title="Continue routine health tracking",
+                severity="info",
+                detail=(
+                    "No preventive follow-up signal was identified from the limited records "
+                    "summarized here. This does not rule out a health concern."
+                ),
+                recommendation=(
+                    "Keep records up to date and seek clinical advice for new, concerning, "
+                    "or persistent symptoms."
+                ),
+                source="Available MedSign records",
+            ))
+        else:
+            signals.append(PreventiveHealthSignal(
+                title="Add health records for practical next steps",
+                severity="info",
+                detail=(
+                    "There are no recorded assessments, lab reports, or symptoms to summarize yet. "
+                    "Wellness face scans are not used to create preventive-health signals."
+                ),
+                recommendation=(
+                    "Add information only when you want help organizing it for a conversation "
+                    "with a qualified clinician."
+                ),
+                source="Available MedSign records",
+            ))
+
+    coverage_parts = []
+    if assessment_count:
+        coverage_parts.append(f"{assessment_count} assessment(s)")
+    if lab_report_count:
+        coverage_parts.append(f"{lab_report_count} lab report(s)")
+    if symptom_count:
+        coverage_parts.append(f"{symptom_count} reported symptom(s)")
+    if coverage_parts:
+        coverage_summary = "Preventive signals use: " + ", ".join(coverage_parts) + "."
     else:
-        adjustment -= 3.0
-        negatives.append(f"{chronic_count} chronic conditions present")
+        coverage_summary = "No assessments, lab reports, or reported symptoms are available for this overview yet."
 
-    high_risk_count = sum(1 for r in risk_factors if r.severity == "high")
-    if high_risk_count == 0:
-        adjustment += 1.5
-        positives.append("No high-severity risk factors")
-    else:
-        adjustment -= high_risk_count * 1.0
-        negatives.append(f"{high_risk_count} high-severity risk factor(s)")
-
-    if not negatives:
-        positives.append("Proactive health monitoring")
-        adjustment += 1.0
-
-    confidence = "low"
-    if len(conditions) >= 3:
-        confidence = "medium"
-    if len(conditions) >= 6:
-        confidence = "high"
-
-    return LifeExpectancy(
-        estimated_years=round(base + adjustment, 1),
-        national_average=base,
-        factors_positive=positives or ["Regular health check-ups"],
-        factors_negative=negatives or ["Insufficient data for detailed analysis"],
-        confidence=confidence,
+    return LongevityOutlook(
+        title="Longevity & preventive-health outlook",
+        status="informational_only",
+        personal_estimate_available=False,
+        preventive_signals=signals,
+        data_coverage=LongevityDataCoverage(
+            assessment_count=assessment_count,
+            lab_report_count=lab_report_count,
+            abnormal_lab_value_count=abnormal_lab_value_count,
+            symptom_count=symptom_count,
+            image_analysis_count=image_analysis_count,
+            face_scan_count=face_scan_count,
+            summary=coverage_summary,
+        ),
+        methodology=(
+            "This non-predictive overview summarizes health information recorded in MedSign. "
+            "It does not estimate life expectancy, mortality risk, or add or subtract years "
+            "based on your records."
+        ),
+        source_label="MedSign preventive-health signal review",
+        source_version="v1.0 (non-predictive)",
+        reference_source_label="India Sample Registration System (SRS) Abridged Life Tables",
+        reference_source_version="2020–2024",
+        reference_url="https://censusindia.gov.in/nada/index.php/catalog/47148/study-description",
+        reference_note=(
+            "Listed for population-health context only. MedSign does not currently calculate "
+            "or display an SRS-based personal or population life-expectancy result."
+        ),
         disclaimer=(
-            "This is a simplified statistical estimate based on your health data. "
-            "It is NOT a medical diagnosis or prediction. Many lifestyle factors "
-            "(diet, exercise, genetics) are not captured here. Consult your doctor "
-            "for personalized health guidance."
+            "This screen is for health-information organization and preventive follow-up. It is "
+            "not medical advice, a diagnosis, a mortality-risk assessment, or a personal life-"
+            "expectancy prediction. Seek urgent care for emergency symptoms and consult a "
+            "qualified clinician for medical decisions."
         ),
     )
 
@@ -338,10 +488,12 @@ async def get_health_insights(
             seen_symptoms.add(key)
             symptoms.append(s)
 
-    # Fetch lab reports with details
+    # Fetch lab reports for the selected profile.  Reports have both owner and
+    # patient IDs; the patient scope prevents a family member's records from
+    # influencing another family member's preventive-health overview.
     reports_resp = supabase.table("lab_reports").select(
         "id, report_date, lab_name, lab_address, doctor_name, created_at, status"
-    ).eq("user_id", user_id).order("created_at", desc=True).execute()
+    ).eq("user_id", user_id).eq("patient_id", patient_id).order("created_at", desc=True).execute()
     lab_reports = reports_resp.data or []
 
     # Fetch lab values (only for this user's reports)
@@ -363,10 +515,15 @@ async def get_health_insights(
     image_analyses = images_resp.data or []
 
     # Fetch face scans
-    face_scans_resp = supabase.table("face_scans").select(
+    face_scans_query = supabase.table("face_scans").select(
         "id, scan_date, overall_score, hair_health_score, skin_quality_score, "
         "stress_level_score, sleep_quality_score, created_at"
-    ).eq("user_id", user_id).order("scan_date", desc=False).execute()
+    )
+    face_scans_resp = _scope_face_scans_query(
+        face_scans_query,
+        user_id=user_id,
+        member_id=member,
+    ).order("scan_date", desc=False).execute()
     face_scans = face_scans_resp.data or []
 
     face_scan_scores: list[dict] = []
@@ -722,7 +879,16 @@ async def get_health_insights(
     )
     if face_scan_avg is not None and face_scan_avg >= 70:
         health_score = min(98, health_score + 2)
-    life_exp = estimate_life_expectancy(health_score, risk_factors, conditions_list)
+    longevity_outlook = build_longevity_outlook(
+        risk_factors,
+        conditions_list,
+        assessment_count=len(conversations),
+        lab_report_count=len(lab_reports),
+        abnormal_lab_value_count=total_abnormal,
+        symptom_count=len(symptoms),
+        image_analysis_count=len(image_analyses),
+        face_scan_count=len(face_scans),
+    )
 
     return HealthInsights(
         health_score=health_score,
@@ -743,7 +909,7 @@ async def get_health_insights(
         lab_trends=lab_trends,
         risk_factors=risk_factors[:15],
         body_systems=body_systems,
-        life_expectancy=life_exp,
+        longevity_outlook=longevity_outlook,
         monthly_activity=monthly_activity,
         doctors=doctors_list,
         labs=labs_list,
