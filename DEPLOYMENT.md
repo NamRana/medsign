@@ -116,6 +116,7 @@ git push -u origin main
    ENVIRONMENT=production
    SECRET_KEY=<generate with: openssl rand -hex 32>
    CORS_ORIGINS=https://your-frontend-domain.railway.app
+   MONETIZATION_ENABLED=false
    ```
 4. Railway auto-detects the Dockerfile and deploys
 5. Note the generated URL (e.g., `https://medsign-backend-xxx.railway.app`)
@@ -550,6 +551,7 @@ In `frontend/src/app/layout.tsx`, add to `<head>`:
 | `CORS_ORIGINS` | Yes | Comma-separated allowed origins |
 | `SENTRY_DSN` | No | Sentry error tracking DSN |
 | `MEDGEMMA_ENABLED` | No | `true` to enable local MedGemma model (needs GPU) |
+| `MONETIZATION_ENABLED` | No | Defaults to `false` for acquisition mode: unlimited feature access, unlocked Pro insights, and no new checkout. Apply migration `018_add_quota_usage_counters.sql`, then set `true` to restore paid limits and subscriptions with fresh quotas. |
 
 ### Frontend (.env.local)
 

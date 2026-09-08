@@ -487,13 +487,14 @@ export async function getFamilyMembers(): Promise<FamilyMember[]> {
 
 export interface UsageEntry {
   used: number;
-  limit: number; // -1 = unlimited (pro)
+  limit: number; // -1 = unlimited access
 }
 
 export interface BillingStatus {
   plan: "free" | "pro";
   status: string;
   current_period_end: string | null;
+  monetization_enabled: boolean;
   usage: {
     assessments: UsageEntry;
     lab_reports: UsageEntry;

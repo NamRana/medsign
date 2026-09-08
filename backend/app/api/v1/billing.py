@@ -28,6 +28,7 @@ class BillingStatus(BaseModel):
     plan: str
     status: str
     current_period_end: str | None
+    monetization_enabled: bool
     usage: dict
     free_limits: dict
 
@@ -45,6 +46,11 @@ class UsageLimitResponse(BaseModel):
 @router.post("/subscribe", response_model=SubscribeResponse, summary="Create a subscription")
 async def subscribe(user=Depends(get_current_user)) -> SubscribeResponse:
     """Create a Razorpay subscription for the current user."""
+    if not billing_service.settings.monetization_enabled:
+        raise HTTPException(
+            status_code=409,
+            detail="Subscriptions are temporarily paused while all features are free.",
+        )
     if billing_service.is_pro(str(user.id)):
         raise HTTPException(status_code=400, detail="Already subscribed to Pro")
     try:
@@ -68,7 +74,12 @@ class VerifyPaymentRequest(BaseModel):
 
 @router.post("/verify", summary="Verify payment after Razorpay checkout")
 async def verify_payment(body: VerifyPaymentRequest, user=Depends(get_current_user)):
-    """Verify Razorpay payment signature and activate subscription."""
+    """Verify a payment that may have begun before checkout was paused.
+
+    New checkout is blocked in ``subscribe`` while acquisition mode is active.
+    This endpoint deliberately remains available for an in-flight payment so an
+    already-initiated Razorpay charge is not left without a matching record.
+    """
     import hmac
     import hashlib
 

@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     razorpay_plan_id: str = ""  # Monthly pro plan ID from Razorpay dashboard
     razorpay_webhook_secret: str = ""
 
+    # Temporary acquisition mode. When disabled, all product features are
+    # available to every signed-in user, while usage is still recorded for
+    # analytics. Apply migration 018 before setting MONETIZATION_ENABLED=true
+    # to restore quotas, Pro-only features, and new subscription checkout.
+    monetization_enabled: bool = False
+
     # MedGemma (optional — enable for superior medical image analysis)
     medgemma_enabled: bool = False
     medgemma_model_id: str = "google/medgemma-4b-it"

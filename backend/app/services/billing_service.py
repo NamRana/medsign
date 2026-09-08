@@ -22,6 +22,11 @@ FREE_LIMITS = {
 _rz_client = None
 
 
+def _quota_usage_column(feature: str) -> str:
+    """Return the counter used for enforceable paid-plan quotas."""
+    return f"{feature}_quota_used"
+
+
 def _get_razorpay_client():
     global _rz_client
     if _rz_client is None:
@@ -54,6 +59,16 @@ def get_subscription(user_id: str) -> dict | None:
 def is_pro(user_id: str) -> bool:
     sub = get_subscription(user_id)
     return sub is not None and sub["plan"] == "pro" and sub["status"] == "active"
+
+
+def has_premium_access(user_id: str) -> bool:
+    """Return whether a user can access Pro-only product features.
+
+    During the acquisition period, premium entitlements are open to everyone.
+    Keep ``is_pro`` separate so subscription records and billing analytics stay
+    truthful.
+    """
+    return not settings.monetization_enabled or is_pro(user_id)
 
 
 def create_razorpay_subscription(user_id: str, email: str) -> dict:
@@ -152,38 +167,53 @@ def get_usage(user_id: str) -> dict:
         "lab_reports_used": 0,
         "face_scans_used": 0,
         "image_analyses_used": 0,
+        "assessments_quota_used": 0,
+        "lab_reports_quota_used": 0,
+        "face_scans_quota_used": 0,
+        "image_analyses_quota_used": 0,
     }
 
 
 def increment_usage(user_id: str, feature: str) -> None:
     month = get_current_month()
     col = f"{feature}_used"
+    quota_col = _quota_usage_column(feature)
+    fields = "id, " + col
+    if settings.monetization_enabled:
+        fields += ", " + quota_col
     resp = (
         supabase.table("usage_tracking")
-        .select("id, " + col)
+        .select(fields)
         .eq("user_id", user_id)
         .eq("month", month)
         .execute()
     )
     if resp.data:
         row = resp.data[0]
-        supabase.table("usage_tracking").update(
-            {col: row[col] + 1, "updated_at": datetime.now(timezone.utc).isoformat()}
-        ).eq("id", row["id"]).execute()
+        update = {col: row[col] + 1, "updated_at": datetime.now(timezone.utc).isoformat()}
+        if settings.monetization_enabled:
+            update[quota_col] = row.get(quota_col, 0) + 1
+        supabase.table("usage_tracking").update(update).eq("id", row["id"]).execute()
     else:
-        supabase.table("usage_tracking").insert(
-            {"user_id": user_id, "month": month, col: 1}
-        ).execute()
+        usage_record = {"user_id": user_id, "month": month, col: 1}
+        if settings.monetization_enabled:
+            usage_record[quota_col] = 1
+        supabase.table("usage_tracking").insert(usage_record).execute()
 
 
 def check_limit(user_id: str, feature: str) -> dict:
     """Check if user can use a feature. Returns {allowed, used, limit, is_pro}."""
+    if not settings.monetization_enabled:
+        # Preserve the underlying limits and usage tracking for when paid
+        # access returns, but do not make access depend on a billing lookup.
+        return {"allowed": True, "used": 0, "limit": -1, "is_pro": False}
+
     pro = is_pro(user_id)
     if pro:
         return {"allowed": True, "used": 0, "limit": -1, "is_pro": True}
 
     usage = get_usage(user_id)
-    col = f"{feature}_used"
+    col = _quota_usage_column(feature)
     used = usage.get(col, 0)
     limit = FREE_LIMITS.get(feature, 0)
     return {
@@ -199,16 +229,25 @@ def get_billing_status(user_id: str) -> dict:
     sub = get_subscription(user_id)
     pro = sub is not None and sub["plan"] == "pro" and sub["status"] == "active"
     usage = get_usage(user_id)
+    unlimited_access = not settings.monetization_enabled or pro
+
+    def usage_entry(feature: str) -> dict:
+        usage_col = _quota_usage_column(feature) if settings.monetization_enabled else f"{feature}_used"
+        return {
+            "used": usage.get(usage_col, 0),
+            "limit": -1 if unlimited_access else FREE_LIMITS[feature],
+        }
 
     return {
         "plan": "pro" if pro else "free",
         "status": sub["status"] if sub else "none",
         "current_period_end": sub.get("current_period_end") if sub else None,
+        "monetization_enabled": settings.monetization_enabled,
         "usage": {
-            "assessments": {"used": usage.get("assessments_used", 0), "limit": -1 if pro else FREE_LIMITS["assessments"]},
-            "lab_reports": {"used": usage.get("lab_reports_used", 0), "limit": -1 if pro else FREE_LIMITS["lab_reports"]},
-            "face_scans": {"used": usage.get("face_scans_used", 0), "limit": -1 if pro else FREE_LIMITS["face_scans"]},
-            "image_analyses": {"used": usage.get("image_analyses_used", 0), "limit": -1 if pro else FREE_LIMITS["image_analyses"]},
+            "assessments": usage_entry("assessments"),
+            "lab_reports": usage_entry("lab_reports"),
+            "face_scans": usage_entry("face_scans"),
+            "image_analyses": usage_entry("image_analyses"),
         },
         "free_limits": FREE_LIMITS,
     }

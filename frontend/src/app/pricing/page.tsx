@@ -37,27 +37,54 @@ const PRO_FEATURES = [
 export default function PricingPage() {
   const router = useRouter();
   const [billing, setBilling] = useState<BillingStatus | null>(null);
+  const [billingState, setBillingState] = useState<"loading" | "ready" | "error">("loading");
+  const [checkoutReady, setCheckoutReady] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
+    if (billing?.monetization_enabled !== true) return;
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
+    const markCheckoutReady = () => setCheckoutReady(true);
+    const reportCheckoutError = () => setMessage({ type: "error", text: "Checkout could not be loaded. Please try again later." });
+    script.addEventListener("load", markCheckoutReady);
+    script.addEventListener("error", reportCheckoutError);
     document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
+    return () => {
+      script.removeEventListener("load", markCheckoutReady);
+      script.removeEventListener("error", reportCheckoutError);
+      document.body.removeChild(script);
+    };
+  }, [billing?.monetization_enabled]);
 
   useEffect(() => {
+    let cancelled = false;
     getBillingStatus()
-      .then(setBilling)
-      .catch(() => {});
+      .then((data) => {
+        if (cancelled) return;
+        setBilling(data);
+        setBillingState("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setBillingState("error");
+      });
+    return () => { cancelled = true; };
   }, []);
 
   const isPro = billing?.plan === "pro" && billing?.status === "active";
 
   async function handleSubscribe() {
+    if (
+      billing?.monetization_enabled !== true ||
+      !checkoutReady ||
+      typeof window.Razorpay !== "function"
+    ) {
+      setMessage({ type: "error", text: "Subscription checkout is not ready. Please try again in a moment." });
+      return;
+    }
     setSubscribing(true);
     setMessage(null);
     try {
@@ -103,7 +130,7 @@ export default function PricingPage() {
     setCancelling(true);
     try {
       await cancelSubscription();
-      setMessage({ type: "success", text: "Subscription cancelled. You'll retain Pro access until the end of your billing period." });
+      setMessage({ type: "success", text: "Subscription cancelled." });
       const updated = await getBillingStatus();
       setBilling(updated);
     } catch {
@@ -111,6 +138,95 @@ export default function PricingPage() {
     } finally {
       setCancelling(false);
     }
+  }
+
+  if (billingState === "loading") {
+    return (
+      <div className="min-h-screen care-os care-grid">
+        <main className="care-content max-w-md mx-auto px-5 py-24 text-center">
+          <div className="w-9 h-9 mx-auto border-4 border-teal-100 border-t-teal-600 rounded-full animate-spin" />
+          <p className="mt-5 text-sm font-medium text-slate-600">Loading access details…</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (billingState === "error" || !billing) {
+    return (
+      <div className="min-h-screen care-os care-grid">
+        <main className="care-content max-w-md mx-auto px-5 py-24 text-center">
+          <h1 className="text-xl font-bold text-slate-900">Could not load access details</h1>
+          <p className="mt-2 text-sm text-slate-500">Please check your connection and try again.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition"
+          >
+            Try again
+          </button>
+        </main>
+      </div>
+    );
+  }
+
+  if (!billing.monetization_enabled) {
+    return (
+      <div className="min-h-screen care-os care-grid">
+        <header className="care-hero border-b border-white/10 shadow-none">
+          <div className="max-w-3xl mx-auto px-5 py-4 flex items-center justify-between">
+            <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-white/70 hover:text-white transition">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              <span className="text-sm font-medium">Back</span>
+            </button>
+            <h1 className="text-sm font-bold tracking-[.16em] uppercase text-white/90">MedSign</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="care-content max-w-2xl mx-auto px-5 py-12 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-100 mb-5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            Early access
+          </div>
+          <p className="care-eyebrow !text-teal-700 mb-2">Care intelligence, without limits</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#083b42] mb-4">Everything is free while we grow</h2>
+          <p className="text-slate-500 text-lg leading-relaxed max-w-xl mx-auto">
+            Use every MedSign feature as much as you need. We&apos;re collecting feedback and usage data to make the product better before bringing plans back.
+          </p>
+
+          <section className="mt-9 rounded-3xl border border-teal-100 bg-white/80 shadow-sm p-7 text-left">
+            <h3 className="text-lg font-bold text-slate-900">Included for everyone</h3>
+            <div className="grid sm:grid-cols-2 gap-x-7 gap-y-4 mt-5">
+              {["Unlimited health assessments", "Unlimited lab report uploads", "Unlimited face scans", "Unlimited image analysis", "AI health history", "Hindi language support"].map((feature) => (
+                <div key={feature} className="flex items-center gap-3 text-sm text-slate-700">
+                  <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                  {feature}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {message && (
+            <p className={`mt-5 text-sm font-medium ${message.type === "success" ? "text-emerald-700" : "text-red-700"}`}>{message.text}</p>
+          )}
+
+          {isPro && (
+            <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-left">
+              <h3 className="text-sm font-bold text-amber-900">Your existing Pro subscription is still active</h3>
+              <p className="mt-1 text-sm text-amber-800">All features are currently free for everyone. Cancel this recurring subscription below if you do not want it to renew.</p>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="mt-4 w-full py-2.5 text-center text-sm font-semibold text-red-700 bg-white border border-red-200 rounded-xl hover:bg-red-50 transition disabled:opacity-50"
+              >
+                {cancelling ? "Cancelling..." : "Cancel Subscription"}
+              </button>
+            </section>
+          )}
+
+          <p className="mt-7 text-sm text-slate-500">We&apos;ll let you know before paid plans return. Your account and health records stay yours.</p>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -227,10 +343,10 @@ export default function PricingPage() {
             ) : (
               <button
                 onClick={handleSubscribe}
-                disabled={subscribing}
+                disabled={subscribing || !checkoutReady}
                 className="care-pricing-cta w-full py-3 text-center text-sm font-bold rounded-xl transition disabled:opacity-50"
               >
-                {subscribing ? "Processing..." : "Upgrade to Pro"}
+                {subscribing ? "Processing..." : checkoutReady ? "Upgrade to Pro" : "Loading checkout..."}
               </button>
             )}
           </div>

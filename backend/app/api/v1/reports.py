@@ -156,6 +156,10 @@ async def upload_lab_report(
         logger.error("Extraction failed: %s", exc)
         # Report is already marked as failed in process_report
 
+    # Record one usage event per upload. This remains active while
+    # monetization is paused so we retain acquisition and capacity data.
+    billing_service.increment_usage(user_id, "lab_reports")
+
     # Fetch the completed report with values and interpretation
     return await _get_report_response(report_id, user_id)
 
@@ -294,8 +298,6 @@ async def _get_report_response(report_id: str, user_id: str) -> LabReportRespons
             patient_friendly_explanation=i["patient_friendly_explanation"],
             recommendations=i.get("recommendations", []),
         )
-
-    billing_service.increment_usage(user_id, "lab_reports")
 
     return LabReportResponse(
         id=report["id"],

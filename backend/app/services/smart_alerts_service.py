@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from app.dependencies import supabase
-from app.services.billing_service import is_pro
+from app.services.billing_service import has_premium_access
 
 
 def _days_ago(n: int) -> str:
@@ -17,11 +17,12 @@ def _days_ago(n: int) -> str:
 async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -> list[dict]:
     """Analyze user's health data and return smart alerts.
 
-    For free users we generate all alerts but mark most as locked.
+    When monetization is enabled, free users receive locked previews of
+    Pro-only alerts. Acquisition mode makes those alerts available to everyone.
     """
     uid = str(user_id)
     pid = str(patient_id) if patient_id else None
-    user_is_pro = is_pro(uid)
+    user_has_premium_access = has_premium_access(uid)
 
     alerts: list[dict] = []
 
@@ -69,7 +70,7 @@ async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -
                 "body": f"You've had {len(convos)} assessments with an average gap of {avg_gap:.0f} days. This pattern suggests ongoing health issues that may benefit from a comprehensive check-up.",
                 "recommendation": "Schedule a general health check-up to address multiple concerns at once.",
                 "data_points": len(convos),
-                "locked": not user_is_pro,
+                "locked": not user_has_premium_access,
             })
 
     # --- 3. Face scan trend analysis ---
@@ -98,7 +99,7 @@ async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -
                     "body": f"Your stress score dropped from {older_avg:.0f} to {recent_avg:.0f} over recent scans. This {((older_avg - recent_avg) / older_avg * 100):.0f}% decline suggests rising stress.",
                     "recommendation": "Try deep breathing, regular walks, or meditation. Persistent stress affects immunity and sleep.",
                     "data_points": len(stress_scores),
-                    "locked": not user_is_pro,
+                    "locked": not user_has_premium_access,
                 })
 
         # Sleep quality declining
@@ -114,7 +115,7 @@ async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -
                     "body": f"Your average sleep score is {recent_sleep:.0f}/100 over recent scans. Poor sleep impacts recovery, immunity, and mental health.",
                     "recommendation": "Maintain a consistent sleep schedule. Avoid screens 1 hour before bed. Consider discussing with a doctor if persistent.",
                     "data_points": len(sleep_scores),
-                    "locked": not user_is_pro,
+                    "locked": not user_has_premium_access,
                 })
 
         # Overall wellness declining
@@ -133,7 +134,7 @@ async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -
                     "body": f"Your wellness score has dropped from ~{first_avg:.0f} to ~{second_avg:.0f}. A downward trend over multiple scans deserves attention.",
                     "recommendation": "Review your recent lifestyle changes. Regular exercise, balanced diet, and adequate sleep can reverse this trend.",
                     "data_points": len(overall_scores),
-                    "locked": not user_is_pro,
+                    "locked": not user_has_premium_access,
                 })
 
     # --- 4. Lab value trend analysis ---
@@ -162,7 +163,7 @@ async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -
                 "body": f"Your latest report has {abnormal_by_report[0]} abnormal values, up from {abnormal_by_report[-1]} previously. This trend warrants medical review.",
                 "recommendation": "Share your lab reports with your doctor. Increasing abnormal values may indicate a developing condition.",
                 "data_points": sum(abnormal_by_report),
-                "locked": not user_is_pro,
+                "locked": not user_has_premium_access,
             })
 
     # --- 5. Cross-correlation: stress + frequent assessments ---
@@ -179,7 +180,7 @@ async def generate_smart_alerts(user_id: UUID, patient_id: UUID | None = None) -
                 "body": f"High stress scores combined with {len(recent_convos_30d)} health concerns in the past month. This pattern is often associated with burnout.",
                 "recommendation": "Prioritize rest and recovery. Consider reducing workload if possible. Talk to someone you trust about how you're feeling.",
                 "data_points": len(recent_stress) + len(recent_convos_30d),
-                "locked": not user_is_pro,
+                "locked": not user_has_premium_access,
             })
 
     # --- 6. Positive reinforcement (always unlocked) ---
