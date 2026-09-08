@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apiFetch } from "@/lib/api";
+import { canonicalSiteUrl } from "@/lib/seo";
 
 function stripMarkdownForShare(text: string): string {
   return text
@@ -49,8 +50,9 @@ export default function ShareReport({
   }
 
   function openWhatsApp() {
+    const siteLink = canonicalSiteUrl ? `\n${canonicalSiteUrl}` : "";
     const msg = truncateForWhatsApp(
-      `${cleanText}\n\n---\nAI-generated care summary — not medical advice or a diagnosis.\nhttps://medsign.app`
+      `${cleanText}\n\n---\nAI-generated care summary — not medical advice or a diagnosis.${siteLink}`
     );
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   }

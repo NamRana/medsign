@@ -130,6 +130,8 @@ git push -u origin main
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    NEXT_PUBLIC_API_URL=https://medsign-backend-xxx.railway.app
+   NEXT_PUBLIC_SITE_URL=https://your-frontend-domain.railway.app
+   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=
    ```
 4. Railway deploys the frontend
 5. Set up a custom domain or use the Railway-provided URL
@@ -602,6 +604,9 @@ pg_dump "postgresql://postgres.your-project:password@host:5432/postgres" > backu
 2. Point DNS to your hosting provider:
    - **Railway/Vercel:** Add custom domain in their dashboard, they handle SSL
    - **Self-hosted:** Point A record to your server IP
+3. Set `NEXT_PUBLIC_SITE_URL` to the single canonical `https://` domain and redeploy the frontend.
+   Redirect `www` and provider preview URLs to that canonical hostname. This value drives
+   canonical tags, `robots.txt`, `sitemap.xml`, social sharing, and structured data.
 
 ### SSL with Let's Encrypt (self-hosted only)
 

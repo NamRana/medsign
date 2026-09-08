@@ -1,7 +1,7 @@
 {
   "name": "MedSign",
   "short_name": "MedSign",
-  "description": "AI-powered health assessment",
+  "description": "Plain-language health context for lab reports, symptoms, and medication tracking.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

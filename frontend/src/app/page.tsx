@@ -60,7 +60,7 @@ const DEMO_MODES: DemoMode[] = [
     input: "Symptoms + report notes + existing prescription",
     signal: "Medication review prepared",
     summary: "Medication history can be organized for a licensed clinician to review alongside the relevant care context.",
-    nextStep: "A locally licensed clinician reviews suitability, dose, and whether a prescription is appropriate.",
+    nextStep: "Review medication suitability, dose, and any prescription with a qualified clinician.",
     score: 88,
   },
 ];
@@ -210,18 +210,18 @@ export default function LandingPage() {
             <div className="landing-hero-copy">
               <div className="landing-system-chip">
                 <span className="landing-system-chip-dot" />
-                <span>Personal clinical intelligence</span>
+                <span>AI health companion</span>
                 <span className="hidden sm:inline landing-system-chip-separator">•</span>
-                <span className="hidden sm:inline">Guidance, not diagnosis</span>
+                <span className="hidden sm:inline">Review health decisions with a professional</span>
               </div>
 
               <h1 className="landing-next-title">
-                A calmer way to
-                <span> understand what your health is telling you.</span>
+                Understand your lab reports and symptoms
+                <span> before your doctor visit.</span>
               </h1>
 
               <p className="landing-next-lede">
-                MedSign turns everyday health questions, reports, and observations into organized context—so you can have clearer conversations and take the right next step.
+                MedSign helps you organize symptoms, blood test reports, medicines, and questions into plain-language context—so you can have a clearer conversation with a qualified clinician.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -335,7 +335,7 @@ export default function LandingPage() {
                 Use a connected view of activities, reminders, and observations to notice what has changed.
               </ProductFeature>
               <ProductFeature type="share" label="04 · MEDICATION CONTINUITY" title="Prepare a safer medication review.">
-                Bring symptoms, images, reports, and existing prescription context together to support a locally licensed clinician&apos;s decision in supported regions.
+                Bring symptoms, images, reports, and existing prescription context together before a medication conversation with a qualified clinician.
               </ProductFeature>
             </div>
           </div>
@@ -391,7 +391,7 @@ export default function LandingPage() {
               <div className="landing-safety-list">
                 <article><span className="landing-safety-icon">⌘</span><div><h3>Privacy-aware by design</h3><p>Health context belongs in a personal space designed for thoughtful access and control.</p></div></article>
                 <article><span className="landing-safety-icon">!</span><div><h3>Clear escalation cues</h3><p>When a concern needs in-person or emergency care, the product should make that next step easy to recognize.</p></div></article>
-                <article><span className="landing-safety-icon">↗</span><div><h3>Clinician-controlled prescriptions</h3><p>AI can organize the relevant context, but the locally licensed clinician makes the clinical decision and issues any prescription.</p></div></article>
+                <article><span className="landing-safety-icon">↗</span><div><h3>Medication decisions need professional review</h3><p>Use AI-generated context to prepare questions, then verify medicine, dose, and prescription decisions with an appropriately qualified practitioner.</p></div></article>
               </div>
             </div>
           </div>
@@ -420,8 +420,12 @@ export default function LandingPage() {
             <p className="mt-3 max-w-md text-xs text-slate-500 leading-relaxed">MedSign helps people organize health context for clearer next steps. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-slate-500">
+            <Link href="/ai-lab-report-analyzer" className="hover:text-teal-700">Lab report analyzer</Link>
+            <Link href="/ai-symptom-checker" className="hover:text-teal-700">Symptom guidance</Link>
+            <Link href="/online-prescription" className="hover:text-teal-700">Prescription guidance</Link>
+            <Link href="/how-it-works" className="hover:text-teal-700">How MedSign works</Link>
+            <Link href="/medical-safety" className="hover:text-teal-700">Medical safety</Link>
             <a href="#experience" className="hover:text-teal-700">Experience</a>
-            <a href="#how-it-works" className="hover:text-teal-700">How it works</a>
             <a href="#safety" className="hover:text-teal-700">Safety</a>
             <Link href="/login" className="hover:text-teal-700">Sign in</Link>
           </div>
