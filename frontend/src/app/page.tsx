@@ -210,26 +210,26 @@ export default function LandingPage() {
             <div className="landing-hero-copy">
               <div className="landing-system-chip">
                 <span className="landing-system-chip-dot" />
-                <span>AI-powered symptom assessments, lab-report analysis &amp; medicine guidance</span>
+                <span>AI-powered health understanding</span>
               </div>
 
               <h1 className="landing-next-title">
-                AI-powered clarity for symptoms and lab reports
-                <span>—plus better medicine questions.</span>
+                Understand what your symptoms and reports may be telling you.
+                <span>Get a clearer next step before you see a doctor.</span>
               </h1>
 
               <p className="landing-next-lede">
-                Describe symptoms, upload a lab report, or add your current medicines. MedSign uses AI to create a plain-language symptom assessment, report context, and medicine guidance—so you can take a clearer next step with a qualified clinician.
+                MedSign uses AI to connect your symptoms, lab reports, medicines, and observations into plain-language context—so you can spot important questions and have a more informed conversation with a qualified clinician.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                 <Link href="/signup" className="landing-button-shine landing-primary-cta">
-                  Start free AI health assessment
+                  Start free AI assessment
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-5-5 5 5-5 5" /></svg>
                 </Link>
                 <a href="#experience" className="landing-secondary-cta">
                   <span className="landing-play-mark">▶</span>
-                  Explore the experience
+                  See how MedSign works
                 </a>
               </div>
 
@@ -238,7 +238,7 @@ export default function LandingPage() {
                 <div><span className="landing-proof-mark">✓</span> AI lab-report analysis</div>
                 <div><span className="landing-proof-mark">✓</span> Medicine guidance with professional review</div>
               </div>
-              <p className="mt-3 text-xs leading-relaxed text-slate-500">For non-emergencies. AI guidance supports—not replaces—qualified clinical care.</p>
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">AI-generated health information for non-emergencies. Review clinical decisions with a qualified professional.</p>
             </div>
 
             <div className="landing-console-stage">
